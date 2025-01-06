@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 
+const {isOpen} = require('../validators/shopValidator');
+
 // Schema για το κατάστημα
 const shopSchema = mongoose.Schema({
     shopName: {
@@ -109,6 +111,11 @@ const shopSchema = mongoose.Schema({
             bookingStart: { type: Number, min: 0, max: 24, required: true },
             bookingEnd: { type: Number, min: 0, max: 24, required: true },
         },
+    },
+
+    timeSlotSplit:{
+        type:Number,
+        required:true,
     },
 
     tables: [{

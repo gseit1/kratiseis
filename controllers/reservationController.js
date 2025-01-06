@@ -2,6 +2,8 @@ const Reservation = require('../models/reservation');
 const Shop = require('../models/shop');
 const Table = require('../models/table');
 
+
+//todo αλλαγη μεθοδψν για ενημερωση tableAvailability
 const addReservation = async (req, res) => {
     try {
         const { reservationDate, shopId, userId, tableId, reservationTime, commentFromUser, userName } = req.body;

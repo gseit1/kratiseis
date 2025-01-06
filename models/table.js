@@ -18,6 +18,9 @@ const tableSchema = mongoose.Schema({
         type: Number, // Διάρκεια σε λεπτά (π.χ. 120 για 2 ώρες)
         default: 120, // Default reservation time
     },
+
+  
+
     bookingHours: {
         monday: {
             isBookingAllowed: { type: Boolean, default: false },
