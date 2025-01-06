@@ -64,36 +64,50 @@ const shopSchema = mongoose.Schema({
             isOpen: { type: Boolean, default: false, required: true },
             open: { type: Number, min: 0, max: 24, required: true }, // Αριθμός μεταξύ 0 και 24
             close: { type: Number, min: 0, max: 24, required: true },
+            bookingStart: { type: Number, min: 0, max: 24, required: true }, // Ώρα έναρξης κρατήσεων
+            bookingEnd: { type: Number, min: 0, max: 24, required: true }, // Ώρα λήξης κρατήσεων
         },
         tuesday: {
             isOpen: { type: Boolean, default: false, required: true },
             open: { type: Number, min: 0, max: 24, required: true },
             close: { type: Number, min: 0, max: 24, required: true },
+            bookingStart: { type: Number, min: 0, max: 24, required: true },
+            bookingEnd: { type: Number, min: 0, max: 24, required: true },
         },
         wednesday: {
             isOpen: { type: Boolean, default: false, required: true },
             open: { type: Number, min: 0, max: 24, required: true },
             close: { type: Number, min: 0, max: 24, required: true },
+            bookingStart: { type: Number, min: 0, max: 24, required: true },
+            bookingEnd: { type: Number, min: 0, max: 24, required: true },
         },
         thursday: {
             isOpen: { type: Boolean, default: false, required: true },
             open: { type: Number, min: 0, max: 24, required: true },
             close: { type: Number, min: 0, max: 24, required: true },
+            bookingStart: { type: Number, min: 0, max: 24, required: true },
+            bookingEnd: { type: Number, min: 0, max: 24, required: true },
         },
         friday: {
             isOpen: { type: Boolean, default: false, required: true },
             open: { type: Number, min: 0, max: 24, required: true },
             close: { type: Number, min: 0, max: 24, required: true },
+            bookingStart: { type: Number, min: 0, max: 24, required: true },
+            bookingEnd: { type: Number, min: 0, max: 24, required: true },
         },
         saturday: {
             isOpen: { type: Boolean, default: false, required: true },
             open: { type: Number, min: 0, max: 24, required: true },
             close: { type: Number, min: 0, max: 24, required: true },
+            bookingStart: { type: Number, min: 0, max: 24, required: true },
+            bookingEnd: { type: Number, min: 0, max: 24, required: true },
         },
         sunday: {
             isOpen: { type: Boolean, default: false, required: true },
             open: { type: Number, min: 0, max: 24, required: true },
             close: { type: Number, min: 0, max: 24, required: true },
+            bookingStart: { type: Number, min: 0, max: 24, required: true },
+            bookingEnd: { type: Number, min: 0, max: 24, required: true },
         },
     },
 
@@ -103,6 +117,7 @@ const shopSchema = mongoose.Schema({
         default: [],
     }],
 
+    // Ιστορικό κρατήσεων του καταστήματος
     reservationList: {
         type: Map,
         of: [{
@@ -112,6 +127,7 @@ const shopSchema = mongoose.Schema({
         default: new Map(),
     },
 
+    // Διαθεσιμότητα του καταστήματος, βασισμένη στα τραπέζια
     availableHours: {
         type: Map, // Ώρες που είναι διαθέσιμες για κάθε ημέρα
         of: [Number], // Λίστα από αριθμούς (π.χ. [12.5, 14.0, 16.0])

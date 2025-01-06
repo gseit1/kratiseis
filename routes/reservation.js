@@ -7,10 +7,10 @@ const reservationRouter = express.Router();
 const Reservation = require('../models/reservation');
 
 
-const { addReservation } = require('../controllers/reservationController');
+const { addReservation,editReservation } = require('../controllers/reservationController');
 
 //! POST για δημιουργια κρατησης και ενημερωσης λιστων καταστηματος
 reservationRouter.post('/api/reservation', addReservation);
-
+reservationRouter.patch('/api/reservation/:reservationId',editReservation);
 
 module.exports = reservationRouter;
