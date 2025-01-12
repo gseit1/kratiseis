@@ -9,11 +9,15 @@ const addReservation = async (req, res) => {
     // Δημιουργία της κράτησης
     const newReservation = await addReservationService(reservationData);
 
-    // Ενημέρωση της λίστας κρατήσεων στο κατάστημα
-    //await addToReservationList(reservationData.shopId, reservationData.reservationDate, newReservation._id.toString());
+    // Ενημέρωση της λίστας κρατήσεων στο κατάστημα με το ID της νέας κράτησης
+    await addToReservationList(
+      reservationData.shopId,
+      reservationData.reservationDate,
+      newReservation._id.toString() // Στέλνουμε μόνο το ID
+    );
 
     res.status(201).json({ success: true, message: 'Reservation added successfully', reservation: newReservation });
-  } catch (error) {
+  } catch (error) {    
     console.error(error);
     res.status(500).json({ success: false, message: error.message });
   }

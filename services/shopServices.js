@@ -20,16 +20,17 @@ const getShopReservationList = async (shopId) => {
     return shop.reservationList ? Object.fromEntries(shop.reservationList) : {};
 };
 
-const addToReservationList = async (shopId, date, reservationData) => {
+
+const addToReservationList = async (shopId, date, reservationId) => {
     const shop = await Shop.findById(shopId);
     if (!shop) {
         throw new Error('Shop not found');
     }
 
-    // Μετατροπή του date σε ISO string
-    const dateString = new Date(date).toISOString(); // Αυτό δημιουργεί ένα string τύπου "2025-01-15T19:00:00.000Z"
+    // Μετατροπή της ημερομηνίας σε ISO string (μόνο η ημερομηνία, χωρίς ώρα)
+    const dateString = new Date(date).toISOString().split('T')[0]; // Μόνο YYYY-MM-DD
 
-    // Εάν δεν υπάρχει ήδη το reservationList, το δημιουργούμε
+    // Αν δεν υπάρχει ήδη το reservationList, το αρχικοποιούμε
     if (!shop.reservationList) {
         shop.reservationList = new Map();
     }
@@ -37,17 +38,22 @@ const addToReservationList = async (shopId, date, reservationData) => {
     // Ελέγχουμε αν υπάρχουν κρατήσεις για την ημερομηνία
     const reservationsForDate = shop.reservationList.get(dateString) || [];
 
-    // Προσθέτουμε τη νέα κράτηση στον πίνακα
-    reservationsForDate.push(reservationData);
+    // Προσθέτουμε το reservationId στον πίνακα κρατήσεων
+    reservationsForDate.push(reservationId);
 
-    // Ενημερώνουμε το Map με το νέο κλειδί ημερομηνίας (ως string)
+    // Ενημερώνουμε το Map με το νέο κλειδί ημερομηνίας
     shop.reservationList.set(dateString, reservationsForDate);
 
     // Αποθηκεύουμε το κατάστημα με την ενημερωμένη λίστα κρατήσεων
     await shop.save();
 
-    return { success: true, message: 'Reservation added successfully' };
+    return { success: true, message: 'Reservation ID added successfully' };
 };
+
+module.exports = {
+    addToReservationList,
+};
+
 
 
 
