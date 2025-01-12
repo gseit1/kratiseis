@@ -1,5 +1,6 @@
 const { addReservationService, editReservationService, deleteReservationService } = require('../services/reservationServices');
 const { addToReservationList, deleteToReservationList } = require('../services/shopServices');
+const { updateTableAvailability } = require('../services/tableServices'); // Προσθήκη της updateTableAvailability
 
 // Δημιουργία νέας κράτησης
 const addReservation = async (req, res) => {
@@ -14,6 +15,20 @@ const addReservation = async (req, res) => {
       reservationData.shopId,
       reservationData.reservationDate,
       newReservation._id.toString() // Στέλνουμε μόνο το ID
+    );
+
+    // Προσθήκη log πριν την κλήση της updateTableAvailability
+    console.log('Calling updateTableAvailability with:', {
+      tableId: reservationData.tableId,
+      reservationDate: reservationData.reservationDate,
+      reservationTime: reservationData.reservationTime
+    });
+
+    // Ανανεώνουμε τη διαθεσιμότητα του τραπεζιού
+    await updateTableAvailability(
+      reservationData.tableId,
+      reservationData.reservationDate,
+      reservationData.reservationTime
     );
 
     res.status(201).json({ success: true, message: 'Reservation added successfully', reservation: newReservation });

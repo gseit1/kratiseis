@@ -14,7 +14,7 @@ const createTable = async (shopId, tableData) => {
 
   // Αρχικοποίηση της διαθεσιμότητας για τις επόμενες 30 ημέρες
   const today = new Date();
-  for (let i = 0; i < 30; i++) {
+  for (let i = 0; i < 60; i++) {
     const date = new Date(today);
     date.setDate(today.getDate() + i);
     const dateString = date.toISOString().split('T')[0]; // Μορφή ημερομηνίας YYYY-MM-DD
@@ -52,7 +52,7 @@ const deleteTableService = async (tableId) => {
 };
 
 
-// Υπολογισμός της αρχικής διαθεσιμότητας του τραπεζιού
+// Υπολογισμός της αρχικής διαθεσιμότητας του τραπεζιού βαση των παραμετρων bookingHours
 const calculateInitializeTableAvailability = (start, end, timeSlotSplit) => {
   const availability = [];
   let currentTime = start;
