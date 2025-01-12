@@ -1,11 +1,11 @@
 const express = require('express'); // Import express module
 const mongoose = require('mongoose');
+const path = require('path');
 const authRouter = require('./routes/auth');
-
 const shopRouter = require('./routes/shop');
 const tableRouter = require('./routes/table');
-const reservationRouter = require('./routes/reservation')
-const availabilityRouter = require('./routes/availability')
+const reservationRouter = require('./routes/reservation');
+const availabilityRouter = require('./routes/availability');
 
 const PORT = 300; // Define port number server will listen
 const app = express(); // Create an instance of express application
@@ -15,7 +15,6 @@ const DB = "mongodb+srv://kon21pan:Konpa21%21%40@cluster0.0kwjk.mongodb.net/?ret
 //middleware to register routes or to mount routes
 app.use(express.json());
 app.use(authRouter);
-
 app.use(shopRouter);
 app.use(tableRouter);
 app.use(reservationRouter);
@@ -26,15 +25,14 @@ app.use((req, res, next) => {
     next();
 });
 
+// Serve static files from the public directory
+app.use(express.static(path.join(__dirname, 'public')));
 
-
-
-mongoose.connect(DB).then(()=>{
-    console.log('Mongo connected')
+mongoose.connect(DB).then(() => {
+    console.log('Mongo connected');
 });
 
 app.listen(PORT, "0.0.0.0", function () {
     // Log message
     console.log(`Server is running on port ${PORT}`);
 });
-
