@@ -1,4 +1,6 @@
 const Shop = require('../models/shop');
+const shopService = require('../services/shopServices');
+
 
 //!Function για προσθηκη μαγαζιου
 const addShop = async (req, res) => {

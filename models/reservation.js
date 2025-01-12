@@ -1,61 +1,54 @@
 const mongoose = require('mongoose');
 
-const reservationSchema = mongoose.Schema({
-    reservationDate: {
-        type: Date, // Η ημερομηνία της κράτησης
-        required: true,
+const reservationSchema = mongoose.Schema(
+    {
+        reservationDate: {
+            type: Date, // Η ημερομηνία της κράτησης
+            required: true,
+        },
+        reservationTime: {
+            type: Number, // Ώρα έναρξης (π.χ., 18.5 για 18:30)
+            min: 0,
+            max: 24,
+            required: true,
+        },
+        shopName: {
+            type: String, // Όνομα καταστήματος
+            required: true,
+        },
+        userName: {
+            type: String, // Όνομα χρήστη
+            required: true,
+        },
+        shopId: {
+            type: mongoose.Schema.Types.ObjectId, // Αναφορά στο κατάστημα
+            ref: 'Shop',
+            required: true,
+        },
+        userId: {
+            type: mongoose.Schema.Types.ObjectId, // Αναφορά στον χρήστη
+            ref: 'User',
+            required: false,
+            default: null,
+        },
+        tableId: {
+            type: mongoose.Schema.Types.ObjectId, // Αναφορά στο τραπέζι
+            ref: 'Table',
+            required: false,
+            default: null,
+        },
+        commentFromUser: {
+            type: String,
+            default: '',
+            maxlength: 200, // Μέγιστο μήκος σχολίου
+        },
     },
 
-    reservationTime: {
-        type: Number, // Ώρα έναρξης
-        min:0,
-        max:24,
-        required: true,
-    },
+);
 
-    shopName: {
-        type: String, // Όνομα καταστήματος
-        required: true,
-    },
-
-    userName: {
-        type: String, // Όνομα χρήστη
-        required: true,
-    },
-
-    shopId: {
-        type: mongoose.Schema.Types.ObjectId, // shopId ως ObjectId για να συνδεθεί με το κατάστημα
-        ref: 'Shop', // Αναφορά στο Shop schema
-        required: true,
-    },
-
-    userId: {
-        type: mongoose.Schema.Types.ObjectId, // userId ως ObjectId για να συνδεθεί με το χρήστη
-        ref: 'User', // Αναφορά στο User schema
-        required: false,
-    },
-
-    tableId: {
-        type: mongoose.Schema.Types.ObjectId, // Αριθμός τραπεζιού
-        ref:'Table',//Αναφορα στο tableSchema
-        required: false,
-    },
-
-    // Σχολιο κρατησης
-    commentFromUser: {
-        type: String, // Πεδίο για πρόσθετα αιτήματα από τον πελάτη (π.χ. "θέλω να έχω ένα παράθυρο")
-        default: '',
-    },
-
-// Ημερομηνία δημιουργίας της κράτησης
-    createdAt: {
-        type: Date,
-        default: Date.now, 
-    },
-
-
-
-});
+// Προσθήκη index για βελτίωση αναζητήσεων
+//reservationSchema.index({ shopId: 1, reservationDate: 1, tableId: 1 });
 
 const Reservation = mongoose.model('Reservation', reservationSchema);
+
 module.exports = Reservation;

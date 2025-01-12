@@ -1,16 +1,15 @@
 const express = require('express');
-const mongoose = require('mongoose');
+const { addReservation, editReservation, deleteReservation } = require('../controllers/reservationController');
 
-const Shop = require('../models/shop');
-const Table = require('../models/table');
 const reservationRouter = express.Router();
-const Reservation = require('../models/reservation');
 
-
-const { addReservation,editReservation } = require('../controllers/reservationController');
-
-//! POST για δημιουργια κρατησης και ενημερωσης λιστων καταστηματος
+// Route για προσθήκη κράτησης
 reservationRouter.post('/api/reservation', addReservation);
-reservationRouter.patch('/api/reservation/:reservationId',editReservation);
+
+// Route για επεξεργασία κράτησης
+reservationRouter.put('/api/reservation/:id', editReservation);
+
+// Route για διαγραφή κράτησης
+reservationRouter.delete('/api/reservation/:id', deleteReservation);
 
 module.exports = reservationRouter;

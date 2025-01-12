@@ -16,7 +16,7 @@ const tableSchema = mongoose.Schema({
     },
     estimatedReservationTime: {
         type: Number, // Διάρκεια σε λεπτά (π.χ. 120 για 2 ώρες)
-        default: 120, // Default reservation time
+        required:true, // Default reservation time
     },
 
   
@@ -119,6 +119,9 @@ const tableSchema = mongoose.Schema({
         default: {}, // Default empty map
     },
 });
+
+tableSchema.index({ shopId: 1, availability: 1 });
+
 
 const Table = mongoose.model('Table', tableSchema);
 module.exports = Table;

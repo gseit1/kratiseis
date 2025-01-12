@@ -2,9 +2,9 @@ const express = require('express');
 
 const availabilityRouter = express.Router();
 
-const {setAvailabilityForDate,checkAvailability}=require('../controllers/availabilityController');
+const {checkTableAvailability}=require('../controllers/tableController');
 
-availabilityRouter.get('/api/availability', checkAvailability);
+availabilityRouter.get('/api/availability', checkTableAvailability);
 
 
 module.exports= availabilityRouter;

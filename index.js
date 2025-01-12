@@ -1,7 +1,7 @@
 const express = require('express'); // Import express module
 const mongoose = require('mongoose');
 const authRouter = require('./routes/auth');
-const categoryRouter = require('./routes/category');
+
 const shopRouter = require('./routes/shop');
 const tableRouter = require('./routes/table');
 const reservationRouter = require('./routes/reservation')
@@ -15,7 +15,7 @@ const DB = "mongodb+srv://kon21pan:Konpa21%21%40@cluster0.0kwjk.mongodb.net/?ret
 //middleware to register routes or to mount routes
 app.use(express.json());
 app.use(authRouter);
-app.use(categoryRouter);
+
 app.use(shopRouter);
 app.use(tableRouter);
 app.use(reservationRouter);

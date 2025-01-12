@@ -16,6 +16,5 @@ tableRouter.patch('/api/table/:id', editTable);
 //! DELETE για τη διαγραφή ενός τραπεζιού
 tableRouter.delete('/api/table/:id', deleteTable);
 
-
   module.exports = tableRouter
   

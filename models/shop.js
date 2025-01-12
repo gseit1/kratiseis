@@ -131,7 +131,7 @@ const shopSchema = mongoose.Schema({
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Reservation',
         }],
-        default: new Map(),
+        default:{},
     },
 
     // Διαθεσιμότητα του καταστήματος, βασισμένη στα τραπέζια
