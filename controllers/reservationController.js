@@ -1,6 +1,6 @@
 const { addReservationService, editReservationService, deleteReservationService } = require('../services/reservationServices');
 const { addToReservationList, deleteToReservationList } = require('../services/shopServices');
-const { updateTableAvailability } = require('../services/tableServices'); // Προσθήκη της updateTableAvailability
+const { updateTableAvailability, updateWhenReservationDelete } = require('../services/tableServices');
 
 // Δημιουργία νέας κράτησης
 const addReservation = async (req, res) => {
@@ -32,7 +32,7 @@ const addReservation = async (req, res) => {
     );
 
     res.status(201).json({ success: true, message: 'Reservation added successfully', reservation: newReservation });
-  } catch (error) {    
+  } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: error.message });
   }
@@ -61,13 +61,21 @@ const editReservation = async (req, res) => {
 const deleteReservation = async (req, res) => {
   try {
     const { id } = req.params;
-    const { shopId, reservationDate } = req.body;
 
-    // Διαγραφή της κράτησης από τη βάση δεδομένων
-    await deleteReservationService(id);
+    console.log(`Deleting reservation with ID: ${id}`);
+
+    // Εύρεση της κράτησης από τη βάση δεδομένων
+    const reservation = await deleteReservationService(id);
+
+    if (!reservation) {
+      return res.status(404).json({ success: false, message: 'Reservation not found' });
+    }
 
     // Ενημέρωση της λίστας κρατήσεων του καταστήματος
-    await deleteToReservationList(shopId, reservationDate, id);
+    await deleteToReservationList(reservation.shopId, reservation.reservationDate, id);
+
+    // Ανανεώνουμε τη διαθεσιμότητα του τραπεζιού μετά τη διαγραφή της κράτησης
+    await updateWhenReservationDelete(reservation.tableId, reservation.reservationDate, reservation.reservationTime);
 
     res.status(200).json({ success: true, message: 'Reservation deleted successfully' });
   } catch (error) {

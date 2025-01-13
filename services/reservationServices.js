@@ -28,7 +28,6 @@ const addReservationService = async (reservationData) => {
   return newReservation;
 };
 
-
 // Επεξεργασία (edit) κράτησης
 const editReservationService = async (reservationId, updatedReservationData) => {
   // Εύρεση της κράτησης με το ID
@@ -47,21 +46,24 @@ const editReservationService = async (reservationId, updatedReservationData) => 
 };
 
 // Διαγραφή κράτησης
-const deleteReservationSerive = async (reservationId) => {
+const deleteReservationService = async (reservationId) => {
   // Εύρεση της κράτησης με το ID
+  console.log(`Searching for reservation with ID: ${reservationId}`);
   const reservation = await Reservation.findById(reservationId);
   if (!reservation) {
     throw new Error('Reservation not found');
   }
 
+  console.log(`Reservation found: ${JSON.stringify(reservation)}`);
+
   // Διαγραφή της κράτησης
   await Reservation.findByIdAndDelete(reservationId);
 
-  return { message: 'Reservation deleted successfully' };
+  return reservation;
 };
 
 module.exports = {
   addReservationService,
   editReservationService,
-  deleteReservationSerive,
+  deleteReservationService,
 };

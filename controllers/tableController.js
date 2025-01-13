@@ -1,4 +1,4 @@
-const { createTable, updateTable, deleteTableServ: deleteTableService,checkAvailability } = require('../services/tableServices');
+const { createTable, updateTable, deleteTableService,checkAvailability } = require('../services/tableServices');
 
 //! Function για add table
 const addTable = async (req, res) => {

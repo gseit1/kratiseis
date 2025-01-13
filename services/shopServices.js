@@ -50,44 +50,37 @@ const addToReservationList = async (shopId, date, reservationId) => {
     return { success: true, message: 'Reservation ID added successfully' };
 };
 
-module.exports = {
-    addToReservationList,
-};
-
-
-
-
-
-
 const deleteToReservationList = async (shopId, date, reservationId) => {
     const shop = await Shop.findById(shopId);
     if (!shop) {
         throw new Error('Shop not found');
     }
 
-    if (!shop.reservationList || !shop.reservationList.has(date)) {
+    // Μετατροπή της ημερομηνίας σε ISO string (μόνο η ημερομηνία, χωρίς ώρα)
+    const dateString = new Date(date).toISOString().split('T')[0]; // Μόνο YYYY-MM-DD
+
+    console.log(`Deleting reservation with ID: ${reservationId} for date: ${dateString}`);
+
+    if (!shop.reservationList || !shop.reservationList.has(dateString)) {
         throw new Error('No reservations found for the given date');
     }
 
-    const reservationsForDate = shop.reservationList.get(date);
+    const reservationsForDate = shop.reservationList.get(dateString);
 
     // Φιλτράρουμε τις κρατήσεις αφαιρώντας αυτή με το συγκεκριμένο reservationId
-    const updatedReservations = reservationsForDate.filter(reservation => reservation.id !== reservationId);
+    const updatedReservations = reservationsForDate.filter(reservation => reservation.toString() !== reservationId.toString());
 
     // Ενημερώνουμε το Map
     if (updatedReservations.length > 0) {
-        shop.reservationList.set(date, updatedReservations);
+        shop.reservationList.set(dateString, updatedReservations);
     } else {
         // Αν δεν υπάρχουν κρατήσεις για την ημερομηνία, αφαιρούμε το key από το Map
-        shop.reservationList.delete(date);
+        shop.reservationList.delete(dateString);
     }
 
     await shop.save();
     return { success: true, message: 'Reservation deleted successfully' };
 };
-
-
-
 
 module.exports = {
     editShop,

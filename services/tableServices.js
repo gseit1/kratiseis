@@ -51,7 +51,6 @@ const deleteTableService = async (tableId) => {
   await Table.findByIdAndDelete(tableId);
 };
 
-
 // Υπολογισμός της αρχικής διαθεσιμότητας του τραπεζιού βαση των παραμετρων bookingHours
 const calculateInitializeTableAvailability = (start, end, timeSlotSplit) => {
   const availability = [];
@@ -116,9 +115,6 @@ const initializeAvailabilityForDate = async (shopId, tableId, dateString) => {
   return { success: true, message: `Availability initialized for ${dateString}` };
 };
 
-
-
-
 const checkAvailability = async (req) => {
     const { shopId, dateString, seats } = req.query;
 
@@ -155,50 +151,44 @@ const checkAvailability = async (req) => {
     }
 };
 
+// Βοηθητική συνάρτηση για την εύρεση του τραπεζιού
+const findTableById = async (tableId) => {
+    const table = await Table.findById(tableId);
+    if (!table) {
+        throw new Error('Table not found');
+    }
+    return table;
+};
+
+// Βοηθητική συνάρτηση για την προετοιμασία της διαθεσιμότητας
+const prepareAvailability = (table, reservationDate) => {
+    if (!(table.availability instanceof Map)) {
+        throw new Error('Table availability is not a Map');
+    }
+
+    const dateKey = new Date(reservationDate).toISOString().split('T')[0];
+    const availableHours = table.availability.get(dateKey) || [];
+
+    if (!Array.isArray(availableHours)) {
+        throw new Error('Availability for the date is not an array of hours');
+    }
+
+    return { dateKey, availableHours };
+};
+
+// Συνάρτηση για την ενημέρωση της διαθεσιμότητας κατά την προσθήκη κράτησης
 const updateTableAvailability = async (tableId, reservationDate, reservationTime) => {
     try {
-        // Βρίσκουμε το τραπέζι από το tableId
-        const table = await Table.findById(tableId);
-        if (!table) {
-            throw new Error('Table not found');
-        }
+        const table = await findTableById(tableId);
+        const { dateKey, availableHours } = prepareAvailability(table, reservationDate);
 
-        // Ελέγχουμε αν η διαθεσιμότητα είναι Map
-        if (!(table.availability instanceof Map)) {
-            throw new Error('Table availability is not a Map');
-        }
-
-        // Δημιουργούμε το κλειδί της ημερομηνίας
-        const dateKey = new Date(reservationDate).toISOString().split('T')[0];
-
-        // Υπολογισμός start και end time
-        const estimatedReservationTime = table.estimatedReservationTime; // π.χ. 120 λεπτά
-        const startTime = reservationTime - Math.ceil(estimatedReservationTime / 60); // Μετατροπή λεπτών σε ώρες
+        const estimatedReservationTime = table.estimatedReservationTime;
+        const startTime = reservationTime - Math.ceil(estimatedReservationTime / 60);
         const endTime = reservationTime + Math.ceil(estimatedReservationTime / 60);
 
-        console.log(`Updating availability for tableId: ${tableId}`);
-        console.log(`Date Key: ${dateKey}`);
-        console.log(`Start Time: ${startTime}, End Time: ${endTime}`);
-
-        // Παίρνουμε την τρέχουσα διαθεσιμότητα για την ημερομηνία
-        const availableHours = table.availability.get(dateKey) || [];
-
-        console.log(`Current availability for ${dateKey}:`, availableHours);
-
-        // Ελέγχουμε αν το πεδίο availableHours είναι πίνακας
-        if (!Array.isArray(availableHours)) {
-            throw new Error('Availability for the date is not an array of hours');
-        }
-
-        // Φιλτράρουμε τις ώρες που επικαλύπτονται με την κράτηση
         const updatedAvailability = availableHours.filter(hour => hour < startTime || hour >= endTime);
 
-        console.log(`Updated availability for ${dateKey}:`, updatedAvailability);
-
-        // Ενημερώνουμε τη διαθεσιμότητα για αυτή την ημερομηνία
         table.availability.set(dateKey, updatedAvailability);
-
-        // Αποθηκεύουμε τις αλλαγές
         await table.save();
 
         console.log('Table availability updated successfully!');
@@ -208,19 +198,49 @@ const updateTableAvailability = async (tableId, reservationDate, reservationTime
     }
 };
 
+// Συνάρτηση για την ενημέρωση της διαθεσιμότητας κατά τη διαγραφή κράτησης
+const updateWhenReservationDelete = async (tableId, reservationDate, reservationTime) => {
+    try {
+        const table = await findTableById(tableId);
+        const { dateKey, availableHours } = prepareAvailability(table, reservationDate);
 
+        const estimatedReservationTime = table.estimatedReservationTime;
+        const startTime = reservationTime - Math.ceil(estimatedReservationTime / 60);
+        const endTime = reservationTime + Math.ceil(estimatedReservationTime / 60);
 
+        console.log(`Updating availability for tableId: ${tableId} after reservation deletion`);
+        console.log(`Date Key: ${dateKey}`);
+        console.log(`Start Time: ${startTime}, End Time: ${endTime}`);
 
-  
-  
-  
-  
+        // Παίρνουμε την τρέχουσα διαθεσιμότητα για την ημερομηνία
+        const currentAvailability = [...availableHours];
 
+        console.log(`Current availability for ${dateKey}:`, currentAvailability);
 
+        // Προσθέτουμε τις ώρες που επικαλύπτονται με την κράτηση πίσω στη διαθεσιμότητα
+        for (let hour = startTime; hour < endTime; step =hour+=0.5) {
+            if (!currentAvailability.includes(hour)) {
+                currentAvailability.push(hour);
+            }
+        }
 
+        // Ταξινομούμε τις ώρες για να διατηρήσουμε τη σειρά
+        currentAvailability.sort((a, b) => a - b);
 
+        console.log(`Updated availability for ${dateKey}:`, currentAvailability);
 
+        // Ενημερώνουμε τη διαθεσιμότητα για αυτή την ημερομηνία
+        table.availability.set(dateKey, currentAvailability);
 
+        // Αποθηκεύουμε τις αλλαγές
+        await table.save();
+
+        console.log('Table availability updated successfully after reservation deletion!');
+    } catch (error) {
+        console.error('Error updating table availability after reservation deletion:', error.message);
+        throw error;
+    }
+};
 
 module.exports = {
   createTable,
@@ -228,4 +248,5 @@ module.exports = {
   deleteTableService,
   checkAvailability,
   updateTableAvailability,
+  updateWhenReservationDelete,
 };
