@@ -242,6 +242,40 @@ const updateWhenReservationDelete = async (tableId, reservationDate, reservation
     }
 };
 
+// Συνάρτηση για την εύρεση του καταλληλότερου διαθέσιμου τραπεζιού
+const findBestAvailableTable = async (shopId, reservationDate, reservationTime, numberOfPeople) => {
+    try {
+        const tables = await Table.find({ shopId }).sort({ seats: 1 });
+
+        console.log(`Searching for the best available table for ${numberOfPeople} people on ${reservationDate} at ${reservationTime}`);
+
+        for (let i = numberOfPeople; i <= Math.max(...tables.map(table => table.seats)); i++) {
+            console.log(`Checking for tables with at least ${i} seats`);
+            for (const table of tables) {
+                if (table.seats >= i) {
+                    const { dateKey, availableHours } = prepareAvailability(table, reservationDate);
+
+                    console.log(`Checking table with ${table.seats} seats (ID: ${table._id})`);
+                    console.log(`Available hours for ${dateKey}:`, availableHours);
+                    console.log(`Checking availability for ${reservationTime}`);
+
+                    if (availableHours.includes(reservationTime)) {
+                        console.log(`Table found: ${table._id}`);
+                        return table;
+                    } else {
+                        console.log(`Table with ${table.seats} seats (ID: ${table._id}) is not available at ${reservationTime}`);
+                    }
+                }
+            }
+        }
+
+        throw new Error('No available table found');
+    } catch (error) {
+        console.error('Error finding best available table:', error.message);
+        throw error;
+    }
+};
+
 module.exports = {
   createTable,
   updateTable,
@@ -249,4 +283,5 @@ module.exports = {
   checkAvailability,
   updateTableAvailability,
   updateWhenReservationDelete,
+  findBestAvailableTable,
 };

@@ -1,11 +1,25 @@
 const { addReservationService, editReservationService, deleteReservationService } = require('../services/reservationServices');
 const { addToReservationList, deleteToReservationList } = require('../services/shopServices');
-const { updateTableAvailability, updateWhenReservationDelete } = require('../services/tableServices');
+const { findBestAvailableTable, updateTableAvailability, updateWhenReservationDelete } = require('../services/tableServices');
 
 // Δημιουργία νέας κράτησης
 const addReservation = async (req, res) => {
   try {
     const reservationData = req.body;
+
+    // Βρίσκουμε το καταλληλότερο διαθέσιμο τραπέζι
+    const bestTable = await findBestAvailableTable(
+      reservationData.shopId,
+      reservationData.reservationDate,
+      reservationData.reservationTime,
+      reservationData.numberOfPeople
+    );
+
+    if (!bestTable) {
+      return res.status(404).json({ message: 'No available table found' });
+    }
+
+    reservationData.tableId = bestTable._id;
 
     // Δημιουργία της κράτησης
     const newReservation = await addReservationService(reservationData);
