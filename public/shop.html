@@ -23,18 +23,34 @@
             <!-- Shop details will be dynamically inserted here -->
         </div>
         <h3 class="mt-5">Book a Reservation</h3>
-        <form id="reservationForm" class="mx-auto" style="max-width: 600px;">
-            <div class="mb-3">
-                <label for="date" class="form-label">Date:</label>
-                <input type="date" class="form-control" id="date" name="date" required>
-            </div>
-            <div class="mb-3">
-                <label for="time" class="form-label">Time:</label>
-                <input type="time" class="form-control" id="time" name="time" required>
-            </div>
+        <form id="searchForm" class="mx-auto" style="max-width: 600px;">
             <div class="mb-3">
                 <label for="numberOfPeople" class="form-label">Number of People:</label>
                 <input type="number" class="form-control" id="numberOfPeople" name="numberOfPeople" required>
+            </div>
+            <div class="mb-3">
+                <label for="reservationDate" class="form-label">Date:</label>
+                <input type="date" class="form-control" id="reservationDate" name="reservationDate" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Search</button>
+        </form>
+        <div id="availableTimes" class="mt-4">
+            <!-- Available times will be dynamically inserted here -->
+        </div>
+        <form id="reservationForm" class="mx-auto mt-4" style="max-width: 600px; display: none;">
+            <div class="mb-3">
+                <label for="userName" class="form-label">Full Name:</label>
+                <input type="text" class="form-control" id="userName" name="userName" required>
+            </div>
+            <div class="mb-3">
+                <label for="reservationTime" class="form-label">Time:</label>
+                <select class="form-control" id="reservationTime" name="reservationTime" required>
+                    <!-- Available times will be dynamically inserted here -->
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="commentFromUser" class="form-label">Comments:</label>
+                <textarea class="form-control" id="commentFromUser" name="commentFromUser" maxlength="200"></textarea>
             </div>
             <button type="submit" class="btn btn-primary">Book Reservation</button>
         </form>
@@ -46,7 +62,10 @@
             const shopId = urlParams.get('id');
 
             try {
-                const response = await fetch(`/api/shops/${shopId}`);
+                const response = await fetch(`/api/shop/${shopId}`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch shop details');
+                }
                 const shop = await response.json();
 
                 document.getElementById('shopName').textContent = shop.shopName;
@@ -62,20 +81,62 @@
                 `;
             } catch (error) {
                 console.error('Error fetching shop details:', error);
+                alert('Error fetching shop details');
+            }
+        }
+
+        function formatTime(time) {
+            const hours = Math.floor(time);
+            const minutes = (time % 1) * 60;
+            return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+        }
+
+        async function fetchAvailableTimes(event) {
+            event.preventDefault();
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const shopId = urlParams.get('id');
+            const reservationDate = document.getElementById('reservationDate').value;
+            const numberOfPeople = document.getElementById('numberOfPeople').value;
+
+            console.log(`Fetching available times for shopId: ${shopId}, reservationDate: ${reservationDate}, numberOfPeople: ${numberOfPeople}`);
+
+            try {
+                const response = await fetch(`/api/availability?shopId=${shopId}&dateString=${reservationDate}&seats=${numberOfPeople}`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch available times');
+                }
+                const result = await response.json();
+                const availableTimes = result.availability;
+
+                console.log('Available times:', availableTimes);
+
+                const reservationTimeSelect = document.getElementById('reservationTime');
+                reservationTimeSelect.innerHTML = availableTimes.map(time => `<option value="${time}">${formatTime(time)}</option>`).join('');
+
+                document.getElementById('reservationForm').style.display = 'block';
+            } catch (error) {
+                console.error('Error fetching available times:', error);
+                alert('Error fetching available times');
             }
         }
 
         document.addEventListener('DOMContentLoaded', fetchShopDetails);
+        document.getElementById('searchForm').addEventListener('submit', fetchAvailableTimes);
 
         document.getElementById('reservationForm').addEventListener('submit', async function(event) {
             event.preventDefault();
 
             const urlParams = new URLSearchParams(window.location.search);
             const shopId = urlParams.get('id');
+            const shopName = document.getElementById('shopName').textContent;
 
             const formData = new FormData(event.target);
             const reservationData = Object.fromEntries(formData.entries());
             reservationData.shopId = shopId;
+            reservationData.shopName = shopName;
+            reservationData.reservationDate = document.getElementById('reservationDate').value;
+            reservationData.numberOfPeople = document.getElementById('numberOfPeople').value;
 
             try {
                 const response = await fetch('/api/reservations', {

@@ -6,6 +6,69 @@
     <link rel="stylesheet" href="../styles/customer.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register/Login</title>
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+
+        // Your Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyB2PuQk5934f6_86hopJl3pdasOmCON_3U",
+            authDomain: "magaziaestiasi.firebaseapp.com",
+            projectId: "magaziaestiasi",
+            storageBucket: "magaziaestiasi.appspot.com",
+            messagingSenderId: "194228374674",
+            appId: "1:194228374674:web:fe71e120ffa91f7db72a4b",
+            measurementId: "G-BM1N63R3D3"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        document.getElementById('registerForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const fullName = document.getElementById('fullName').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+
+                // Add user to Firestore with role
+                await setDoc(doc(db, 'users', user.uid), {
+                    fullName: fullName,
+                    email: email,
+                    role: 'user' // Default role
+                });
+
+                alert('Registration successful!');
+            } catch (error) {
+                console.error('Error registering:', error);
+                alert('Error registering: ' + error.message);
+            }
+        });
+
+        document.getElementById('loginForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                alert('Login successful!');
+                window.location.href = 'index.html';
+            } catch (error) {
+                console.error('Error logging in:', error);
+                alert('Error logging in: ' + error.message);
+            }
+        });
+    </script>
 </head>
 <body>
     <div class="container mt-5">
@@ -23,18 +86,6 @@
                 <label for="password" class="form-label">Password:</label>
                 <input type="password" class="form-control" id="password" name="password" required>
             </div>
-            <div class="mb-3">
-                <label for="city" class="form-label">City:</label>
-                <input type="text" class="form-control" id="city" name="city">
-            </div>
-            <div class="mb-3">
-                <label for="locality" class="form-label">Locality:</label>
-                <input type="text" class="form-control" id="locality" name="locality">
-            </div>
-            <div class="mb-3">
-                <label for="state" class="form-label">State:</label>
-                <input type="text" class="form-control" id="state" name="state">
-            </div>
             <button type="submit" class="btn btn-primary">Register</button>
         </form>
 
@@ -45,69 +96,11 @@
                 <input type="email" class="form-control" id="loginEmail" name="email" required>
             </div>
             <div class="mb-3">
-                <label for="password" class="form-label">Password:</label>
-                <input type="password" class="form-control" id="password" name="password" required>
+                <label for="loginPassword" class="form-label">Password:</label>
+                <input type="password" class="form-control" id="loginPassword" name="password" required>
             </div>
             <button type="submit" class="btn btn-primary">Login</button>
         </form>
     </div>
-
-    <script>
-        document.getElementById('registerForm').addEventListener('submit', async function(event) {
-            event.preventDefault();
-
-            const formData = new FormData(event.target);
-            const userData = Object.fromEntries(formData.entries());
-
-            try {
-                const response = await fetch('/api/signup', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(userData)
-                });
-
-                const result = await response.json();
-                if (response.ok) {
-                    alert('Registration successful!');
-                } else {
-                    alert('Error registering: ' + result.msg);
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Error registering');
-            }
-        });
-
-        document.getElementById('loginForm').addEventListener('submit', async function(event) {
-            event.preventDefault();
-
-            const formData = new FormData(event.target);
-            const loginData = Object.fromEntries(formData.entries());
-
-            try {
-                const response = await fetch('/api/login', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(loginData)
-                });
-
-                const result = await response.json();
-                if (response.ok) {
-                    alert('Login successful!');
-                    window.location.href = 'index.html';
-                } else {
-                    alert('Error logging in: ' + result.msg);
-                    console.error('Error logging in:', result.msg);
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Error logging in');
-            }
-        });
-    </script>
 </body>
 </html>
