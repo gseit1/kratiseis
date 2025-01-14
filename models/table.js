@@ -16,101 +16,29 @@ const tableSchema = mongoose.Schema({
     },
     estimatedReservationTime: {
         type: Number, // Διάρκεια σε λεπτά (π.χ. 120 για 2 ώρες)
-        required:true, // Default reservation time
+        required: true, // Default reservation time
     },
-
-  
-
     bookingHours: {
         monday: {
             isBookingAllowed: { type: Boolean, default: false },
-            start: { 
-                type: Number, 
-                min: 0, 
-                max: 24, 
-                default: null 
-            },
-            end: { 
-                type: Number, 
-                min: 0, 
-                max: 24, 
-                default: null 
-            },
         },
         tuesday: {
             isBookingAllowed: { type: Boolean, default: false },
-            start: { 
-                type: Number, 
-                min: 0, 
-                max: 24, 
-                default: null 
-            },
-            end: { 
-                type: Number, 
-                min: 0, 
-                max: 24, 
-                default: null 
-            },
         },
         wednesday: {
             isBookingAllowed: { type: Boolean, default: false },
-            start: { 
-                type: Number, 
-                min: 0, 
-                max: 24, 
-                default: null 
-            },
-            end: { 
-                type: Number, 
-                min: 0, 
-                max: 24, 
-                default: null 
-            },
         },
         thursday: {
             isBookingAllowed: { type: Boolean, default: false },
-            start: { 
-                type: Number, 
-                min: 0, 
-                max: 24, 
-                default: null 
-            },
-            end: { 
-                type: Number, 
-                min: 0, 
-                max: 24, 
-                default: null 
-            },
         },
         friday: {
             isBookingAllowed: { type: Boolean, default: false },
-            start: { 
-                type: Number, 
-                min: 0, 
-                max: 24, 
-                default: null 
-            },
-            end: { 
-                type: Number, 
-                min: 0, 
-                max: 24, 
-                default: null 
-            },
+        },
+        saturday: {
+            isBookingAllowed: { type: Boolean, default: false },
         },
         sunday: {
             isBookingAllowed: { type: Boolean, default: false },
-            start: { 
-                type: Number, 
-                min: 0, 
-                max: 24, 
-                default: null 
-            },
-            end: { 
-                type: Number, 
-                min: 0, 
-                max: 24, 
-                default: null 
-            },
         },
     },
     availability: {
@@ -121,7 +49,6 @@ const tableSchema = mongoose.Schema({
 });
 
 tableSchema.index({ shopId: 1, availability: 1 });
-
 
 const Table = mongoose.model('Table', tableSchema);
 module.exports = Table;

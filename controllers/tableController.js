@@ -1,4 +1,5 @@
-const { createTable, updateTable, deleteTableService,checkAvailability } = require('../services/tableServices');
+const { createTable, updateTable, deleteTableService, checkAvailability } = require('../services/tableServices');
+const { getReservationsForTable } = require('../services/reservationServices');
 
 //! Function για add table
 const addTable = async (req, res) => {
@@ -41,6 +42,13 @@ const deleteTable = async (req, res) => {
   const { id } = req.params;
 
   try {
+    // Έλεγχος αν υπάρχουν κρατήσεις για το τραπέζι
+    const reservationsResult = await getReservationsForTable(id);
+
+    if (reservationsResult.success && reservationsResult.reservations.length > 0) {
+      return res.status(400).json({ message: 'Table has reservations and cannot be deleted. Please edit the table instead.' });
+    }
+
     await deleteTableService(id);
     res.status(200).json({ message: 'Table deleted successfully' });
   } catch (error) {
@@ -77,11 +85,9 @@ const checkTableAvailability = async (req, res) => {
   }
 };
 
-
-
 module.exports = {
   addTable,
   editTable,
   deleteTable,
-  checkTableAvailability
+  checkTableAvailability,
 };

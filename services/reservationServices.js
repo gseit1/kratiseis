@@ -62,8 +62,25 @@ const deleteReservationService = async (reservationId) => {
   return reservation;
 };
 
+// Συνάρτηση για την εύρεση κρατήσεων για ένα συγκεκριμένο τραπέζι
+const getReservationsForTable = async (tableId) => {
+  try {
+    const reservations = await Reservation.find({ tableId });
+
+    if (reservations.length === 0) {
+      return { success: false, message: 'No reservations found for this table', reservations: [] };
+    }
+
+    return { success: true, reservations };
+  } catch (error) {
+    console.error('Error fetching reservations for table:', error.message);
+    throw error;
+  }
+};
+
 module.exports = {
   addReservationService,
   editReservationService,
   deleteReservationService,
+  getReservationsForTable, // Προσθήκη της νέας συνάρτησης στο export
 };
