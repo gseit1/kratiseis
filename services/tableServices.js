@@ -1,4 +1,5 @@
 const Table = require('../models/table');
+const Reservation = require('../models/reservation');
 const Shop = require('../models/shop');
 
 // Service για τη δημιουργία τραπεζιού
@@ -184,10 +185,10 @@ const updateTableAvailability = async (tableId, reservationDate, reservationTime
     const { dateKey, availableHours } = prepareAvailability(table, reservationDate);
 
     const estimatedReservationTime = table.estimatedReservationTime;
-    const startTime = reservationTime;
+    const startTime = reservationTime - Math.ceil(estimatedReservationTime / 60);
     const endTime = reservationTime + Math.ceil(estimatedReservationTime / 60);
 
-    const updatedAvailability = availableHours.filter(hour => hour < startTime || hour >= endTime);
+    const updatedAvailability = availableHours.filter(hour => hour <= startTime || hour >= endTime);
 
     table.availability.set(dateKey, updatedAvailability);
     await table.save();
@@ -277,6 +278,34 @@ const findBestAvailableTable = async (shopId, reservationDate, reservationTime, 
   }
 };
 
+// Συνάρτηση για τον έλεγχο αν το νέο seatsInput υποστηρίζει μια λίστα κρατήσεων
+const unvalidReservationsAfterSeatsEdit = async (reservationIds, seatsInput) => {
+  try {
+    const invalidReservations = [];
+
+    for (const reservationId of reservationIds) {
+      const reservation = await Reservation.findById(reservationId);
+      if (!reservation) {
+        throw new Error(`Reservation not found: ${reservationId}`);
+      }
+
+      const table = await Table.findById(reservation.tableId);
+      if (!table) {
+        throw new Error(`Table not found for reservation: ${reservationId}`);
+      }
+
+      if (seatsInput < table.seats) {
+        invalidReservations.push(reservation);
+      }
+    }
+
+    return invalidReservations;
+  } catch (error) {
+    console.error('Error checking seats input for reservations:', error.message);
+    throw error;
+  }
+};
+
 module.exports = {
   createTable,
   updateTable,
@@ -285,4 +314,5 @@ module.exports = {
   updateTableAvailability,
   updateWhenReservationDelete,
   findBestAvailableTable,
+  unvalidReservationsAfterSeatsEdit, // Προσθήκη της νέας συνάρτησης στο export
 };

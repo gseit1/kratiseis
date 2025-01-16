@@ -1,4 +1,5 @@
 const Reservation = require('../models/reservation');
+const { updateTableAvailability, updateWhenReservationDelete } = require('../services/tableServices');
 
 // Δημιουργία νέας κράτησης
 const addReservationService = async (reservationData) => {
@@ -78,9 +79,33 @@ const getReservationsForTable = async (tableId) => {
   }
 };
 
+// Συνάρτηση για την αλλαγή τραπεζιού σε μια κράτηση
+const setTableIdForReservations = async (reservationIds) => {
+  try {
+    for (const reservationId of reservationIds) {
+      const reservation = await Reservation.findById(reservationId);
+      if (!reservation) {
+        throw new Error(`Reservation not found: ${reservationId}`);
+      }
+
+      reservation.tableId = null; // Αποθήκευση κενό το tableId
+
+      await reservation.save();
+    }
+
+    return { success: true, message: 'Table IDs set to null successfully for all reservations' };
+  } catch (error) {
+    console.error('Error setting table IDs to null for reservations:', error.message);
+    throw error;
+  }
+};
+
+
+
 module.exports = {
   addReservationService,
   editReservationService,
   deleteReservationService,
-  getReservationsForTable, // Προσθήκη της νέας συνάρτησης στο export
+  getReservationsForTable,
+  setTableIdForReservations,
 };

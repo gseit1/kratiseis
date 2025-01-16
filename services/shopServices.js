@@ -1,5 +1,5 @@
 const Shop = require('../models/shop');
-
+const Reservation = require('../models/reservation');
 
 // Επεξεργασία (edit) καταστήματος
 const editShop = async (shopId, updatedData) => {
@@ -11,15 +11,75 @@ const editShop = async (shopId, updatedData) => {
     return await shop.save();
 };
 
-// Επιστροφή λίστας κρατήσεων για συγκεκριμένο κατάστημα
-const getShopReservationList = async (shopId) => {
-    const shop = await Shop.findById(shopId);
+// Προσθήκη νέου καταστήματος
+const addShopService = async (shopData) => {
+    const newShop = new Shop(shopData);
+    await newShop.save();
+    return newShop;
+};
+
+// Επιστροφή όλων των καταστημάτων
+const getAllShopsService = async () => {
+    const shops = await Shop.find();
+    return shops;
+};
+
+// Επιστροφή συγκεκριμένου καταστήματος
+const getShopByIdService = async (shopId) => {
+    const shop = await Shop.findById(shopId).populate('tables').populate('reservationList');
     if (!shop) {
         throw new Error('Shop not found');
     }
-    return shop.reservationList ? Object.fromEntries(shop.reservationList) : {};
+    return shop;
 };
 
+// Επιστροφή λίστας κρατήσεων για συγκεκριμένο κατάστημα
+const getShopReservationList = async (shopId) => {
+    const shop = await Shop.findById(shopId).populate({
+        path: 'reservationList',
+        populate: {
+            path: 'reservations',
+            model: 'Reservation'
+        }
+    });
+
+    if (!shop) {
+        throw new Error('Shop not found');
+    }
+
+    const reservationList = {};
+
+    for (const [date, reservations] of shop.reservationList.entries()) {
+        const populatedReservations = await Reservation.find({ _id: { $in: reservations } });
+        reservationList[date] = {
+            count: populatedReservations.length,
+            reservations: populatedReservations
+        };
+    }
+
+    return reservationList;
+};
+
+// Συνάρτηση για την προσθήκη κράτησης στην undefinedReservationList
+const addReservationToUndefinedList = async (shopId, reservationId) => {
+    try {
+        const shop = await Shop.findById(shopId);
+        if (!shop) {
+            throw new Error('Shop not found');
+        }
+
+        // Προσθήκη της κράτησης στην undefinedReservationList
+        shop.undefinedReservationList.push(reservationId);
+
+        // Αποθήκευση του καταστήματος με την ενημερωμένη λίστα
+        await shop.save();
+
+        return { success: true, message: 'Reservation added to undefinedReservationList successfully' };
+    } catch (error) {
+        console.error('Error adding reservation to undefinedReservationList:', error.message);
+        throw error;
+    }
+};
 
 const addToReservationList = async (shopId, date, reservationId) => {
     const shop = await Shop.findById(shopId);
@@ -84,7 +144,11 @@ const deleteToReservationList = async (shopId, date, reservationId) => {
 
 module.exports = {
     editShop,
+    addShopService,
+    getAllShopsService,
+    getShopByIdService,
     getShopReservationList,
+    addReservationToUndefinedList, 
     addToReservationList,
     deleteToReservationList,
 };

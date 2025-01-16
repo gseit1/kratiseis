@@ -134,6 +134,13 @@ const shopSchema = mongoose.Schema({
         default:{},
     },
 
+        // Λίστα κρατήσεων που δεν έχουν tableId
+        undefinedReservationList: [{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Reservation',
+            default: [],
+        }],
+
     // Διαθεσιμότητα του καταστήματος, βασισμένη στα τραπέζια
     availableHours: {
         type: Map, // Ώρες που είναι διαθέσιμες για κάθε ημέρα
