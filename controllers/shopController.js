@@ -1,7 +1,7 @@
 const Shop  = require('../models/shop');
 const shopService = require('../services/shopServices');
-const { isAvailableTable } = require('../services/tableServices');
-const { swapTableForReservation } = require('../services/reservationServices');
+const tableService = require('../services/tableServices'); // Προσθήκη της εισαγωγής της tableService
+const reservationService = require('../services/reservationServices');
 const Reservation = require('../models/reservation');
 const mongoose = require('mongoose');
 
@@ -12,6 +12,50 @@ const addShop = async (req, res) => {
         res.status(201).json({ message: "Shop created successfully!", shop: newShop });
     } catch (error) {
         res.status(400).json({ message: "Error creating shop", error });
+    }
+};
+
+//! Function για patch booking hours για συγκεκριμένη ημέρα
+const patchBookingHoursForDay = async (req, res) => {
+    const { shopId } = req.params;
+    const { day, newBookingStart, newBookingEnd } = req.body;
+  
+    try {
+      // Βρίσκουμε το κατάστημα
+      const shop = await shopService.getShopByIdService(shopId);
+      if (!shop) {
+        return res.status(404).json({ message: 'Shop not found' });
+      }
+  
+      // Βρίσκουμε τα τραπέζια του καταστήματος
+      const tables = await tableService.getTablesByShopId(shopId);
+  
+      // Βρίσκουμε τις κρατήσεις που δεν υποστηρίζονται από την αλλαγή
+      for (const table of tables) {
+        const reservationsResult = await reservationService.getReservationsForTable(table._id);
+        if (reservationsResult.success && reservationsResult.reservations.length > 0) {
+          const invalidReservations = reservationService.checkInvalidReservationsWhenBookingHoursChange(reservationsResult.reservations, newBookingStart, newBookingEnd);
+          if (invalidReservations.length > 0) {
+            await reservationService.setTableIdForReservations(invalidReservations.map(reservation => reservation._id));
+            for (const reservation of invalidReservations) {
+              await shopService.addReservationToUndefinedList(reservation.shopId, reservation._id);
+            }
+          }
+        }
+  
+        // Ενημερώνουμε τη διαθεσιμότητα των τραπεζιών
+        await tableService.updateAvailabilityForBookingHoursEdit(table._id, day, newBookingStart, newBookingEnd);
+      }
+  
+      // Ενημερώνουμε τις νέες τιμές για την ημέρα
+      shop.openingHours[day].bookingStart = newBookingStart;
+      shop.openingHours[day].bookingEnd = newBookingEnd;
+      await shop.save();
+  
+      res.status(200).json({ message: 'Booking hours updated successfully' });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Server error' });
     }
 };
 
@@ -71,8 +115,18 @@ const getShopReservationList = async (req, res) => {
     }
 };
 
-//! Function για αλλαγή τραπεζιού σε μια κράτηση
+//! Function για επιστροφή των τραπεζιών ενός καταστήματος
+const getShopTables = async (req, res) => {
+  const { shopId } = req.params;
 
+  try {
+    const tables = await tableService.getTablesByShopId(shopId);
+    res.status(200).json(tables);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
 
 module.exports = { 
     addShop,
@@ -80,4 +134,6 @@ module.exports = {
     getShopById,
     editShop,
     getShopReservationList,
+    patchBookingHoursForDay, // Προσθήκη της νέας συνάρτησης στο export
+    getShopTables, // Προσθήκη της νέας συνάρτησης στο export
 };

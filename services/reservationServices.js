@@ -101,6 +101,23 @@ const setTableIdForReservations = async (reservationIds) => {
 };
 
 
+// Συνάρτηση για τον έλεγχο αν οι κρατήσεις είναι έγκυρες με βάση τα νέα bookingStart και bookingEnd
+const checkInvalidReservationsWhenBookingHoursChange = (reservations, bookingStart, bookingEnd) => {
+  const invalidReservations = [];
+
+  for (const reservation of reservations) {
+    const reservationTime = reservation.reservationTime;
+    if (reservationTime < bookingStart || reservationTime > bookingEnd) {
+      invalidReservations.push(reservation);
+    }
+  }
+
+  return invalidReservations;
+};
+
+
+
+
 
 module.exports = {
   addReservationService,
@@ -108,4 +125,5 @@ module.exports = {
   deleteReservationService,
   getReservationsForTable,
   setTableIdForReservations,
+  checkInvalidReservationsWhenBookingHoursChange,
 };
