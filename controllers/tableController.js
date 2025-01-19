@@ -1,4 +1,4 @@
-const { createTable, updateTable, deleteTableService, checkAvailability, unvalidReservationsAfterSeatsEdit, updateWhenReservationDelete,setAvailabilityForDay, invalidReservationForIsBookingAllowedEdit, initializeAvailabilityForDate,clearAvailabilityForDay } = require('../services/tableServices');
+const { createTable, updateTable, deleteTableService, checkAvailability, unvalidReservationsAfterSeatsEdit, updateWhenReservationDelete, setAvailabilityForDay, invalidReservationForIsBookingAllowedEdit, initializeAvailabilityForDate, clearAvailabilityForDay } = require('../services/tableServices');
 const { getReservationsForTable, setTableIdForReservations } = require('../services/reservationServices');
 const { addReservationToUndefinedList } = require('../services/shopServices');
 const Table = require('../models/table'); // Προσθήκη της εισαγωγής του Table
@@ -45,23 +45,6 @@ const editSeats = async (req, res) => {
   const { seats } = req.body;
 
   try {
-    // Βρίσκουμε τις κρατήσεις για το τραπέζι
-    const reservationsResult = await getReservationsForTable(id);
-
-    if (reservationsResult.success && reservationsResult.reservations.length > 0) {
-      // Ελέγχουμε αν οι κρατήσεις είναι έγκυρες με τα νέα seats
-      const invalidReservations = await unvalidReservationsAfterSeatsEdit(reservationsResult.reservations.map(reservation => reservation._id), seats);
-
-      if (invalidReservations.length > 0) {
-        // Αλλάζουμε το tableId σε null για τις μη έγκυρες κρατήσεις και τις προσθέτουμε στην undefinedReservationList
-        await setTableIdForReservations(invalidReservations.map(reservation => reservation._id));
-        for (const reservation of invalidReservations) {
-          await addReservationToUndefinedList(reservation.shopId, reservation._id);
-          await updateWhenReservationDelete(reservation.tableId, reservation.reservationDate, reservation.reservationTime);
-        }
-      }
-    }
-
     // Ενημερώνουμε τα seats του τραπεζιού
     const updatedTable = await updateTable(id, { seats });
     res.json(updatedTable);
@@ -72,8 +55,7 @@ const editSeats = async (req, res) => {
 };
 
 //! Function για edit isBookingAllowed
- //! Function για edit isBookingAllowed
- const editIsBookingAllowed = async (req, res) => {
+const editIsBookingAllowed = async (req, res) => {
   const { id } = req.params;
   const { day, isBookingAllowed } = req.body;
 
@@ -88,32 +70,6 @@ const editSeats = async (req, res) => {
     table.bookingHours[day].isBookingAllowed = isBookingAllowed;
     await table.save();
 
-    if (!isBookingAllowed) {
-      // Βρίσκουμε τις κρατήσεις για το τραπέζι
-      const reservationsResult = await getReservationsForTable(id);
-
-      if (reservationsResult.success && reservationsResult.reservations.length > 0) {
-        // Ελέγχουμε αν οι κρατήσεις είναι έγκυρες για την αλλαγή isBookingAllowed
-        const invalidReservations = await invalidReservationForIsBookingAllowedEdit(reservationsResult.reservations, day);
-
-        if (invalidReservations.length > 0) {
-          // Αλλάζουμε το tableId σε null για τις μη έγκυρες κρατήσεις και τις προσθέτουμε στην undefinedReservationList
-          await setTableIdForReservations(invalidReservations.map(reservation => reservation._id));
-          for (const reservation of invalidReservations) {
-            await addReservationToUndefinedList(reservation.shopId, reservation._id);
-            await updateWhenReservationDelete(reservation.tableId, reservation.reservationDate, reservation.reservationTime);
-          }
-        }
-
-      }
-      // Ορίζουμε τη διαθεσιμότητα του τραπεζιού σε κενή για τις ημερομηνίες που ταυτίζονται με την ημέρα
-      await clearAvailabilityForDay(id, day);
-    } else {
-      await setAvailabilityForDay(id, day);
-      
-
-    }
-
     res.status(200).json({ message: 'isBookingAllowed updated successfully' });
   } catch (error) {
     console.error(error);
@@ -126,17 +82,6 @@ const deleteTable = async (req, res) => {
   const { id } = req.params;
 
   try {
-    // Έλεγχος αν υπάρχουν κρατήσεις για το τραπέζι
-    const reservationsResult = await getReservationsForTable(id);
-
-    if (reservationsResult.success && reservationsResult.reservations.length > 0) {
-      // Αποθήκευση των κρατήσεων στην undefinedReservationList
-      await setTableIdForReservations(reservationsResult.reservations.map(reservation => reservation._id));
-      for (const reservation of reservationsResult.reservations) {
-        await addReservationToUndefinedList(reservation.shopId, reservation._id);
-      }
-    }
-
     await deleteTableService(id);
     res.status(200).json({ message: 'Table deleted successfully' });
   } catch (error) {
@@ -177,7 +122,7 @@ module.exports = {
   addTable,
   editTable,
   editSeats,
-  editIsBookingAllowed, // Προσθήκη της νέας συνάρτησης στο export
+  editIsBookingAllowed,
   deleteTable,
   checkTableAvailability,
 };

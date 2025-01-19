@@ -4,6 +4,7 @@ const shopRouter = express.Router();
 const Shop = require('../models/shop'); 
 
 const { addShop, getAllShops, getShopById, editShop, getShopReservationList, patchBookingHoursForDay, getShopTables } = require('../controllers/shopController');
+const { handleBookingHoursUpdate } = require('../middlewares/editsMiddleware');
 
 //! POST: Δημιουργία νέου καταστήματος με τα απαραιτητα πεδια
 shopRouter.post('/api/shop', addShop);
@@ -20,8 +21,8 @@ shopRouter.patch('/api/shop/:id', editShop);
 //! GET: Επιστροφή λίστας κρατήσεων για συγκεκριμένο κατάστημα
 shopRouter.get('/api/shop/reservationList/:shopId', getShopReservationList);
 
-//! PATCH: Ενημέρωση των booking hours για συγκεκριμένη ημέρα
-shopRouter.patch('/api/shop/:shopId/booking-hours', patchBookingHoursForDay);
+//! PATCH: Ενημέρωση των booking hours για συγκεκριμένη ημέρα με χρήση middleware
+shopRouter.patch('/api/shop/:shopId/booking-hours',handleBookingHoursUpdate, patchBookingHoursForDay);
 
 //! GET: Επιστροφή των τραπεζιών ενός καταστήματος
 shopRouter.get('/api/shop/:shopId/tables', getShopTables);

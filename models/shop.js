@@ -1,152 +1,158 @@
 const mongoose = require('mongoose');
-
-const {isOpen} = require('../validators/shopValidator');
+const { validatePhoneNumber } = require('../validators/shopValidators');
 
 // Schema για το κατάστημα
 const shopSchema = mongoose.Schema({
-    shopName: {
-        type: String,
-        trim: true,
-        required: true,
-        minlength: [2, 'Shop name must be at least 3 characters'],
-        maxlength: [25, 'Shop name must be at most 100 characters'],
-    },
-
-    shopDescription: {
-        type: String,
-        required: true,
-        minlength: [10, 'Description must be at least 10 characters'],
-        maxlength: [500, 'Description must be at most 500 characters'],
-    },
-
-    category: {
-        type: String,
-        default: "",
-    },
-
-    images: [{
-        type: String,
-        default: [] // Default empty array for images
-    }],
-
-    city: {
-        type: String,
-        required: true,
-    },
-
-    location: {
-        type: { type: String, enum: ['Point'], required: true }, // Ο τύπος είναι πάντα Point
-        coordinates: {
-            type: [Number], // Πρώτο το μήκος (longitude), δεύτερο το πλάτος (latitude)
-            required: true
-        }
-    },
-
-    phone: {
-        type: String,
-        required: true,
-        match: [
-            /^(69\d{8}|2\d{2,3}\d{6,7})$/,
-            'Please enter a valid phone number (either mobile or landline)'
-        ],
-    },
-
-    musicCategory: {
-        type: String,
-        default: "", // Default value if not provided
-    },
-
-    priceRange: {
-        type: String,
-        default: "", // Default value if not provided
-    },
-
-    openingHours: {
-        monday: {
-            isOpen: { type: Boolean, default: false, required: true },
-            open: { type: Number, min: 0, max: 24, required: true }, // Αριθμός μεταξύ 0 και 24
-            close: { type: Number, min: 0, max: 24, required: true },
-            bookingStart: { type: Number, min: 0, max: 24, required: true }, // Ώρα έναρξης κρατήσεων
-            bookingEnd: { type: Number, min: 0, max: 24, required: true }, // Ώρα λήξης κρατήσεων
-        },
-        tuesday: {
-            isOpen: { type: Boolean, default: false, required: true },
-            open: { type: Number, min: 0, max: 24, required: true },
-            close: { type: Number, min: 0, max: 24, required: true },
-            bookingStart: { type: Number, min: 0, max: 24, required: true },
-            bookingEnd: { type: Number, min: 0, max: 24, required: true },
-        },
-        wednesday: {
-            isOpen: { type: Boolean, default: false, required: true },
-            open: { type: Number, min: 0, max: 24, required: true },
-            close: { type: Number, min: 0, max: 24, required: true },
-            bookingStart: { type: Number, min: 0, max: 24, required: true },
-            bookingEnd: { type: Number, min: 0, max: 24, required: true },
-        },
-        thursday: {
-            isOpen: { type: Boolean, default: false, required: true },
-            open: { type: Number, min: 0, max: 24, required: true },
-            close: { type: Number, min: 0, max: 24, required: true },
-            bookingStart: { type: Number, min: 0, max: 24, required: true },
-            bookingEnd: { type: Number, min: 0, max: 24, required: true },
-        },
-        friday: {
-            isOpen: { type: Boolean, default: false, required: true },
-            open: { type: Number, min: 0, max: 24, required: true },
-            close: { type: Number, min: 0, max: 24, required: true },
-            bookingStart: { type: Number, min: 0, max: 24, required: true },
-            bookingEnd: { type: Number, min: 0, max: 24, required: true },
-        },
-        saturday: {
-            isOpen: { type: Boolean, default: false, required: true },
-            open: { type: Number, min: 0, max: 24, required: true },
-            close: { type: Number, min: 0, max: 24, required: true },
-            bookingStart: { type: Number, min: 0, max: 24, required: true },
-            bookingEnd: { type: Number, min: 0, max: 24, required: true },
-        },
-        sunday: {
-            isOpen: { type: Boolean, default: false, required: true },
-            open: { type: Number, min: 0, max: 24, required: true },
-            close: { type: Number, min: 0, max: 24, required: true },
-            bookingStart: { type: Number, min: 0, max: 24, required: true },
-            bookingEnd: { type: Number, min: 0, max: 24, required: true },
-        },
-    },
-
-    timeSlotSplit:{
-        type:Number,
-        required:true,
-    },
-
-    tables: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Table',
-        default: [],
-    }],
-
-    // Ιστορικό κρατήσεων του καταστήματος
-    reservationList: {
-        type: Map,
-        of: [{
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Reservation',
-        }],
-        default:{},
-    },
-
-        // Λίστα κρατήσεων που δεν έχουν tableId
-        undefinedReservationList: [{
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Reservation',
-            default: [],
-        }],
-
-    // Διαθεσιμότητα του καταστήματος, βασισμένη στα τραπέζια
-    availableHours: {
-        type: Map, // Ώρες που είναι διαθέσιμες για κάθε ημέρα
-        of: [Number], // Λίστα από αριθμούς (π.χ. [12.5, 14.0, 16.0])
-        default: {}, // Default empty map
+  shopName: {
+    type: String,
+    trim: true,
+    required: [true, 'Shop name is required'],
+    minlength: [2, 'Shop name must be at least 2 characters'],
+    maxlength: [25, 'Shop name must be at most 25 characters'],
+    unique: true,
+  },
+  shopDescription: {
+    type: String,
+    required: [true, 'Description is required'],
+    minlength: [10, 'Description must be at least 10 characters'],
+    maxlength: [500, 'Description must be at most 500 characters'],
+  },
+  category: {
+    type: String,
+    default: "",
+  },
+  images: [{
+    type: String,
+    default: []
+  }],
+  city: {
+    type: String,
+    required: [true, 'City is required'],
+  },
+  location: {
+    type: { type: String, enum: ['Point'], required: true },
+    coordinates: {
+      type: [Number],
+      required: true
     }
+  },
+  phone: {
+    type: String,
+    required: [true, 'Phone number is required'],
+    validate: [validatePhoneNumber, 'Please enter a valid phone number (either mobile or landline)'],
+  },
+  musicCategory: {
+    type: String,
+    default: "",
+  },
+  priceRange: {
+    type: String,
+    default: "",
+  },
+  openingHours: {
+    monday: {
+      isOpen: { type: Boolean, default: false, required: true },
+      open: { type: Number, min: 0, max: 24, required: function() { return this.isOpen; }, default: 0 },
+      close: { type: Number, min: 0, max: 24, required: function() { return this.isOpen; }, default: 0 },
+      bookingStart: { type: Number, min: 0, max: 24, required: function() { return this.isOpen; }, default: 0 },
+      bookingEnd: { type: Number, min: 0, max: 24, required: function() { return this.isOpen; }, default: 0 },
+    },
+    tuesday: {
+      isOpen: { type: Boolean, default: false, required: true },
+      open: { type: Number, min: 0, max: 24, required: function() { return this.isOpen; }, default: 0 },
+      close: { type: Number, min: 0, max: 24, required: function() { return this.isOpen; }, default: 0 },
+      bookingStart: { type: Number, min: 0, max: 24, required: function() { return this.isOpen; }, default: 0 },
+      bookingEnd: { type: Number, min: 0, max: 24, required: function() { return this.isOpen; }, default: 0 },
+    },
+    wednesday: {
+      isOpen: { type: Boolean, default: false, required: true },
+      open: { type: Number, min: 0, max: 24, required: function() { return this.isOpen; }, default: 0 },
+      close: { type: Number, min: 0, max: 24, required: function() { return this.isOpen; }, default: 0 },
+      bookingStart: { type: Number, min: 0, max: 24, required: function() { return this.isOpen; }, default: 0 },
+      bookingEnd: { type: Number, min: 0, max: 24, required: function() { return this.isOpen; }, default: 0 },
+    },
+    thursday: {
+      isOpen: { type: Boolean, default: false, required: true },
+      open: { type: Number, min: 0, max: 24, required: function() { return this.isOpen; }, default: 0 },
+      close: { type: Number, min: 0, max: 24, required: function() { return this.isOpen; }, default: 0 },
+      bookingStart: { type: Number, min: 0, max: 24, required: function() { return this.isOpen; }, default: 0 },
+      bookingEnd: { type: Number, min: 0, max: 24, required: function() { return this.isOpen; }, default: 0 },
+    },
+    friday: {
+      isOpen: { type: Boolean, default: false, required: true },
+      open: { type: Number, min: 0, max: 24, required: function() { return this.isOpen; }, default: 0 },
+      close: { type: Number, min: 0, max: 24, required: function() { return this.isOpen; }, default: 0 },
+      bookingStart: { type: Number, min: 0, max: 24, required: function() { return this.isOpen; }, default: 0 },
+      bookingEnd: { type: Number, min: 0, max: 24, required: function() { return this.isOpen; }, default: 0 },
+    },
+    saturday: {
+      isOpen: { type: Boolean, default: false, required: true },
+      open: { type: Number, min: 0, max: 24, required: function() { return this.isOpen; }, default: 0 },
+      close: { type: Number, min: 0, max: 24, required: function() { return this.isOpen; }, default: 0 },
+      bookingStart: { type: Number, min: 0, max: 24, required: function() { return this.isOpen; }, default: 0 },
+      bookingEnd: { type: Number, min: 0, max: 24, required: function() { return this.isOpen; }, default: 0 },
+    },
+    sunday: {
+      isOpen: { type: Boolean, default: false, required: true },
+      open: { type: Number, min: 0, max: 24, required: function() { return this.isOpen; }, default: 0 },
+      close: { type: Number, min: 0, max: 24, required: function() { return this.isOpen; }, default: 0 },
+      bookingStart: { type: Number, min: 0, max: 24, required: function() { return this.isOpen; }, default: 0 },
+      bookingEnd: { type: Number, min: 0, max: 24, required: function() { return this.isOpen; }, default: 0 },
+    },
+  },
+  timeSlotSplit: {
+    type: Number,
+    required: [true, 'Time slot split is required'],
+  },
+  tables: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Table',
+    default: [],
+  }],
+  reservationList: {
+    type: Map,
+    of: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Reservation',
+    }],
+    default: {},
+  },
+  undefinedReservationList: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Reservation',
+    default: [],
+  }],
+  availableHours: {
+    type: Map,
+    of: [Number],
+    default: {},
+  }
+});
+
+// Middleware για επικυρώσεις πριν την αποθήκευση
+shopSchema.pre('save', function(next) {
+  const openingHours = this.openingHours;
+
+  for (const day in openingHours) {
+    if (openingHours[day].isOpen) {
+      if (openingHours[day].open >= openingHours[day].close) {
+        return next(new Error(`Open time must be before close time for ${day}`));
+      }
+      if (openingHours[day].bookingStart >= openingHours[day].bookingEnd) {
+        return next(new Error(`Booking start time must be before booking end time for ${day}`));
+      }
+      if (openingHours[day].bookingStart < openingHours[day].open || openingHours[day].bookingEnd > openingHours[day].close) {
+        return next(new Error(`Booking hours must be within open hours for ${day}`));
+      }
+    } else {
+      openingHours[day].open = 0;
+      openingHours[day].close = 0;
+      openingHours[day].bookingStart = 0;
+      openingHours[day].bookingEnd = 0;
+    }
+  }
+
+  next();
 });
 
 const Shop = mongoose.model('Shop', shopSchema);

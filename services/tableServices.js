@@ -13,14 +13,22 @@ const createTable = async (shopId, tableData) => {
   shop.tables.push(newTable._id);
   await shop.save();
 
-  // Αρχικοποίηση της διαθεσιμότητας για τις επόμενες 30 ημέρες
+  // Initialize availability for the entire month
   const today = new Date();
+  const availabilityMap = new Map();
+
   for (let i = 0; i < 30; i++) {
     const date = new Date(today);
     date.setDate(today.getDate() + i);
-    const dateString = date.toISOString().split('T')[0]; // Μορφή ημερομηνίας YYYY-MM-DD
-    await initializeAvailabilityForDate(shopId, newTable._id, dateString);
+    const dateString = date.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+
+    const availability = await initializeAvailabilityForDateBatch(shop, newTable, dateString);
+    availabilityMap.set(dateString, availability);
   }
+
+  // Save the table with all the availability at once
+  newTable.availability = availabilityMap;
+  await newTable.save();
 
   return newTable;
 };
@@ -69,53 +77,28 @@ const calculateInitializeTableAvailability = (start, end, timeSlotSplit) => {
 };
 
 // Αρχικοποίηση της διαθεσιμότητας του τραπεζιού για έναν μήνα με βάση το ωράριο κρατήσεων του καταστήματος
-const initializeAvailabilityForDate = async (shopId, tableId, dateString) => {
+const initializeAvailabilityForDateBatch = async (shop, table, dateString) => {
   const date = new Date(dateString);
-  if (isNaN(date.getTime())) {
-    throw new Error('Invalid date format');
+  if (isNaN(date.getTime())) throw new Error('Invalid date format');
+
+  const day = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][date.getDay()];
+
+  // Check if booking is allowed for the specific day
+  const bookingHours = table.bookingHours?.[day];
+  if (!bookingHours?.isBookingAllowed) {
+    return []; // No availability for this day
   }
 
-  const daysOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-  const day = daysOfWeek[date.getDay()];
-
-  const shop = await Shop.findById(shopId);
-  const table = await Table.findById(tableId);
-
-  if (!shop) throw new Error('Shop not found');
-  if (!table) throw new Error('Table not found');
-
-  // Έλεγχος αν είναι επιτρεπτή η κράτηση για την ημέρα
-  const bookingHours = table.bookingHours[day];
-  if (!bookingHours || !bookingHours.isBookingAllowed) {
-    return { success: false, message: `Booking is not allowed on ${day}` };
-  }
-
-  const shopBookingHours = shop.openingHours[day];
-  const { bookingStart, bookingEnd } = shopBookingHours;
-  if (bookingStart === null || bookingEnd === null) {
-    return { success: false, message: `Invalid booking hours for ${day}` };
-  }
-
-  // Υπολογισμός διαθεσιμότητας με βάση τις ώρες κρατήσεων του καταστήματος
-  const availability = calculateInitializeTableAvailability(bookingStart, bookingEnd, shop.timeSlotSplit);
-
-  // Αρχικοποίηση της διαθεσιμότητας για τη συγκεκριμένη ημερομηνία
-  if (!table.availability) {
-    table.availability = new Map();
-  }
-
-  // Ελέγχουμε αν υπάρχει ήδη καταγεγραμμένη διαθεσιμότητα για τη συγκεκριμένη ημερομηνία
-  if (table.availability.has(dateString)) {
-    return { success: true, message: `Availability for ${dateString} already initialized.` };
-  }
-
-  // Αρχικοποίηση της διαθεσιμότητας με τις ώρες για αυτήν την ημερομηνία
-  table.availability.set(dateString, availability);
-
-  await table.save();
-
-  return { success: true, message: `Availability initialized for ${dateString}` };
+  // Calculate availability based on shop's opening hours
+  const shopBookingHours = shop.openingHours?.[day];
+  return calculateInitializeTableAvailability(
+    shopBookingHours?.bookingStart,
+    shopBookingHours?.bookingEnd,
+    shop.timeSlotSplit
+  );
 };
+
+
 
 const checkAvailability = async (req) => {
   const { shopId, dateString, seats } = req.query;
@@ -126,6 +109,16 @@ const checkAvailability = async (req) => {
       return { success: false, message: 'Invalid date format', availability: [] };
     }
 
+    // Retrieve the shop and its booking hours
+    const shop = await Shop.findById(shopId);
+    if (!shop) {
+      return { success: false, message: 'Shop not found', availability: [] };
+    }
+
+  
+
+    
+
     const tables = await Table.find({ shopId });
     if (!tables || tables.length === 0) {
       return { success: false, message: 'No tables found for this shop', availability: [] };
@@ -134,12 +127,14 @@ const checkAvailability = async (req) => {
     const availableHoursSet = new Set();
 
     for (const table of tables) {
+      // Check seat capacity
       if (table.seats >= seats) {
-        const availabilityForDate = table.availability.get(dateString) || [];
+        const availabilityForDate = table.availability?.get(dateString) || [];
 
         for (const hour of availabilityForDate) {
           availableHoursSet.add(hour);
         }
+
       }
     }
 
@@ -151,6 +146,17 @@ const checkAvailability = async (req) => {
     console.error(error);
     return { success: false, message: error.message, availability: [] };
   }
+};
+
+
+
+// Utility Function to Add Minutes to a Time String (e.g., "09:00")
+const addMinutesToTime = (timeString, minutes) => {
+  const [hours, mins] = timeString.split(':').map(Number);
+  const totalMinutes = hours * 60 + mins + minutes;
+  const newHours = Math.floor(totalMinutes / 60).toString().padStart(2, '0');
+  const newMinutes = (totalMinutes % 60).toString().padStart(2, '0');
+  return `${newHours}:${newMinutes}`;
 };
 
 // Βοηθητική συνάρτηση για την εύρεση του τραπεζιού
@@ -207,7 +213,7 @@ const updateWhenReservationDelete = async (tableId, reservationDate, reservation
     const { dateKey, availableHours } = prepareAvailability(table, reservationDate);
 
     const estimatedReservationTime = table.estimatedReservationTime;
-    const startTime = reservationTime;
+    const startTime = reservationTime - Math.ceil(estimatedReservationTime / 60);
     const endTime = reservationTime + Math.ceil(estimatedReservationTime / 60);
 
     console.log(`Updating availability for tableId: ${tableId} after reservation deletion`);
@@ -215,24 +221,29 @@ const updateWhenReservationDelete = async (tableId, reservationDate, reservation
     console.log(`Start Time: ${startTime}, End Time: ${endTime}`);
 
     // Παίρνουμε την τρέχουσα διαθεσιμότητα για την ημερομηνία
-    const currentAvailability = [...availableHours];
+    const currentAvailability = new Set(availableHours);
 
-    console.log(`Current availability for ${dateKey}:`, currentAvailability);
+    console.log(`Current availability for ${dateKey}:`, Array.from(currentAvailability));
+
+    // Βρίσκουμε το κατάστημα για να πάρουμε τα booking hours
+    const shop = await Shop.findById(table.shopId);
+    if (!shop) throw new Error('Shop not found');
+
+    const dayOfWeek = new Date(reservationDate).toLocaleString('en-US', { weekday: 'long' }).toLowerCase();
+    const bookingHours = shop.openingHours[dayOfWeek];
+
 
     // Προσθέτουμε τις ώρες που επικαλύπτονται με την κράτηση πίσω στη διαθεσιμότητα
     for (let hour = startTime; hour < endTime; hour += 0.5) {
-      if (!currentAvailability.includes(hour)) {
-        currentAvailability.push(hour);
+      if (hour <= bookingHours.bookingEnd) {
+        currentAvailability.add(hour);
       }
     }
 
-    // Ταξινομούμε τις ώρες για να διατηρήσουμε τη σειρά
-    currentAvailability.sort((a, b) => a - b);
-
-    console.log(`Updated availability for ${dateKey}:`, currentAvailability);
+    console.log(`Updated availability for ${dateKey}:`, Array.from(currentAvailability));
 
     // Ενημερώνουμε τη διαθεσιμότητα για αυτή την ημερομηνία
-    table.availability.set(dateKey, currentAvailability);
+    table.availability.set(dateKey, Array.from(currentAvailability));
 
     // Αποθηκεύουμε τις αλλαγές
     await table.save();
@@ -243,7 +254,6 @@ const updateWhenReservationDelete = async (tableId, reservationDate, reservation
     throw error;
   }
 };
-
 // Συνάρτηση για την εύρεση του καταλληλότερου διαθέσιμου τραπεζιού
 const findBestAvailableTable = async (shopId, reservationDate, reservationTime, numberOfPeople) => {
   try {
@@ -350,7 +360,7 @@ const unvalidReservationsAfterSeatsEdit = async (reservationIds, seatsInput) => 
         throw new Error(`Table not found for reservation: ${reservationId}`);
       }
 
-      if (seatsInput < table.seats) {
+      if (seatsInput <reservation.seats) {
         invalidReservations.push(reservation);
       }
     }
@@ -476,7 +486,7 @@ module.exports = {
   createTable,
   updateTable,
   deleteTableService,
-  initializeAvailabilityForDate,
+  initializeAvailabilityForDateBatch,
   checkAvailability,
   updateTableAvailability,
   updateWhenReservationDelete,

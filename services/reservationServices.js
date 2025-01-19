@@ -3,7 +3,7 @@ const { updateTableAvailability, updateWhenReservationDelete } = require('../ser
 
 // Δημιουργία νέας κράτησης
 const addReservationService = async (reservationData) => {
-  const { shopId, userId, tableId, reservationDate, reservationTime, estimatedReservationTime, commentFromUser, userName, shopName } = reservationData;
+  const { shopId, userId, tableId, reservationDate, reservationTime, estimatedReservationTime, commentFromUser, userName, shopName,seats } = reservationData;
 
   // Ensure that required fields userName and shopName are present
   if (!userName || !shopName) {
@@ -20,7 +20,8 @@ const addReservationService = async (reservationData) => {
     estimatedReservationTime,
     commentFromUser,
     userName,  // Add userName
-    shopName,  // Add shopName
+    shopName, 
+    seats, 
   });
 
   // Αποθήκευση της κράτησης στη βάση δεδομένων

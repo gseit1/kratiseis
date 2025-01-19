@@ -12,7 +12,7 @@ const addReservation = async (req, res) => {
       reservationData.shopId,
       reservationData.reservationDate,
       reservationData.reservationTime,
-      reservationData.numberOfPeople
+      reservationData.seats
     );
 
     if (!bestTable) {

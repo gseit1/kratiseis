@@ -42,7 +42,13 @@ const reservationSchema = mongoose.Schema(
             default: '',
             maxlength: 200, // Μέγιστο μήκος σχολίου
         },
+
+        seats: {
+            type:Number,
+            required:true,
+        },
     },
+
 
 );
 

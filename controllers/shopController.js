@@ -1,6 +1,5 @@
-const Shop  = require('../models/shop');
 const shopService = require('../services/shopServices');
-const tableService = require('../services/tableServices'); // Προσθήκη της εισαγωγής της tableService
+const tableService = require('../services/tableServices');
 const reservationService = require('../services/reservationServices');
 const Reservation = require('../models/reservation');
 const mongoose = require('mongoose');
@@ -25,26 +24,6 @@ const patchBookingHoursForDay = async (req, res) => {
       const shop = await shopService.getShopByIdService(shopId);
       if (!shop) {
         return res.status(404).json({ message: 'Shop not found' });
-      }
-  
-      // Βρίσκουμε τα τραπέζια του καταστήματος
-      const tables = await tableService.getTablesByShopId(shopId);
-  
-      // Βρίσκουμε τις κρατήσεις που δεν υποστηρίζονται από την αλλαγή
-      for (const table of tables) {
-        const reservationsResult = await reservationService.getReservationsForTable(table._id);
-        if (reservationsResult.success && reservationsResult.reservations.length > 0) {
-          const invalidReservations = reservationService.checkInvalidReservationsWhenBookingHoursChange(reservationsResult.reservations, newBookingStart, newBookingEnd);
-          if (invalidReservations.length > 0) {
-            await reservationService.setTableIdForReservations(invalidReservations.map(reservation => reservation._id));
-            for (const reservation of invalidReservations) {
-              await shopService.addReservationToUndefinedList(reservation.shopId, reservation._id);
-            }
-          }
-        }
-  
-        // Ενημερώνουμε τη διαθεσιμότητα των τραπεζιών
-        await tableService.updateAvailabilityForBookingHoursEdit(table._id, day, newBookingStart, newBookingEnd);
       }
   
       // Ενημερώνουμε τις νέες τιμές για την ημέρα
@@ -134,6 +113,6 @@ module.exports = {
     getShopById,
     editShop,
     getShopReservationList,
-    patchBookingHoursForDay, // Προσθήκη της νέας συνάρτησης στο export
-    getShopTables, // Προσθήκη της νέας συνάρτησης στο export
+    patchBookingHoursForDay,
+    getShopTables,
 };
