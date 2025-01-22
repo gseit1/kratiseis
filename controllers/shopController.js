@@ -107,6 +107,23 @@ const getShopTables = async (req, res) => {
   }
 };
 
+
+//! Function για επιστροφή των κριτικών ενός καταστήματος
+
+const getReviewsForShop = async (req, res) => {
+  const { shopId } = req.params;
+
+  try {
+    const reviews = await shopService.getShopReviews(shopId);
+    res.status(200).json(reviews); // Επιστροφή των reviews στον πελάτη
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
+
+
 module.exports = { 
     addShop,
     getAllShops,
@@ -115,4 +132,5 @@ module.exports = {
     getShopReservationList,
     patchBookingHoursForDay,
     getShopTables,
+    getReviewsForShop,
 };

@@ -15,7 +15,7 @@ const shopSchema = mongoose.Schema({
     type: String,
     required: [true, 'Description is required'],
     minlength: [10, 'Description must be at least 10 characters'],
-    maxlength: [500, 'Description must be at most 500 characters'],
+    maxlength: [500, 'Description must be at most 300 characters'],
   },
   category: {
     type: String,
@@ -122,11 +122,20 @@ const shopSchema = mongoose.Schema({
     ref: 'Reservation',
     default: [],
   }],
-  availableHours: {
-    type: Map,
-    of: [Number],
-    default: {},
-  }
+  
+
+reviewList:[{
+  type:mongoose.Schema.Types.ObjectId,
+  ref:"Review",
+  default:[],
+
+}],
+
+reviewRatingAverage:{
+  type:Number,
+  default:-1, // -1 means no rating/reviews for the shop
+}
+
 });
 
 // Middleware για επικυρώσεις πριν την αποθήκευση

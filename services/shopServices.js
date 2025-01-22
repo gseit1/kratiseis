@@ -142,6 +142,69 @@ const deleteToReservationList = async (shopId, date, reservationId) => {
     return { success: true, message: 'Reservation deleted successfully' };
 };
 
+
+
+// Διαχείριση του reviewList του Shop
+const updateReviewList = async (shopId, reviewId, action) => {
+    const shop = await Shop.findById(shopId);
+    if (!shop) {
+        throw new Error('Shop not found');
+    }
+
+    if (action === 'POST') {
+        // Προσθήκη του reviewId στη λίστα
+        if (!shop.reviewList.includes(reviewId)) {
+            shop.reviewList.push(reviewId);
+        }
+    } else if (action === 'DELETE') {
+        // Διαγραφή του reviewId από τη λίστα
+        shop.reviewList = shop.reviewList.filter(id => id.toString() !== reviewId.toString());
+    } else {
+        throw new Error('Invalid action. Must be "POST" or "DELETE".');
+    }
+
+    await shop.save();
+    return { success: true, message: `Review ${action === 'POST' ? 'added to' : 'removed from'} reviewList successfully` };
+};
+
+
+// Υπολογισμός του μέσου όρου αξιολόγησης
+const updateReviewRatingAverage = async (shopId) => {
+    const shop = await Shop.findById(shopId).populate('reviewList');
+    if (!shop) {
+        throw new Error('Shop not found');
+    }
+
+    if (shop.reviewList.length === 0) {
+        shop.reviewRatingAverage = -1; // Δεν υπάρχουν reviews
+    } else {
+        const totalRating = shop.reviewList.reduce((sum, review) => sum + review.rating, 0);
+        shop.reviewRatingAverage = totalRating / shop.reviewList.length;
+    }
+
+    await shop.save();
+    return { success: true, message: 'Review rating average updated successfully', averageRating: shop.reviewRatingAverage };
+};
+
+const getShopReviews = async (shopId) => {
+    try {
+      // Εύρεση του καταστήματος και των reviews του
+      const shop = await Shop.findById(shopId).populate('reviewList').exec();
+  
+      if (!shop) {
+        throw new Error('Shop not found');
+      }
+  
+      return shop.reviewList; // Επιστροφή των reviews
+    } catch (error) {
+      throw new Error(error.message);
+    }
+  };
+
+
+
+
+
 module.exports = {
     editShop,
     addShopService,
@@ -151,4 +214,8 @@ module.exports = {
     addReservationToUndefinedList, 
     addToReservationList,
     deleteToReservationList,
+    updateReviewList,
+    updateReviewRatingAverage,
+    getShopReviews,
 };
+

@@ -7,6 +7,9 @@ const tableRouter = require('./routes/table');
 const reservationRouter = require('./routes/reservation');
 const availabilityRouter = require('./routes/availability');
 const categoryRouter = require('./routes/category');
+const attributeRouter = require('./routes/attribute');
+const reviewRouter = require('./routes/review');
+
 
 const PORT = 300; // Define port number server will listen
 const app = express(); // Create an instance of express application
@@ -21,6 +24,8 @@ app.use(tableRouter);
 app.use(reservationRouter);
 app.use(availabilityRouter);
 app.use(categoryRouter);
+app.use(attributeRouter);
+app.use(reviewRouter);
 
 app.use((req, res, next) => {
     console.log(`${req.method} ${req.url}`);

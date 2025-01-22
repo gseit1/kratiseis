@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const shopRouter = express.Router();
 const Shop = require('../models/shop'); 
 
-const { addShop, getAllShops, getShopById, editShop, getShopReservationList, patchBookingHoursForDay, getShopTables } = require('../controllers/shopController');
+const { addShop, getAllShops, getShopById, editShop, getShopReservationList, patchBookingHoursForDay, getShopTables, getReviewsForShop } = require('../controllers/shopController');
 const { handleBookingHoursUpdate } = require('../middlewares/editsMiddleware');
 
 //! POST: Δημιουργία νέου καταστήματος με τα απαραιτητα πεδια
@@ -27,4 +27,6 @@ shopRouter.patch('/api/shop/:shopId/booking-hours',handleBookingHoursUpdate, pat
 //! GET: Επιστροφή των τραπεζιών ενός καταστήματος
 shopRouter.get('/api/shop/:shopId/tables', getShopTables);
 
+//!GET : Επιστροφη κριτικων του καταστηματος
+shopRouter.get('/api/shop/:shopId/reviews',getReviewsForShop)
 module.exports = shopRouter;
