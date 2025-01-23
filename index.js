@@ -9,6 +9,9 @@ const availabilityRouter = require('./routes/availability');
 const categoryRouter = require('./routes/category');
 const attributeRouter = require('./routes/attribute');
 const reviewRouter = require('./routes/review');
+const searchShopsRouter = require('./routes/searchShops');
+const cityRouter = require('./routes/city');
+const regionRouter = require('./routes/region');
 
 
 const PORT = 300; // Define port number server will listen
@@ -26,7 +29,9 @@ app.use(availabilityRouter);
 app.use(categoryRouter);
 app.use(attributeRouter);
 app.use(reviewRouter);
-
+app.use(searchShopsRouter);
+app.use(cityRouter);
+app.use(regionRouter);
 app.use((req, res, next) => {
     console.log(`${req.method} ${req.url}`);
     next();

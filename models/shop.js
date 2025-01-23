@@ -18,17 +18,31 @@ const shopSchema = mongoose.Schema({
     maxlength: [500, 'Description must be at most 300 characters'],
   },
   category: {
-    type: String,
-    default: "",
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Category',
+    required: true,
   },
+
+
   images: [{
     type: String,
     default: []
   }],
+
+
+
   city: {
-    type: String,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'City',
     required: [true, 'City is required'],
   },
+
+  region:{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Region',
+    required: [true, 'Region is required'],
+  },
+
   location: {
     type: { type: String, enum: ['Point'], required: true },
     coordinates: {
