@@ -1,57 +1,45 @@
 const mongoose = require('mongoose');
 
+const userSchema = new mongoose.Schema({
 
-const userSchema = mongoose.Schema({
-    fullName:{
-        type:String,
-        required:true,
-        trim:true,
-    },
+  firebaseUid: {
+    type: String,
+    required: true,
+    unique: true,
+  },
 
-    email:{ 
-        type:String,
-        required:true,
-        trim:true,
-        validate:{
-            validator:(value)=>{
-                const result=/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-                return result.test(value);
-            },
-            message : "Enter valid email",
-        }
-    },
+  name:{
+    type:String,
+    required:true,
+  },
+  
+  surname:{
+    type:String,
+    required:true,
+  },
 
-    state:{
-        type:String,
-        default: "",
-    },
-
-    password:{
-        type:String,
-        required:true,
-        validate:{
-            validator:(value)=>{
-                //Chech if pass is 4 chars long
-                return value.length>=4;
-
-            },
-            message :"Password must be at least 4 chars long",
-        }
-    },
-
-    city:{
-        type:String,
-        default: "",
-    },
-
-    locality:{
-        type:String,
-        default: "",
-    },
-
-    
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  role: {
+    type: String,
+    enum: ['user', 'shopOwner'],
+    default: 'user',
+    required: true,
+  },
+  shopId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Shop',
+    default: null,
+  },
+  reservationHistory: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Reservation',
+    default:[],
+  }],
 });
 
-const User = mongoose.model("User", userSchema);
-
+const User = mongoose.model('User', userSchema);
 module.exports = User;

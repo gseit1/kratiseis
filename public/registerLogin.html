@@ -7,52 +7,62 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register/Login</title>
     <script type="module">
-        // Import the functions you need from the SDKs you need
+        // Login still uses Firebase Auth, so keep these imports
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 
-        // Your Firebase configuration
+        // Firebase configuration (needed for login)
         const firebaseConfig = {
-            apiKey: "AIzaSyB2PuQk5934f6_86hopJl3pdasOmCON_3U",
-            authDomain: "magaziaestiasi.firebaseapp.com",
-            projectId: "magaziaestiasi",
-            storageBucket: "magaziaestiasi.appspot.com",
-            messagingSenderId: "194228374674",
-            appId: "1:194228374674:web:fe71e120ffa91f7db72a4b",
-            measurementId: "G-BM1N63R3D3"
+            apiKey: "AIzaSyD6yfJs_ICEC_M0lJvl3Q5_nTIbF-1nLOc",
+            authDomain: "fir-authforbackend.firebaseapp.com",
+            projectId: "fir-authforbackend",
+            storageBucket: "fir-authforbackend.firebasestorage.app",
+            messagingSenderId: "952057050344",
+            appId: "1:952057050344:web:ea524c209b6a29b1a0c55d"
         };
 
-        // Initialize Firebase
+        // Initialize Firebase for login
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const db = getFirestore(app);
 
+        // Registration form submission (now sends data to your backend)
         document.getElementById('registerForm').addEventListener('submit', async function(event) {
             event.preventDefault();
 
-            const fullName = document.getElementById('fullName').value;
+            const name = document.getElementById('name').value;
+            const surname = document.getElementById('surname').value;
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
 
             try {
-                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                const user = userCredential.user;
-
-                // Add user to Firestore with role
-                await setDoc(doc(db, 'users', user.uid), {
-                    fullName: fullName,
-                    email: email,
-                    role: 'user' // Default role
+                // Send registration data to your backend
+                const response = await fetch('/api/signup', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: name,
+                        surname: surname,
+                        email: email,
+                        password: password
+                    })
                 });
 
-                alert('Registration successful!');
+                const result = await response.json();
+                
+                if (response.ok) {
+                    alert('Registration successful!');
+                } else {
+                    alert('Error: ' + result.message); // Show backend error
+                }
             } catch (error) {
                 console.error('Error registering:', error);
                 alert('Error registering: ' + error.message);
             }
         });
 
+        // Login form submission (unchanged)
         document.getElementById('loginForm').addEventListener('submit', async function(event) {
             event.preventDefault();
 
@@ -75,8 +85,12 @@
         <h1 class="text-center">Register</h1>
         <form id="registerForm" class="mx-auto" style="max-width: 600px;">
             <div class="mb-3">
-                <label for="fullName" class="form-label">Full Name:</label>
-                <input type="text" class="form-control" id="fullName" name="fullName" required>
+                <label for="name" class="form-label">Name:</label>
+                <input type="text" class="form-control" id="name" name="name" required>
+            </div>
+            <div class="mb-3">
+                <label for="surname" class="form-label">Surname:</label>
+                <input type="text" class="form-control" id="surname" name="surname" required>
             </div>
             <div class="mb-3">
                 <label for="email" class="form-label">Email:</label>
