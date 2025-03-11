@@ -18,8 +18,8 @@ const PORT = 300; // Define port number server will listen
 const app = express(); // Create an instance of express application
 //mongoDB string
 const DB = "mongodb+srv://kon21pan:Konpa21%21%40@cluster0.0kwjk.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
-
-// Apply rate limiting to all requests
+/**
+ * // Apply rate limiting to all requests
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // limit each IP to 2 requests per windowMs
@@ -27,6 +27,8 @@ const limiter = rateLimit({
 });
 
 app.use(limiter);
+ */
+
 
 //middleware to register routes or to mount routes
 app.use(express.json());

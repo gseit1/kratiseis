@@ -26,7 +26,11 @@
         async function fetchShops() {
             try {
                 const response = await fetch('/api/shop');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 const shops = await response.json();
+                console.log('Fetched shops:', shops); // Log the fetched data
 
                 const shopsContainer = document.getElementById('shopsContainer');
                 shopsContainer.innerHTML = '';
@@ -36,7 +40,7 @@
                     shopCard.className = 'col-md-4';
                     shopCard.innerHTML = `
                         <div class="card mb-4">
-                            <img src="images/${shop.images[0]}" class="card-img-top" alt="${shop.shopName} ">
+                            <img src="images/${shop.images[0]}" class="card-img-top" alt="${shop.shopName}">
                             <div class="card-body">
                                 <h5 class="card-title">${shop.shopName}</h5>
                                 <p class="card-text">${shop.shopDescription}</p>
