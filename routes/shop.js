@@ -29,4 +29,5 @@ shopRouter.get('/api/shop/:shopId/tables', getShopTables);
 
 //!GET : Επιστροφη κριτικων του καταστηματος
 shopRouter.get('/api/shop/:shopId/reviews',getReviewsForShop)
+
 module.exports = shopRouter;

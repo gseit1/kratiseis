@@ -125,7 +125,6 @@ const getReviewsForShop = async (req, res) => {
 
 
 
-
 module.exports = { 
     addShop,
     getAllShops,
@@ -135,4 +134,5 @@ module.exports = {
     patchBookingHoursForDay,
     getShopTables,
     getReviewsForShop,
+ 
 };

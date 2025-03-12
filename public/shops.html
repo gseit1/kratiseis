@@ -17,15 +17,102 @@
 <body>
     <div class="container mt-5">
         <h1 class="text-center">Shops</h1>
+        
+        <!-- Filter Section -->
+        <div class="mb-4">
+            <form id="filterForm" class="row g-3">
+                <div class="col-md-4">
+                    <label for="categoryFilter" class="form-label">Category</label>
+                    <select class="form-control" id="categoryFilter" name="category">
+                        <option value="">All Categories</option>
+                        <!-- Options will be populated dynamically -->
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="cityFilter" class="form-label">City</label>
+                    <select class="form-control" id="cityFilter" name="city">
+                        <option value="">All Cities</option>
+                        <!-- Options will be populated dynamically -->
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="regionFilter" class="form-label">Region</label>
+                    <select class="form-control" id="regionFilter" name="region">
+                        <option value="">All Regions</option>
+                        <!-- Options will be populated dynamically -->
+                    </select>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">Filter</button>
+                </div>
+            </form>
+        </div>
+
         <div id="shopsContainer" class="row">
             <!-- Shops will be dynamically inserted here -->
         </div>
     </div>
 
     <script>
-        async function fetchShops() {
+        async function fetchFilters() {
             try {
-                const response = await fetch('/api/shop');
+                const [categoriesResponse, citiesResponse, regionsResponse] = await Promise.all([
+                    fetch('/category').then(res => res.json()),
+                    fetch('/city').then(res => res.json()),
+                    fetch('/region').then(res => res.json())
+                ]);
+
+                const categories = categoriesResponse.categories;
+                const cities = citiesResponse;
+                const regions = regionsResponse.regions;
+
+                // Populate category filter
+                const categoryFilter = document.getElementById('categoryFilter');
+                categories.forEach(category => {
+                    const option = document.createElement('option');
+                    option.value = category._id;
+                    option.textContent = category.name;
+                    categoryFilter.appendChild(option);
+                });
+
+                // Populate city filter
+                const cityFilter = document.getElementById('cityFilter');
+                cities.forEach(city => {
+                    const option = document.createElement('option');
+                    option.value = city._id;
+                    option.textContent = city.name;
+                    cityFilter.appendChild(option);
+                });
+
+                // Populate region filter
+                const regionFilter = document.getElementById('regionFilter');
+                regions.forEach(region => {
+                    const option = document.createElement('option');
+                    option.value = region._id;
+                    option.textContent = region.name;
+                    regionFilter.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error fetching filters:', error);
+            }
+        }
+
+        async function fetchShops(filters = {}) {
+            try {
+                let url = '/api/shop';
+                if (filters.category && filters.city && filters.region) {
+                    url = `/search/city/${filters.city}/region/${filters.region}/category/${filters.category}`;
+                } else if (filters.category && filters.city) {
+                    url = `/search/city/${filters.city}/category/${filters.category}`;
+                } else if (filters.city && filters.region) {
+                    url = `/search/city/${filters.city}/region/${filters.region}`;
+                } else if (filters.city) {
+                    url = `/search/city/${filters.city}`;
+                } else {
+                    url = '/api/shop';
+                }
+
+                const response = await fetch(url);
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
@@ -38,13 +125,17 @@
                 shops.forEach(shop => {
                     const shopCard = document.createElement('div');
                     shopCard.className = 'col-md-4';
+                    const imageUrl = shop.images && shop.images.length > 0 
+                        ? `images/${shop.images[0]}` 
+                        : 'images/img3.jpg';
+
                     shopCard.innerHTML = `
                         <div class="card mb-4">
-                            <img src="images/${shop.images[0]}" class="card-img-top" alt="${shop.shopName}">
+                            <img src="${imageUrl}" class="card-img-top" alt="${shop.shopName}">
                             <div class="card-body">
                                 <h5 class="card-title">${shop.shopName}</h5>
-                                <p class="card-text">${shop.shopDescription}</p>
-                                <a href="shop.html?id=${shop._id}" class="btn btn-primary">View Details</a>
+                                <p class="card-text">${shop.shopDescription || ''}</p>
+                                <a href="shop.html?id=${shop._id || shop.id}" class="btn btn-primary">View Details</a>
                             </div>
                         </div>
                     `;
@@ -55,7 +146,20 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', fetchShops);
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchFilters();
+            fetchShops();
+
+            document.getElementById('filterForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const filters = {
+                    category: document.getElementById('categoryFilter').value,
+                    city: document.getElementById('cityFilter').value,
+                    region: document.getElementById('regionFilter').value
+                };
+                fetchShops(filters);
+            });
+        });
     </script>
 </body>
 </html>
