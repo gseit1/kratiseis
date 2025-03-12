@@ -1,4 +1,4 @@
-const { addRegionService, deleteRegionService } = require('../services/regionServices');
+const { addRegionService, deleteRegionService ,getAllRegionsService} = require('../services/regionServices');
 
 // Προσθήκη νέας περιοχής
 const addRegion = async (req, res) => {
@@ -20,8 +20,17 @@ const deleteRegion = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+const getAllRegions = async (req, res) => {
+  try {
+    const regions = await getAllRegionsService();
+    res.status(200).json({ success: true, regions });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
 
 module.exports = {
   addRegion,
   deleteRegion,
+  getAllRegions
 };

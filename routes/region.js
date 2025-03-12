@@ -1,5 +1,5 @@
 const express = require('express');
-const { addRegion, deleteRegion } = require('../controllers/regionController');
+const { addRegion, deleteRegion,getAllRegions } = require('../controllers/regionController');
 
 const regionRouter = express.Router();
 
@@ -9,4 +9,5 @@ regionRouter.post('/region', addRegion);
 // Route για διαγραφή περιοχής
 regionRouter.delete('/region/:id', deleteRegion);
 
+regionRouter.get('/region', getAllRegions);
 module.exports = regionRouter;

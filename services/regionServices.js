@@ -36,7 +36,13 @@ const deleteRegionService = async (regionId) => {
   return region;
 };
 
+const getAllRegionsService= async () => {
+  const regions = await Region.find().populate('city', 'name');
+  return regions;
+};
+
 module.exports = {
   addRegionService,
   deleteRegionService,
+  getAllRegionsService
 };

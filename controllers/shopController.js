@@ -7,9 +7,11 @@ const mongoose = require('mongoose');
 //! Function για προσθηκη μαγαζιου
 const addShop = async (req, res) => {
     try {
+        console.log('Received shop data:', req.body); // Log the received data
         const newShop = await shopService.addShopService(req.body);
         res.status(201).json({ message: "Shop created successfully!", shop: newShop });
     } catch (error) {
+        console.error('Error creating shop:', error);
         res.status(400).json({ message: "Error creating shop", error });
     }
 };

@@ -17,19 +17,29 @@
             </div>
             <div class="mb-3">
                 <label for="shopDescription" class="form-label">Description:</label>
-                <textarea class="form-control" id="shopDescription" name="shopDescription" required></textarea>
+                <textarea class="form-control" id="shopDescription" name="shopDescription" required minlength="10"></textarea>
             </div>
             <div class="mb-3">
                 <label for="category" class="form-label">Category:</label>
-                <input type="text" class="form-control" id="category" name="category">
+                <select class="form-control" id="category" name="category" required>
+                    <!-- Options will be populated dynamically -->
+                </select>
             </div>
             <div class="mb-3">
                 <label for="images" class="form-label">Images (comma-separated URLs):</label>
-                <input type="text" class="form-control" id="images" name="images">
+                <input type="text" class="form-control" id="images" name="images" required>
             </div>
             <div class="mb-3">
                 <label for="city" class="form-label">City:</label>
-                <input type="text" class="form-control" id="city" name="city" required>
+                <select class="form-control" id="city" name="city" required>
+                    <!-- Options will be populated dynamically -->
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="region" class="form-label">Region:</label>
+                <select class="form-control" id="region" name="region" required>
+                    <!-- Options will be populated dynamically -->
+                </select>
             </div>
             <div class="mb-3">
                 <label for="location" class="form-label">Location (longitude, latitude):</label>
@@ -61,6 +71,7 @@
                     <input type="number" class="form-control" id="mondayBookingStart" name="openingHours[monday][bookingStart]" placeholder="Booking Start">
                     <input type="number" class="form-control" id="mondayBookingEnd" name="openingHours[monday][bookingEnd]" placeholder="Booking End">
                 </div>
+                <!-- Repeat for other days... -->
                 <div class="mb-3">
                     <label for="tuesday" class="form-label">Tuesday:</label>
                     <input type="checkbox" id="tuesdayIsOpen" name="openingHours[tuesday][isOpen]"> Open
@@ -114,6 +125,65 @@
         </form>
     </div>
     <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                // Fetch categories, cities, and regions from the backend
+                const [categoriesResponse, cities, regionsResponse] = await Promise.all([
+                    fetch('/category').then(res => res.json()),
+                    fetch('/city').then(res => res.json()),
+                    fetch('/region').then(res => res.json())
+                ]);
+
+                console.log('Categories:', categoriesResponse);
+                console.log('Cities:', cities);
+                console.log('Regions:', regionsResponse);
+
+                // Extract the arrays from the responses
+                const categories = categoriesResponse.categories;
+                const regions = regionsResponse.regions;
+
+                // Check if the fetched data is an array
+                if (!Array.isArray(categories)) {
+                    throw new Error('Categories is not an array');
+                }
+                if (!Array.isArray(cities)) {
+                    throw new Error('Cities is not an array');
+                }
+                if (!Array.isArray(regions)) {
+                    throw new Error('Regions is not an array');
+                }
+
+                // Populate the category dropdown
+                const categorySelect = document.getElementById('category');
+                categories.forEach(category => {
+                    const option = document.createElement('option');
+                    option.value = category._id;
+                    option.textContent = category.name;
+                    categorySelect.appendChild(option);
+                });
+
+                // Populate the city dropdown
+                const citySelect = document.getElementById('city');
+                cities.forEach(city => {
+                    const option = document.createElement('option');
+                    option.value = city._id;
+                    option.textContent = city.name;
+                    citySelect.appendChild(option);
+                });
+
+                // Populate the region dropdown
+                const regionSelect = document.getElementById('region');
+                regions.forEach(region => {
+                    const option = document.createElement('option');
+                    option.value = region._id;
+                    option.textContent = region.name;
+                    regionSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        });
+
         document.getElementById('createShopForm').addEventListener('submit', async function(event) {
             event.preventDefault();
 
@@ -132,16 +202,16 @@
             for (const day of ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']) {
                 openingHours[day] = {
                     isOpen: document.getElementById(`${day}IsOpen`).checked,
-                    open: Number(document.getElementById(`${day}Open`).value),
-                    close: Number(document.getElementById(`${day}Close`).value),
-                    bookingStart: Number(document.getElementById(`${day}BookingStart`).value),
-                    bookingEnd: Number(document.getElementById(`${day}BookingEnd`).value),
+                    open: document.getElementById(`${day}Open`).value ? Number(document.getElementById(`${day}Open`).value) : null,
+                    close: document.getElementById(`${day}Close`).value ? Number(document.getElementById(`${day}Close`).value) : null,
+                    bookingStart: document.getElementById(`${day}BookingStart`).value ? Number(document.getElementById(`${day}BookingStart}`).value) : null,
+                    bookingEnd: document.getElementById(`${day}BookingEnd`).value ? Number(document.getElementById(`${day}BookingEnd}`).value) : null,
                 };
             }
             shopData.openingHours = openingHours;
 
             try {
-                const response = await fetch('/api/shop', {
+                const response = await fetch('api/shop', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
