@@ -124,13 +124,11 @@ const shopSchema = mongoose.Schema({
     default: [],
   }],
   reservationList: {
-    type: Map,
-    of: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Reservation',
-    }],
-    default: {},
+    type: Object,
+    default: {}
   },
+  
+  
   undefinedReservationList: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Reservation',

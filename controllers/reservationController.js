@@ -1,3 +1,4 @@
+const Table = require('../models/table');
 const { addReservationService, editReservationService, deleteReservationService } = require('../services/reservationServices');
 const { addToReservationList, deleteToReservationList } = require('../services/shopServices');
 const { findBestAvailableTable, updateTableAvailability, updateWhenReservationDelete } = require('../services/tableServices');
@@ -5,7 +6,16 @@ const { findBestAvailableTable, updateTableAvailability, updateWhenReservationDe
 // Δημιουργία νέας κράτησης
 const addReservation = async (req, res) => {
   try {
+    console.log("🔹 Received reservation request:", req.body);
+
     const reservationData = req.body;
+
+    console.log("🔹 Searching for best available table with:", {
+      shopId: reservationData.shopId,
+      reservationDate: reservationData.reservationDate,
+      reservationTime: reservationData.reservationTime,
+      seats: reservationData.seats
+    });
 
     // Βρίσκουμε το καταλληλότερο διαθέσιμο τραπέζι
     const bestTable = await findBestAvailableTable(
@@ -16,23 +26,34 @@ const addReservation = async (req, res) => {
     );
 
     if (!bestTable) {
+      console.warn("⚠️ No available table found");
       return res.status(404).json({ message: 'No available table found' });
     }
 
+    console.log("✅ Best table found:", bestTable);
+
     reservationData.tableId = bestTable._id;
+
+    console.log("🔹 Creating reservation with data:", reservationData);
 
     // Δημιουργία της κράτησης
     const newReservation = await addReservationService(reservationData);
 
+    console.log("✅ Reservation created:", newReservation);
+
     // Ενημέρωση της λίστας κρατήσεων στο κατάστημα με το ID της νέας κράτησης
+    console.log("🔹 Updating reservation list for shop:", reservationData.shopId);
+    
     await addToReservationList(
       reservationData.shopId,
       reservationData.reservationDate,
       newReservation._id.toString() // Στέλνουμε μόνο το ID
-    );
+    ); 
+
+    console.log("✅ Reservation list updated successfully");
 
     // Προσθήκη log πριν την κλήση της updateTableAvailability
-    console.log('Calling updateTableAvailability with:', {
+    console.log("🔹 Calling updateTableAvailability with:", {
       tableId: reservationData.tableId,
       reservationDate: reservationData.reservationDate,
       reservationTime: reservationData.reservationTime
@@ -43,11 +64,13 @@ const addReservation = async (req, res) => {
       reservationData.tableId,
       reservationData.reservationDate,
       reservationData.reservationTime
-    );
+    ); 
+
+    console.log("✅ Table availability updated successfully");
 
     res.status(201).json({ success: true, message: 'Reservation added successfully', reservation: newReservation });
   } catch (error) {
-    console.error(error);
+    console.error("❌ Error in addReservation:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 };

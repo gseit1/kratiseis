@@ -129,7 +129,12 @@ const checkAvailability = async (req) => {
     for (const table of tables) {
       // Check seat capacity
       if (table.seats >= seats) {
-        const availabilityForDate = table.availability?.get(dateString) || [];
+        let availabilityForDate = [];
+        if (table.availability instanceof Map) {
+          availabilityForDate = table.availability.get(dateString) || [];
+        } else {
+          availabilityForDate = table.availability?.[dateString] || [];
+        }
 
         for (const hour of availabilityForDate) {
           availableHoursSet.add(hour);
@@ -169,39 +174,90 @@ const findTableById = async (tableId) => {
 };
 
 // Βοηθητική συνάρτηση για την προετοιμασία της διαθεσιμότητας
+
 const prepareAvailability = (table, reservationDate) => {
-  if (!(table.availability instanceof Map)) {
-    throw new Error('Table availability is not a Map');
+  // Log αρχικών δεδομένων
+  console.log("Raw table object:", JSON.stringify(table, null, 2));
+  console.log("Received reservationDate:", reservationDate);
+
+  // Έλεγχος αν το table.availability είναι undefined ή null
+  if (!table || !table.availability) {
+      console.error("Error: table.availability is undefined or null!");
+      return { dateKey: null, availableHours: [] };
   }
 
-  const dateKey = new Date(reservationDate).toISOString().split('T')[0];
-  const availableHours = table.availability.get(dateKey) || [];
+  // Έλεγχος αν το availability είναι ήδη Map
+  if (!(table.availability instanceof Map)) {
+      console.log("Converting table.availability to a Map...");
+      try {
+          table.availability = new Map(Object.entries(table.availability || {}));
+          console.log("Converted table.availability entries:", Array.from(table.availability.entries()));
+      } catch (error) {
+          console.error("Error converting table.availability to Map:", error);
+          return { dateKey: null, availableHours: [] };
+      }
+  }
 
+  // Έλεγχος αν το reservationDate είναι έγκυρη ημερομηνία
+  if (!reservationDate || isNaN(new Date(reservationDate).getTime())) {
+      console.error("Error: Invalid reservationDate:", reservationDate);
+      return { dateKey: null, availableHours: [] };
+  }
+
+  // Δημιουργία του dateKey
+  const dateKey = new Date(reservationDate).toISOString().split('T')[0];
+  console.log("Using dateKey:", dateKey);
+
+  // Ανάκτηση διαθέσιμων ωρών
+  const availableHours = table.availability.get(dateKey);
+  console.log("Extracted availableHours:", availableHours);
+
+  // Έλεγχος αν το availableHours είναι array
   if (!Array.isArray(availableHours)) {
-    throw new Error('Availability for the date is not an array of hours');
+      console.error("Error: Availability for the date is not an array!");
+      return { dateKey, availableHours: [] };
   }
 
   return { dateKey, availableHours };
 };
 
+
+
+
+
 // Συνάρτηση για την ενημέρωση της διαθεσιμότητας κατά την προσθήκη κράτησης
 const updateTableAvailability = async (tableId, reservationDate, reservationTime) => {
   try {
+    reservationTime = parseFloat(reservationTime);
     const table = await findTableById(tableId);
-    const { dateKey, availableHours } = prepareAvailability(table, reservationDate);
-
+    
+    // Build the dateKey
+    const dateKey = new Date(reservationDate).toISOString().split('T')[0];
+    console.log("Using dateKey:", dateKey);
+    
+    // Retrieve available hours as a plain object property
+    let availableHours = table.availability[dateKey] || [];
+    console.log(`Current availability for ${dateKey}:`, availableHours);
+    
     const estimatedReservationTime = table.estimatedReservationTime;
-    const startTime = reservationTime - Math.ceil(estimatedReservationTime / 60);
-    const endTime = reservationTime + Math.ceil(estimatedReservationTime / 60);
-
-    const updatedAvailability = availableHours.filter(hour => hour <= startTime || hour >= endTime);
-
-    table.availability.set(dateKey, updatedAvailability);
+    const blockSlots = Math.ceil(estimatedReservationTime / 60);
+    const startTime = reservationTime - blockSlots;
+    const endTime = reservationTime + blockSlots;
+    console.log(`For reservationTime ${reservationTime} and estimatedReservationTime ${estimatedReservationTime} minutes:`);
+    console.log(`Calculated startTime: ${startTime}, endTime: ${endTime}`);
+    
+    // Filter out the reserved block; retain hours less or equal to startTime or greater or equal to endTime.
+    const updatedAvailability = availableHours
+    .filter(hour => hour <= startTime || hour >= endTime)
+    .sort((a, b) => a - b);    console.log(`Updated availability for ${dateKey}:`, updatedAvailability);
+    
+    // Save the updated availability directly by using the object notation
+    table.availability[dateKey] = updatedAvailability;
+    table.markModified("availability");
     await table.save();
-
-    console.log('Table availability updated successfully!');
+    console.log("Table availability updated successfully!");
   } catch (error) {
-    console.error('Error updating table availability:', error.message);
+    console.error("Error updating table availability:", error.message);
     throw error;
   }
 };
@@ -209,85 +265,84 @@ const updateTableAvailability = async (tableId, reservationDate, reservationTime
 // Συνάρτηση για την ενημέρωση της διαθεσιμότητας κατά τη διαγραφή κράτησης
 const updateWhenReservationDelete = async (tableId, reservationDate, reservationTime) => {
   try {
+    reservationTime = parseFloat(reservationTime);
     const table = await findTableById(tableId);
-    const { dateKey, availableHours } = prepareAvailability(table, reservationDate);
-
+    
+    // Build the dateKey using the reservationDate
+    const dateKey = new Date(reservationDate).toISOString().split('T')[0];
+    console.log("Using dateKey:", dateKey);
+    
+    // Retrieve available hours as a plain object property
+    let availableHours = table.availability[dateKey] || [];
+    console.log(`Extracted availableHours for ${dateKey}:`, availableHours);
+    
     const estimatedReservationTime = table.estimatedReservationTime;
     const startTime = reservationTime - Math.ceil(estimatedReservationTime / 60);
     const endTime = reservationTime + Math.ceil(estimatedReservationTime / 60);
-
     console.log(`Updating availability for tableId: ${tableId} after reservation deletion`);
     console.log(`Date Key: ${dateKey}`);
-    console.log(`Start Time: ${startTime}, End Time: ${endTime}`);
-
-    // Παίρνουμε την τρέχουσα διαθεσιμότητα για την ημερομηνία
+    console.log(`Calculated startTime: ${startTime}, endTime: ${endTime}`);
+    
+    // Build a Set from the current available hours
     const currentAvailability = new Set(availableHours);
-
     console.log(`Current availability for ${dateKey}:`, Array.from(currentAvailability));
-
-    // Βρίσκουμε το κατάστημα για να πάρουμε τα booking hours
+    
+    // Retrieve booking hours from the shop
     const shop = await Shop.findById(table.shopId);
     if (!shop) throw new Error('Shop not found');
-
-    const dayOfWeek = new Date(reservationDate).toLocaleString('en-US', { weekday: 'long' }).toLowerCase();
+    
+    const dayOfWeek = new Date(reservationDate)
+      .toLocaleString('en-US', { weekday: 'long' })
+      .toLowerCase();
     const bookingHours = shop.openingHours[dayOfWeek];
-
-
-    // Προσθέτουμε τις ώρες που επικαλύπτονται με την κράτηση πίσω στη διαθεσιμότητα
+    
+    // Re-add (or "restore") the hours within the deleted reservation block
     for (let hour = startTime; hour < endTime; hour += 0.5) {
       if (hour <= bookingHours.bookingEnd) {
         currentAvailability.add(hour);
       }
     }
-
+    
     console.log(`Updated availability for ${dateKey}:`, Array.from(currentAvailability));
-
-    // Ενημερώνουμε τη διαθεσιμότητα για αυτή την ημερομηνία
-    table.availability.set(dateKey, Array.from(currentAvailability));
-
-    // Αποθηκεύουμε τις αλλαγές
+    
+    // Save the updated availability back using standard object notation
+    table.availability[dateKey] = Array.from(currentAvailability).sort((a, b) => a - b);
+    table.markModified("availability");
     await table.save();
-
+    
     console.log('Table availability updated successfully after reservation deletion!');
   } catch (error) {
     console.error('Error updating table availability after reservation deletion:', error.message);
     throw error;
   }
 };
+
+
+
+
 // Συνάρτηση για την εύρεση του καταλληλότερου διαθέσιμου τραπεζιού
 const findBestAvailableTable = async (shopId, reservationDate, reservationTime, numberOfPeople) => {
   try {
-    const tables = await Table.find({ shopId }).sort({ seats: 1 });
-
-    console.log(`Searching for the best available table for ${numberOfPeople} people on ${reservationDate} at ${reservationTime}`);
-
-    for (let i = numberOfPeople; i <= Math.max(...tables.map(table => table.seats)); i++) {
-      console.log(`Checking for tables with at least ${i} seats`);
-      for (const table of tables) {
-        if (table.seats >= i) {
-          const { dateKey, availableHours } = prepareAvailability(table, reservationDate);
-
-          console.log(`Checking table with ${table.seats} seats (ID: ${table._id})`);
-          console.log(`Available hours for ${dateKey}:`, availableHours);
-          console.log(`Checking availability for ${reservationTime}`);
-
-          if (availableHours.includes(reservationTime)) {
-            console.log(`Table found: ${table._id}`);
-            return table;
-          } else {
-            console.log(`Table with ${table.seats} seats (ID: ${table._id}) is not available at ${reservationTime}`);
-          }
-        }
-      }
+    const dateKey = new Date(reservationDate).toISOString().split('T')[0];
+    const parsedReservationTime = parseFloat(reservationTime);
+    
+    // Custom query: find a table with at least the number of seats and whose availability for the date includes the reservation time.
+    const table = await Table.findOne({
+      shopId,
+      seats: { $gte: numberOfPeople },
+      [`availability.${dateKey}`]: { $in: [parsedReservationTime] }
+    }).sort({ seats: 1 });
+    
+    if (!table) {
+      throw new Error('No available table found');
     }
-
-    throw new Error('No available table found');
+    
+    return table;
   } catch (error) {
-    console.error('Error finding best available table:', error.message);
+    console.error('Error in findBestAvailableTableCustomQuery:', error.message);
     throw error;
   }
 };
-
 
 const clearAvailabilityForDay = async (tableId, day) => {
   try {

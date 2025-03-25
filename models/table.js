@@ -47,9 +47,8 @@ const tableSchema = mongoose.Schema({
     },
   },
   availability: {
-    type: Map,
-    of: [Number], // Πίνακας με αριθμούς που αντιπροσωπεύουν ώρες (π.χ. 12.5 για 12:30)
-    default: {}, // Default empty map
+    type: Object, // Changed from Map to Object
+    default: {}   // Default as an empty object
   },
 });
 
