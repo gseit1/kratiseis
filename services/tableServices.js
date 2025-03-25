@@ -351,15 +351,27 @@ const clearAvailabilityForDay = async (tableId, day) => {
       throw new Error('Table not found');
     }
 
-    const availabilityDates = Array.from(table.availability.keys());
+    // Ensure availability is a plain object.
+    if (table.availability instanceof Map) {
+      table.availability = Object.fromEntries(table.availability);
+    } else if (!table.availability || typeof table.availability !== 'object') {
+      table.availability = {};
+    }
+
+    // Iterate over each date key in availability.
+    const availabilityDates = Object.keys(table.availability);
     for (const dateString of availabilityDates) {
       const date = new Date(dateString);
-      const dayOfWeek = date.toLocaleString('en-us', { weekday: 'long' }).toLowerCase();
+      const dayOfWeek = date.toLocaleString('en-US', { weekday: 'long' }).toLowerCase();
       if (dayOfWeek === day) {
-        table.availability.set(dateString, []);
+        table.availability[dateString] = [];
+        console.log(`Cleared availability for ${dateString}`);
       }
     }
+    
+    table.markModified('availability');
     await table.save();
+    console.log(`Availability cleared successfully for day: ${day}`);
   } catch (error) {
     console.error('Error clearing availability for day:', error.message);
     throw error;
@@ -367,34 +379,65 @@ const clearAvailabilityForDay = async (tableId, day) => {
 };
 
 // Συνάρτηση για την αρχικοποίηση της διαθεσιμότητας για συγκεκριμένη ημέρα
-const setAvailabilityForDay = async (tableId, dayOfWeek) => {
+const setAvailabilityForDay = async (tableId, day) => {
   try {
     const table = await Table.findById(tableId);
-    if (!table) {
-      throw new Error('Table not found');
+    if (!table) throw new Error('Table not found');
+
+    // Ensure availability is a plain object.
+    if (!table.availability || typeof table.availability !== 'object') {
+      table.availability = {};
     }
 
+    // Get the shop info to calculate new availability.
     const shop = await Shop.findById(table.shopId);
-    if (!shop) throw new Error('Shop not found');
+    if (!shop) {
+      throw new Error('Shop not found');
+    }
 
-    const availabilityDates = Array.from(table.availability.keys());
-    for (const dateString of availabilityDates) {
-      const date = new Date(dateString);
-      const daysOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-      const day = daysOfWeek[date.getDay()];
-
-      if (dayOfWeek === day && table.availability.get(dateString).length === 0) {
-        const shopBookingHours = shop.openingHours[day];
-        const { bookingStart, bookingEnd } = shopBookingHours;
-        if (bookingStart !== null && bookingEnd !== null) {
-          const availability = calculateInitializeTableAvailability(bookingStart, bookingEnd, shop.timeSlotSplit);
-          table.availability.set(dateString, availability);
+    // Get the booking hours for the given day; e.g., shop.openingHours.saturday
+    const bookingHours = shop.openingHours[day];
+    if (!bookingHours || !bookingHours.isOpen) {
+      console.log(`Shop is closed on ${day} -- clearing availability`);
+      // If shop is closed on that day, clear all availability for that day.
+      const availabilityDates = Object.keys(table.availability);
+      for (const dateString of availabilityDates) {
+        const date = new Date(dateString);
+        const dayOfWeek = date.toLocaleString('en-US', { weekday: 'long' }).toLowerCase();
+        if (dayOfWeek === day) {
+          table.availability[dateString] = [];
+          console.log(`Cleared availability for ${dateString}`);
         }
       }
+      table.markModified('availability');
+      await table.save();
+      return;
     }
+
+    // Calculate the new availability based on the booking hours and shop's timeSlotSplit.
+    const newAvailability = calculateInitializeTableAvailability(
+      bookingHours.bookingStart,
+      bookingHours.bookingEnd,
+      shop.timeSlotSplit
+    );
+    console.log(`New availability for ${day}:`, newAvailability);
+
+    // Iterate over each date key in the table's availability and reinitialize those matching the day.
+    const availabilityDates = Object.keys(table.availability);
+    for (const dateString of availabilityDates) {
+      const date = new Date(dateString);
+      const currentDay = date.toLocaleString('en-US', { weekday: 'long' }).toLowerCase();
+      if (currentDay === day) {
+        table.availability[dateString] = newAvailability;
+        console.log(`Reinitialized availability for ${dateString} to:`, newAvailability);
+      }
+    }
+
+    table.markModified('availability');
     await table.save();
+    console.log('Availability reinitialized successfully for day:', day);
   } catch (error) {
-    console.error('Error initializing availability for day:', error.message);
+    console.error('Error in setAvailabilityForDay:', error.message);
     throw error;
   }
 };
@@ -465,71 +508,36 @@ const updateAvailabilityForBookingHoursEdit = async (tableId, dayOfWeek, newBook
     if (!table) {
       throw new Error('Table not found');
     }
-
     const shop = await Shop.findById(table.shopId);
     if (!shop) {
       throw new Error('Shop not found');
     }
 
-    const oldBookingStart = shop.openingHours[dayOfWeek].bookingStart;
-    const oldBookingEnd = shop.openingHours[dayOfWeek].bookingEnd;
+    // Calculate new availability array based on the new booking hours and the shop's timeSlotSplit.
+    const newAvailability = calculateInitializeTableAvailability(newBookingStart, newBookingEnd, shop.timeSlotSplit);
+    console.log(`New availability calculated for ${dayOfWeek}:`, newAvailability);
 
-    const availabilityDates = Array.from(table.availability.keys());
+    // Ensure availability is a plain object.
+    if (!table.availability || typeof table.availability !== 'object') {
+      table.availability = {};
+    }
+
+    // Iterate over each date in the availability.
+    const availabilityDates = Object.keys(table.availability);
     for (const dateString of availabilityDates) {
       const date = new Date(dateString);
-      const daysOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-      const day = daysOfWeek[date.getDay()];
-
-      if (dayOfWeek === day) {
-        let availability = table.availability.get(dateString);
-
-        // Αφαίρεση ωρών που είναι εκτός του νέου booking end
-        if (oldBookingEnd > newBookingEnd) {
-          availability = availability.filter(time => time <= newBookingEnd);
-        }
-
-        // Αφαίρεση ωρών που είναι εκτός του νέου booking start
-        if (oldBookingStart < newBookingStart) {
-          availability = availability.filter(time => time >= newBookingStart);
-        }
-
-// Προσθήκη ωρών που είναι εντός του νέου booking end
-        // Προσθήκη ωρών που είναι εντός του νέου booking end
-        if (oldBookingEnd < newBookingEnd) {
-          let time = oldBookingEnd;
-          while (time < newBookingEnd) {
-            5;
-            
-            if (time <+ newBookingEnd && !availability.includes(time)) {
-              availability.push(time);
-            }
-
-            time = +time + 0.5;
-            if (time % 1 === 0.6) {
-              time = Math.floor(time) + 1;
-            }
-
-          }
-        }
-
-        // Προσθήκη ωρών που είναι εντός του νέου booking start
-        if (oldBookingStart >newBookingStart) {
-          let time = newBookingStart;
-          while (time < oldBookingStart) {
-            if (!availability.includes(time)) {
-              availability.push(time);
-            }
-            time = +time + 0.5 ;
-            if (time % 1 === 0.6) {
-              time = Math.floor(time) + 0.1;
-            }
-          }
-        }
-
-        table.availability.set(dateString, availability.sort((a, b) => a - b));
+      const currentDay = date.toLocaleString('en-US', { weekday: 'long' }).toLowerCase();
+      // Check if this date matches the edited day (e.g., "saturday")
+      if (currentDay === dayOfWeek) {
+        // Reinitialize the availability array with the new booking hours.
+        table.availability[dateString] = newAvailability;
+        console.log(`Reinitialized availability for ${dateString} to:`, newAvailability);
       }
     }
+
+    table.markModified('availability');
     await table.save();
+    console.log('Availability reinitialized successfully for day:', dayOfWeek);
   } catch (error) {
     console.error('Error updating availability for booking hours edit:', error.message);
     throw error;

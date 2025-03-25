@@ -9,43 +9,50 @@ const handleBookingHoursUpdate = async (req, res, next) => {
   const { shopId } = req.params;
   const { day, newBookingStart, newBookingEnd } = req.body;
 
- 
   try {
     const shop = await Shop.findById(shopId);
     if (!shop) {
       return res.status(404).json({ message: 'Shop not found' });
     }
 
-    const openingHours=shop.openingHours[day];
-    if (!openingHours || !openingHours.isOpen){
-      return res.status(400).json({message:`Shop is close on ${day}`});
+    const openingHours = shop.openingHours[day];
+    if (!openingHours || !openingHours.isOpen) {
+      return res.status(400).json({ message: `Shop is closed on ${day}` });
     }
 
-    // Ενημερωμένη συνθήκη για το validation
+    // Validate that the new booking hours are within the shop's opening hours.
     if (newBookingStart < openingHours.open || newBookingEnd > openingHours.close) {
-      return res.status(400).json({ 
-        message: 'Booking hours must be within shop opening hours' 
+      return res.status(400).json({
+        message: 'Booking hours must be within shop opening hours'
       });
     }
-
 
     const tables = await Table.find({ shopId });
 
     for (const table of tables) {
+      // Retrieve all reservations for this table.
       const reservationsResult = await getReservationsForTable(table._id);
       if (reservationsResult.success && reservationsResult.reservations.length > 0) {
-        const invalidReservations = reservationsResult.reservations.filter(reservation => {
-          return reservation.reservationTime < newBookingStart || reservation.reservationTime > newBookingEnd;
+        // Filter reservations that occur on the same day as the edited day.
+        const dayReservations = reservationsResult.reservations.filter(reservation => {
+          const resDate = new Date(reservation.reservationDate);
+          const resDay = resDate.toLocaleString('en-US', { weekday: 'long' }).toLowerCase();
+          return resDay === day;
         });
 
-        if (invalidReservations.length > 0) {
-          await setTableIdForReservations(invalidReservations.map(reservation => reservation._id));
-          for (const reservation of invalidReservations) {
+        if (dayReservations.length > 0) {
+          // Set tableId for all these reservations to null.
+          await setTableIdForReservations(dayReservations.map(reservation => reservation._id));
+
+          // Add each reservation to the undefinedReservationList.
+          for (const reservation of dayReservations) {
             await addReservationToUndefinedList(reservation.shopId, reservation._id);
           }
         }
       }
 
+      // Reinitialize the availability for the table for all dates matching the edited day.
+      // This function should recalc the new availability array based on newBookingStart, newBookingEnd, and the shop's timeSlotSplit.
       await updateAvailabilityForBookingHoursEdit(table._id, day, newBookingStart, newBookingEnd);
     }
 
