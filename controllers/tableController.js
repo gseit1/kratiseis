@@ -1,4 +1,4 @@
-const { createTable, updateTable, deleteTableService, checkAvailability, unvalidReservationsAfterSeatsEdit, updateWhenReservationDelete, setAvailabilityForDay, invalidReservationForIsBookingAllowedEdit, initializeAvailabilityForDate, clearAvailabilityForDay } = require('../services/tableServices');
+const { createTable, updateTable, deleteTableService, checkAvailability,getTableByIdSe , unvalidReservationsAfterSeatsEdit, updateWhenReservationDelete, setAvailabilityForDay, invalidReservationForIsBookingAllowedEdit, initializeAvailabilityForDate, clearAvailabilityForDay } = require('../services/tableServices');
 const { getReservationsForTable, setTableIdForReservations } = require('../services/reservationServices');
 const { addReservationToUndefinedList } = require('../services/shopServices');
 const Table = require('../models/table'); // Προσθήκη της εισαγωγής του Table
@@ -118,6 +118,24 @@ const checkTableAvailability = async (req, res) => {
   }
 };
 
+
+const getTable = async (req, res) => {
+  const { tableId } = req.params;
+  console.log("Fetching table with id:", tableId);
+  try {
+    const table = await Table.findById(tableId);
+    if (!table) {
+      return res.status(404).json({ message: 'Table not found' });
+    }
+    res.status(200).json(table);
+  } catch (error) {
+    console.error("Error fetching table:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
+
 module.exports = {
   addTable,
   editTable,
@@ -125,4 +143,5 @@ module.exports = {
   editIsBookingAllowed,
   deleteTable,
   checkTableAvailability,
+  getTable,
 };

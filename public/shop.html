@@ -1,163 +1,212 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <link rel="stylesheet" href="../styles/customer.css">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shop Details</title>
-    <style>
-        .shop-img {
-            width: 100%;
-            height: 300px; /* Adjust the height as needed */
-            object-fit: cover;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Shop Details</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" 
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <!-- Custom Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital@0;1&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <!-- Additional Custom Style -->
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #f4f4f9;
+      color: #333;
+      padding-top: 20px;
+    }
+    .container {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      padding: 30px;
+      margin-bottom: 30px;
+    }
+    h1, h3 {
+      font-family: 'Lora', serif;
+    }
+    .shop-img {
+      width: 100%;
+      height: 300px;
+      object-fit: cover;
+      border-radius: 10px;
+    }
+    form {
+      margin-top: 20px;
+    }
+    #availableTimes {
+      margin-top: 20px;
+    }
+    .btn-primary {
+      background-color: #5a67d8;
+      border-color: #5a67d8;
+    }
+    .btn-primary:hover {
+      background-color: #434190;
+      border-color: #434190;
+    }
+  </style>
 </head>
 <body>
-    <div class="container mt-5">
-        <h1 id="shopName" class="text-center"></h1>
-        <img id="shopImage" class="shop-img" alt="Shop Image">
-        <p id="shopDescription" class="text-center mt-3"></p>
-        <div id="shopDetails" class="mt-4">
-            <!-- Shop details will be dynamically inserted here -->
-        </div>
-        <h3 class="mt-5">Book a Reservation</h3>
-        <form id="searchForm" class="mx-auto" style="max-width: 600px;">
-            <div class="mb-3">
-                <label for="numberOfPeople" class="form-label">Number of People:</label>
-                <input type="number" class="form-control" id="numberOfPeople" name="numberOfPeople" required>
-            </div>
-            <div class="mb-3">
-                <label for="reservationDate" class="form-label">Date:</label>
-                <input type="date" class="form-control" id="reservationDate" name="reservationDate" required>
-            </div>
-            <button type="submit" class="btn btn-primary">Search</button>
-        </form>
-        <div id="availableTimes" class="mt-4">
-            <!-- Available times will be dynamically inserted here -->
-        </div>
-        <form id="reservationForm" class="mx-auto mt-4" style="max-width: 600px; display: none;">
-            <div class="mb-3">
-                <label for="userName" class="form-label">Full Name:</label>
-                <input type="text" class="form-control" id="userName" name="userName" required>
-            </div>
-            <div class="mb-3">
-                <label for="reservationTime" class="form-label">Time:</label>
-                <select class="form-control" id="reservationTime" name="reservationTime" required>
-                    <!-- Available times will be dynamically inserted here -->
-                </select>
-            </div>
-            <div class="mb-3">
-                <label for="commentFromUser" class="form-label">Comments:</label>
-                <textarea class="form-control" id="commentFromUser" name="commentFromUser" maxlength="200"></textarea>
-            </div>
-            <button type="submit" class="btn btn-primary">Book Reservation</button>
-        </form>
+  <div class="container mt-5">
+    <!-- Shop Header -->
+    <h1 id="shopName" class="text-center"></h1>
+    <img id="shopImage" class="shop-img my-3" alt="Shop Image">
+    <p id="shopDescription" class="text-center mb-4"></p>
+    <div id="shopDetails" class="mb-5">
+      <!-- Shop details (opening hours, etc.) will be inserted here -->
     </div>
+    
+    <!-- Reservation Search Form -->
+    <h3 class="mb-3">Book a Reservation</h3>
+    <form id="searchForm" class="mx-auto" style="max-width: 600px;">
+      <div class="mb-3">
+        <label for="numberOfPeople" class="form-label">Number of People:</label>
+        <input type="number" class="form-control" id="numberOfPeople" name="numberOfPeople" required>
+      </div>
+      <div class="mb-3">
+        <label for="reservationDate" class="form-label">Date:</label>
+        <input type="date" class="form-control" id="reservationDate" name="reservationDate" required>
+      </div>
+      <button type="submit" class="btn btn-primary">Search Available Times</button>
+    </form>
+    
+    <!-- Display Available Times (if any) -->
+    <div id="availableTimes" class="mt-4"></div>
+    
+    <!-- Reservation Form (hidden until available times are found) -->
+    <form id="reservationForm" class="mx-auto mt-4" style="max-width: 600px; display: none;">
+      <div class="mb-3">
+        <label for="userName" class="form-label">Full Name:</label>
+        <input type="text" class="form-control" id="userName" name="userName" required>
+      </div>
+      <div class="mb-3">
+        <label for="reservationTime" class="form-label">Time:</label>
+        <select class="form-control" id="reservationTime" name="reservationTime" required>
+          <!-- Available times will be dynamically inserted here -->
+        </select>
+      </div>
+      <div class="mb-3">
+        <label for="commentFromUser" class="form-label">Comments:</label>
+        <textarea class="form-control" id="commentFromUser" name="commentFromUser" maxlength="200"></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary">Book Reservation</button>
+    </form>
+  </div>
 
-    <script>
-        async function fetchShopDetails() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const shopId = urlParams.get('id');
+  <!-- Bootstrap Bundle with Popper -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-ENjdO4Dr2bkBIFxQpeoA6VZB+6Kk6Dv9ZZD8+ZOJZp6YbN8ZynyP+9I2Qv0P5rPp" crossorigin="anonymous"></script>
+  <script>
+    // Fetch shop details using shopId from URL parameters.
+    async function fetchShopDetails() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const shopId = urlParams.get('id');
 
-            try {
-                const response = await fetch(`/api/shop/${shopId}`);
-                if (!response.ok) {
-                    throw new Error('Failed to fetch shop details');
-                }
-                const shop = await response.json();
-
-                document.getElementById('shopName').textContent = shop.shopName;
-                document.getElementById('shopImage').src = `images/${shop.images[0]}`;
-                document.getElementById('shopDescription').textContent = shop.shopDescription;
-
-                const shopDetails = document.getElementById('shopDetails');
-                shopDetails.innerHTML = `
-                    <h4>Opening Hours:</h4>
-                    ${Object.entries(shop.openingHours).map(([day, hours]) => `
-                        <p><strong>${day.charAt(0).toUpperCase() + day.slice(1)}:</strong> ${hours.isOpen ? `${hours.open} - ${hours.close}` : 'Closed'}</p>
-                    `).join('')}
-                `;
-            } catch (error) {
-                console.error('Error fetching shop details:', error);
-                alert('Error fetching shop details');
-            }
+      try {
+        const response = await fetch(`/api/shop/${shopId}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch shop details');
         }
+        const shop = await response.json();
 
-        function formatTime(time) {
-            const hours = Math.floor(time);
-            const minutes = (time % 1) * 60;
-            return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+        document.getElementById('shopName').textContent = shop.shopName;
+        document.getElementById('shopImage').src = `images/${shop.images[0]}`;
+        document.getElementById('shopDescription').textContent = shop.shopDescription;
+
+        const shopDetails = document.getElementById('shopDetails');
+        shopDetails.innerHTML = `
+          <h4>Opening Hours:</h4>
+          ${Object.entries(shop.openingHours).map(([day, hours]) => `
+            <p>
+              <strong>${day.charAt(0).toUpperCase() + day.slice(1)}:</strong> 
+              ${hours.isOpen ? `${hours.open} - ${hours.close}` : 'Closed'}
+            </p>
+          `).join('')}
+        `;
+      } catch (error) {
+        console.error('Error fetching shop details:', error);
+        alert('Error fetching shop details');
+      }
+    }
+
+    // Format time number into HH:MM format.
+    function formatTime(time) {
+      const hours = Math.floor(time);
+      const minutes = Math.round((time % 1) * 60);
+      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+    }
+
+    // Fetch available reservation times based on search form input.
+    async function fetchAvailableTimes(event) {
+      event.preventDefault();
+      const urlParams = new URLSearchParams(window.location.search);
+      const shopId = urlParams.get('id');
+      const reservationDate = document.getElementById('reservationDate').value;
+      const numberOfPeople = document.getElementById('numberOfPeople').value;
+
+      try {
+        const response = await fetch(`/api/availability?shopId=${shopId}&dateString=${reservationDate}&seats=${numberOfPeople}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch available times');
         }
+        const result = await response.json();
+        const availableTimes = result.availability;
 
-        async function fetchAvailableTimes(event) {
-            event.preventDefault();
-
-            const urlParams = new URLSearchParams(window.location.search);
-            const shopId = urlParams.get('id');
-            const reservationDate = document.getElementById('reservationDate').value;
-            const numberOfPeople = document.getElementById('numberOfPeople').value;
-
-            console.log(`Fetching available times for shopId: ${shopId}, reservationDate: ${reservationDate}, numberOfPeople: ${numberOfPeople}`);
-
-            try {
-                const response = await fetch(`/api/availability?shopId=${shopId}&dateString=${reservationDate}&seats=${numberOfPeople}`);
-                if (!response.ok) {
-                    throw new Error('Failed to fetch available times');
-                }
-                const result = await response.json();
-                const availableTimes = result.availability;
-
-                console.log('Available times:', availableTimes);
-
-                const reservationTimeSelect = document.getElementById('reservationTime');
-                reservationTimeSelect.innerHTML = availableTimes.map(time => `<option value="${time}">${formatTime(time)}</option>`).join('');
-
-                document.getElementById('reservationForm').style.display = 'block';
-            } catch (error) {
-                console.error('Error fetching available times:', error);
-                alert('Error fetching available times');
-            }
+        const availableTimesDiv = document.getElementById('availableTimes');
+        if (availableTimes && availableTimes.length > 0) {
+          availableTimesDiv.innerHTML = `<p class="fw-bold">Available Times:</p>
+            <p>${availableTimes.map(time => formatTime(time)).join(', ')}</p>`;
+          // Populate the reservationTime select element.
+          const reservationTimeSelect = document.getElementById('reservationTime');
+          reservationTimeSelect.innerHTML = availableTimes.map(time => `<option value="${time}">${formatTime(time)}</option>`).join('');
+          // Display the reservation form.
+          document.getElementById('reservationForm').style.display = 'block';
+        } else {
+          availableTimesDiv.innerHTML = `<p class="text-danger">No available times for the selected date and number of people.</p>`;
+          document.getElementById('reservationForm').style.display = 'none';
         }
+      } catch (error) {
+        console.error('Error fetching available times:', error);
+        alert('Error fetching available times');
+      }
+    }
 
-        document.addEventListener('DOMContentLoaded', fetchShopDetails);
-        document.getElementById('searchForm').addEventListener('submit', fetchAvailableTimes);
+    // Submit the reservation form.
+    document.getElementById('reservationForm').addEventListener('submit', async function(event) {
+      event.preventDefault();
+      const urlParams = new URLSearchParams(window.location.search);
+      const shopId = urlParams.get('id');
 
-        document.getElementById('reservationForm').addEventListener('submit', async function(event) {
-            event.preventDefault();
+      const formData = new FormData(event.target);
+      const reservationData = Object.fromEntries(formData.entries());
+      reservationData.shopId = shopId;
+      reservationData.reservationDate = document.getElementById('reservationDate').value;
+      reservationData.numberOfPeople = document.getElementById('numberOfPeople').value;
 
-            const urlParams = new URLSearchParams(window.location.search);
-            const shopId = urlParams.get('id');
-            const shopName = document.getElementById('shopName').textContent;
-
-            const formData = new FormData(event.target);
-            const reservationData = Object.fromEntries(formData.entries());
-            reservationData.shopId = shopId;
-            reservationData.shopName = shopName;
-            reservationData.reservationDate = document.getElementById('reservationDate').value;
-            reservationData.numberOfPeople = document.getElementById('numberOfPeople').value;
-
-            try {
-                const response = await fetch('/api/reservations', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(reservationData)
-                });
-
-                const result = await response.json();
-                if (response.ok) {
-                    alert('Reservation booked successfully!');
-                } else {
-                    alert('Error booking reservation: ' + result.message);
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Error booking reservation');
-            }
+      try {
+        const response = await fetch('/api/reservations', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(reservationData)
         });
-    </script>
+        const result = await response.json();
+        if (response.ok) {
+          alert('Reservation booked successfully!');
+        } else {
+          alert('Error booking reservation: ' + result.message);
+        }
+      } catch (error) {
+        console.error('Error booking reservation:', error);
+        alert('Error booking reservation');
+      }
+    });
+
+    // Add event listeners.
+    document.addEventListener('DOMContentLoaded', fetchShopDetails);
+    document.getElementById('searchForm').addEventListener('submit', fetchAvailableTimes);
+  </script>
 </body>
 </html>

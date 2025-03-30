@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const tableRouter = express.Router();
 const Table = require('../models/table');
 
-const { addTable, editTable, deleteTable, editSeats, editIsBookingAllowed } = require('../controllers/tableController');
+const { addTable, editTable, deleteTable, editSeats, editIsBookingAllowed,getTable } = require('../controllers/tableController');
 const { handleSeatsUpdate, handleIsBookingAllowedUpdate, handleTableDeletion } = require('../middlewares/editsMiddleware');
 
 //!POST : Δημιουργια τραπεζιου απο καταστηματαρχη
@@ -20,5 +20,7 @@ tableRouter.patch('/api/table/:id/isBookingAllowed', handleIsBookingAllowedUpdat
 
 //! DELETE για τη διαγραφή ενός τραπεζιού με χρήση middleware
 tableRouter.delete('/api/table/:id', handleTableDeletion, deleteTable);
+//!GET: για επιστροφη πληροφωριων τραπεζιου
+tableRouter.get('/api/table/:tableId', getTable);
 
 module.exports = tableRouter;

@@ -545,6 +545,9 @@ const updateAvailabilityForBookingHoursEdit = async (tableId, dayOfWeek, newBook
 };
 
 
+
+
+
 module.exports = {
   createTable,
   updateTable,
@@ -559,5 +562,6 @@ module.exports = {
   clearAvailabilityForDay, // Προσθήκη της νέας συνάρτησης στο export
  setAvailabilityForDay, // Προσθήκη της νέας συνάρτησης στο export
  updateAvailabilityForBookingHoursEdit,
- getTablesByShopId,
+ getTablesByShopId,    
+                                                                 
 };

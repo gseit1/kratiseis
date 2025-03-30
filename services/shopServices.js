@@ -49,7 +49,7 @@ const getShopReservationList = async (shopId) => {
 
     const reservationList = {};
 
-    for (const [date, reservations] of shop.reservationList.entries()) {
+    for (const [date, reservations] of Object.entries(shop.reservationList)) {
         const populatedReservations = await Reservation.find({ _id: { $in: reservations } });
         reservationList[date] = {
             count: populatedReservations.length,

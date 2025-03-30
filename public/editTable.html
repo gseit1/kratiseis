@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Edit Table</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<style>
+    body {
+      background-color: #f8f9fa;
+    }
+    .container {
+      max-width: 600px;
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    h1, h3 {
+      text-align: center;
+      color: #343a40;
+    }
+    .btn-success {
+      width: 100%;
+    }
+    .form-check-input {
+      margin-right: 10px;
+    }
+  </style>
+<body>
+  <div class="container mt-5">
+    <h1>Edit Table</h1>
+    <!-- Hidden fields for table id and shop id -->
+    <input type="hidden" id="tableId">
+    <input type="hidden" id="shopId">
+
+    <!-- Section 1: General Details (table number and estimated reservation time) -->
+    <div class="mb-4">
+      <h3>General Details</h3>
+      <form id="generalDetailsForm">
+        <div class="mb-3">
+          <label for="tableNumber" class="form-label">Table Number</label>
+          <input type="number" id="tableNumber" class="form-control" required>
+        </div>
+        <div class="mb-3">
+          <label for="estimatedReservationTime" class="form-label">Estimated Reservation Time (minutes)</label>
+          <input type="number" id="estimatedReservationTime" class="form-control" required min="30" max="600">
+        </div>
+        <button type="button" id="saveGeneralBtn" class="btn btn-success">Save General Details</button>
+      </form>
+    </div>
+
+    <!-- Section 2: Seats -->
+    <div class="mb-4">
+      <h3>Seats</h3>
+      <form id="seatsForm">
+        <div class="mb-3">
+          <label for="seats" class="form-label">Seats</label>
+          <input type="number" id="seats" class="form-control" required min="1">
+        </div>
+        <button type="button" id="saveSeatsBtn" class="btn btn-success">Save Seats</button>
+      </form>
+    </div>
+
+    <!-- Section 3: Booking Allowed per Day -->
+    <div class="mb-4">
+      <h3>Booking Allowed (per Day)</h3>
+      <form id="bookingAllowedForm">
+        <div class="row">
+          <!-- Loop through days -->
+          <div class="col-md-4 mb-2">
+            <label class="form-label text-capitalize" for="monday">Monday</label>
+            <input type="checkbox" id="monday" class="form-check-input">
+          </div>
+          <div class="col-md-4 mb-2">
+            <label class="form-label text-capitalize" for="tuesday">Tuesday</label>
+            <input type="checkbox" id="tuesday" class="form-check-input">
+          </div>
+          <div class="col-md-4 mb-2">
+            <label class="form-label text-capitalize" for="wednesday">Wednesday</label>
+            <input type="checkbox" id="wednesday" class="form-check-input">
+          </div>
+          <div class="col-md-4 mb-2">
+            <label class="form-label text-capitalize" for="thursday">Thursday</label>
+            <input type="checkbox" id="thursday" class="form-check-input">
+          </div>
+          <div class="col-md-4 mb-2">
+            <label class="form-label text-capitalize" for="friday">Friday</label>
+            <input type="checkbox" id="friday" class="form-check-input">
+          </div>
+          <div class="col-md-4 mb-2">
+            <label class="form-label text-capitalize" for="saturday">Saturday</label>
+            <input type="checkbox" id="saturday" class="form-check-input">
+          </div>
+          <div class="col-md-4 mb-2">
+            <label class="form-label text-capitalize" for="sunday">Sunday</label>
+            <input type="checkbox" id="sunday" class="form-check-input">
+          </div>
+        </div>
+        <button type="button" id="saveBookingAllowedBtn" class="btn btn-success">Save Booking Allowed</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Assume tableId and shopId are passed in the URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const tableId = urlParams.get('table_id');
+    const shopId = urlParams.get('shop_id');
+    document.getElementById('tableId').value = tableId;
+    document.getElementById('shopId').value = shopId;
+
+    // Function to load the current table values
+    async function fetchTableData() {
+      try {
+        const response = await fetch(`/api/table/${tableId}`);
+        if (!response.ok) throw new Error('Table not found');
+        const table = await response.json();
+        document.getElementById('tableNumber').value = table.tableNumber;
+        document.getElementById('estimatedReservationTime').value = table.estimatedReservationTime;
+        document.getElementById('seats').value = table.seats;
+        // Populate booking allowed checkboxes from bookingHours
+        if(table.bookingHours) {
+          ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].forEach(day => {
+            if(document.getElementById(day)) {
+              document.getElementById(day).checked = (table.bookingHours[day] && table.bookingHours[day].isBookingAllowed) || false;
+            }
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching table data:", error);
+      }
+    }
+    fetchTableData();
+
+    // Save General Details (table number and estimated reservation time)
+    document.getElementById('saveGeneralBtn').addEventListener('click', async () => {
+      const updatedGeneral = {
+        tableNumber: Number(document.getElementById('tableNumber').value),
+        estimatedReservationTime: Number(document.getElementById('estimatedReservationTime').value),
+      };
+      try {
+        const response = await fetch(`/api/table/${tableId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(updatedGeneral)
+        });
+        if (!response.ok) {
+          const err = await response.json();
+          alert("Error updating table: " + err.message);
+          return;
+        }
+        alert("General details updated successfully!");
+      } catch (error) {
+        console.error("Error updating general details:", error);
+      }
+    });
+
+    // Save Seats (PATCH /api/table/:id/seats)
+    document.getElementById('saveSeatsBtn').addEventListener('click', async () => {
+      const updatedSeats = { seats: Number(document.getElementById('seats').value) };
+      try {
+        const response = await fetch(`/api/table/${tableId}/seats`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(updatedSeats)
+        });
+        if (!response.ok) {
+          const err = await response.json();
+          alert("Error updating seats: " + err.message);
+          return;
+        }
+        alert("Seats updated successfully!");
+      } catch (error) {
+        console.error("Error updating seats:", error);
+      }
+    });
+
+    // Save Booking Allowed values for each day (PATCH /api/table/:id/isBookingAllowed)
+    
+  const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+
+  // Save Booking Allowed values for each day (PATCH /api/table/:id/isBookingAllowed)
+  document.getElementById('saveBookingAllowedBtn').addEventListener('click', async () => {
+    try {
+      for (const day of days) {
+        // Build payload expected by the implemented route (keys: day, isBookingAllowed)
+        const payload = {
+          day: day,
+          isBookingAllowed: document.getElementById(day).checked
+        };
+        // Send a separate PATCH request per day
+        const response = await fetch(`/api/table/${tableId}/isBookingAllowed`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        if (!response.ok) {
+          const err = await response.json();
+          alert(`Error updating ${day}: ${err.message}`);
+          return;
+        }
+      }
+      alert("Booking allowed values updated successfully!");
+    } catch (error) {
+      console.error("Error updating booking allowed values:", error);
+    }
+  });
+  </script>
+</body>
+</html>

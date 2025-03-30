@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Super Admin Dashboard</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital@0;1&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #8e44ad, #3498db);
+      color: #fff;
+      padding-top: 80px;
+      margin: 0;
+    }
+    .navbar-custom {
+      background: rgba(0, 0, 0, 0.85);
+      box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+    }
+    .navbar-brand {
+      font-family: 'Lora', serif;
+      font-size: 1.8rem;
+      font-weight: 600;
+    }
+    .container {
+      background: rgba(255,255,255,0.1);
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      animation: fadeIn 0.7s ease-in-out;
+      margin-bottom: 40px;
+    }
+    .btn {
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      border-radius: 30px;
+      font-weight: 500;
+    }
+    .btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 15px rgba(255,255,255,0.5);
+    }
+    .card {
+      background: rgba(255,255,255,0.15);
+      border: none;
+      border-radius: 15px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      margin-bottom: 20px;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+    }
+    .card-header {
+      font-family: 'Lora', serif;
+      font-size: 1.3rem;
+      border-bottom: 2px dashed rgba(255,255,255,0.4);
+      background: transparent;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0px); }
+    }
+    section {
+      padding-top: 60px;
+      margin-top: -60px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Fixed NavBar -->
+  <nav class="navbar navbar-expand-lg navbar-dark fixed-top navbar-custom">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">Super Admin</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#adminNavbar">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="adminNavbar">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="#shops">Manage Shops</a></li>
+          <li class="nav-item"><a class="nav-link" href="#categories">Manage Categories</a></li>
+          <li class="nav-item"><a class="nav-link" href="#cities">Manage Cities</a></li>
+          <li class="nav-item"><a class="nav-link" href="#regions">Manage Regions</a></li>
+          <li class="nav-item"><a class="nav-link" href="#reservations">Manage Reservations</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Section: Manage Shops -->
+  <section id="shops">
+    <div class="container">
+      <h2>Manage Shops</h2>
+      <!-- Display list of shops with Edit/Delete buttons -->
+      <div id="shopsList" class="row"></div>
+    </div>
+  </section>
+
+  <!-- Section: Manage Categories -->
+  <section id="categories">
+    <div class="container">
+      <h2>Manage Categories</h2>
+      <!-- Form to add/edit category -->
+      <form id="categoryForm" class="mb-3">
+        <div class="mb-2">
+          <input type="text" id="categoryName" class="form-control" placeholder="Category Name">
+        </div>
+        <div class="mb-2">
+          <input type="text" id="categoryImage" class="form-control" placeholder="Category Image URL">
+        </div>
+        <div class="mb-2">
+          <input type="text" id="categoryBanner" class="form-control" placeholder="Category Banner URL">
+        </div>
+        <button type="button" class="btn btn-primary" onclick="addCategory()">Add Category</button>
+      </form>
+      <div id="categoryList" class="list-group"></div>
+    </div>
+  </section>
+
+  <!-- Section: Manage Cities -->
+  <section id="cities">
+    <div class="container">
+      <h2>Manage Cities</h2>
+      <form id="cityForm" class="mb-3">
+        <input type="text" id="cityName" class="form-control" placeholder="City Name">
+        <button type="button" class="btn btn-primary mt-2" onclick="addCity()">Add City</button>
+      </form>
+      <ul id="cityList" class="list-group"></ul>
+    </div>
+  </section>
+
+  <!-- Section: Manage Regions -->
+  <section id="regions">
+    <div class="container">
+      <h2>Manage Regions</h2>
+      <form id="regionForm" class="mb-3">
+        <input type="text" id="regionName" class="form-control" placeholder="Region Name">
+        <button type="button" class="btn btn-primary mt-2" onclick="addRegion()">Add Region</button>
+      </form>
+      <ul id="regionList" class="list-group"></ul>
+    </div>
+  </section>
+
+  <!-- Section: Manage Reservations -->
+  <section id="reservations">
+    <div class="container">
+      <h2>Manage Reservations</h2>
+      <!-- Display reservations as cards with Edit/Delete options -->
+      <div id="adminReservations" class="row gy-3"></div>
+    </div>
+  </section>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Example functions to fetch and display data; adjust API endpoints as needed.
+
+    async function fetchShops() {
+      try {
+        const res = await fetch('/api/shop');
+        const data = await res.json();
+        const shopsList = document.getElementById('shopsList');
+        shopsList.innerHTML = "";
+        data.forEach(shop => {
+          shopsList.innerHTML += `
+            <div class="col-md-4">
+              <div class="card">
+                <div class="card-header">Shop: ${shop.shopName}</div>
+                <div class="card-body">
+                  <p><strong>City:</strong> ${shop.city || "N/A"}</p>
+                  <p><strong>Region:</strong> ${shop.region || "N/A"}</p>
+                  <button class="btn btn-warning btn-sm" onclick="editShop('${shop._id}')">Edit</button>
+                  <button class="btn btn-danger btn-sm" onclick="deleteShop('${shop._id}')">Delete</button>
+                </div>
+              </div>
+            </div>
+          `;
+        });
+      } catch (error) {
+        console.error("Error fetching shops:", error);
+      }
+    }
+    async function fetchCategories() {
+      try {
+        const res = await fetch('/category');
+        const data = await res.json();
+        const categoryList = document.getElementById('categoryList');
+        categoryList.innerHTML = "";
+        data.forEach(category => {
+          categoryList.innerHTML += `
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              ${category.name}
+              <div>
+                <button class="btn btn-warning btn-sm" onclick="editCategory('${category._id}','${category.name}')">Edit</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteCategory('${category._id}')">Delete</button>
+              </div>
+            </li>
+          `;
+        });
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    }
+    async function fetchCities() {
+      try {
+        const res = await fetch('/city');
+        const data = await res.json();
+        const cityList = document.getElementById('cityList');
+        cityList.innerHTML = "";
+        data.forEach(city => {
+          cityList.innerHTML += `
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              ${city.name}
+              <div>
+                <button class="btn btn-warning btn-sm" onclick="editCity('${city._id}','${city.name}')">Edit</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteCity('${city._id}')">Delete</button>
+              </div>
+            </li>
+          `;
+        });
+      } catch (error) {
+        console.error("Error fetching cities:", error);
+      }
+    }
+    async function fetchRegions() {
+      try {
+        const res = await fetch('/region');
+        const data = await res.json();
+        const regionList = document.getElementById('regionList');
+        regionList.innerHTML = "";
+        data.forEach(region => {
+          regionList.innerHTML += `
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              ${region.name}
+              <div>
+                <button class="btn btn-warning btn-sm" onclick="editRegion('${region._id}','${region.name}')">Edit</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteRegion('${region._id}')">Delete</button>
+              </div>
+            </li>
+          `;
+        });
+      } catch (error) {
+        console.error("Error fetching regions:", error);
+      }
+    }
+    async function fetchReservationsForAdmin() {
+      try {
+        const res = await fetch('/api/reservation'); // Adjust endpoint as needed
+        const data = await res.json();
+        const adminReservations = document.getElementById('adminReservations');
+        adminReservations.innerHTML = "";
+        data.forEach(reservation => {
+          adminReservations.innerHTML += `
+            <div class="col-md-4">
+              <div class="card">
+                <div class="card-header">Res #${reservation._id}</div>
+                <div class="card-body">
+                  <p><strong>Customer:</strong> ${reservation.userId.userName || "N/A"}</p>
+                  <p><strong>Table:</strong> ${reservation.tableId.tableNumber || "N/A"}</p>
+                  <p><strong>Date:</strong> ${reservation.reservationDate ? new Date(reservation.reservationDate).toLocaleDateString() : "N/A"}</p>
+                  <p><strong>Time:</strong> ${reservation.reservationTime || "N/A"}</p>
+                  <button class="btn btn-warning btn-sm" onclick="editReservation('${reservation._id}')">Edit</button>
+                  <button class="btn btn-danger btn-sm" onclick="deleteReservation('${reservation._id}')">Delete</button>
+                </div>
+              </div>
+            </div>
+          `;
+        });
+      } catch (error) {
+        console.error("Error fetching reservations:", error);
+      }
+    }
+
+    // Dummy functions for edit/delete actions (to be implemented)
+    function editShop(id){ /* redirect to edit shop page or open modal */ }
+    async function deleteShop(id){ /* DELETE request to /api/shop/:id */ }
+    function editCategory(id, name){ /* open a prompt/modal */ }
+    async function deleteCategory(id){ /* DELETE request to /category/:id */ }
+    function editCity(id, name){ /* open a prompt/modal */ }
+    async function deleteCity(id){ /* DELETE request to /city/:id */ }
+    function editRegion(id, name){ /* open a prompt/modal */ }
+    async function deleteRegion(id){ /* DELETE request to /region/:id */ }
+    function editReservation(id){ /* open a modal for editing reservation */ }
+    async function deleteReservation(id){ 
+      if(confirm("Delete this reservation?")){
+        try {
+          await fetch(`/api/reservation/${id}`, { method: "DELETE" });
+          fetchReservationsForAdmin();
+        } catch(e){ console.error(e); }
+      }
+    }
+
+    // Fetch data on page load
+    fetchShops();
+    fetchCategories();
+    fetchCities();
+    fetchRegions();
+    fetchReservationsForAdmin();
+  </script>
+</body>
+</html>
