@@ -13,6 +13,7 @@ const reviewRouter = require('./routes/review');
 const searchShopsRouter = require('./routes/searchShops');
 const cityRouter = require('./routes/city');
 const regionRouter = require('./routes/region');
+const applicationRouter = require('./routes/applications');
 
 const PORT = 300; // Define port number server will listen
 const app = express(); // Create an instance of express application
@@ -43,6 +44,7 @@ app.use(reviewRouter);
 app.use(searchShopsRouter);
 app.use(cityRouter);
 app.use(regionRouter);
+app.use(applicationRouter);
 app.use((req, res, next) => {
     console.log(`${req.method} ${req.url}`);
     next();

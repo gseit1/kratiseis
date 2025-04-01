@@ -14,7 +14,7 @@ const shopSchema = mongoose.Schema({
   shopDescription: {
     type: String,
     required: [true, 'Description is required'],
-    minlength: [10, 'Description must be at least 10 characters'],
+    minlength: [1, 'Description must be at least 10 characters'],
     maxlength: [500, 'Description must be at most 300 characters'],
   },
   category: {
@@ -116,7 +116,7 @@ const shopSchema = mongoose.Schema({
   },
   timeSlotSplit: {
     type: Number,
-    required: [true, 'Time slot split is required'],
+    required: [false, 'Time slot split is required'],
   },
   tables: [{
     type: mongoose.Schema.Types.ObjectId,
