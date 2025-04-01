@@ -165,11 +165,14 @@
     </div>
   </section>
 
-  <!-- Section C: Reservations (Styled as Cards) -->
+  <!-- Updated Reservations Section -->
   <section id="reservations">
     <div class="container mt-5">
       <h2>Reservations</h2>
-      <div id="reservationsSection" class="row gy-3"></div>
+      <!-- Scrollable list of days -->
+      <div id="reservationsDaysList" class="list-group mb-3" style="max-height: 300px; overflow-y: auto;"></div>
+      <!-- Container for reservations for the selected day -->
+      <div id="reservationsList" class="row gy-3"></div>
     </div>
   </section>
 
@@ -207,9 +210,15 @@
   <script>
     // Get shopId from URL parameters and display it
     const urlParams = new URLSearchParams(window.location.search);
-    const shopId = urlParams.get('shop_id');
-    document.getElementById('shopIdDisplay').textContent = "Shop ID: " + shopId;
-    
+  const shopId = urlParams.get('shop_id');
+
+  if (shopId) {
+    localStorage.setItem('shopId', shopId); // Αποθήκευση του shopId στο localStorage
+  } else {
+   alert('No shop ID found. Please log in again.');
+    window.location.href = 'registerLogin.html'; // Ανακατεύθυνση αν δεν υπάρχει shopId
+    } 
+     
     const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
 
     // ------------------------------
@@ -401,58 +410,65 @@
     });
 
     // ------------------------------
-    // Section C: Reservations
-    // ------------------------------
-    async function fetchReservations() {
-      try {
-        const response = await fetch(`/api/shop/reservationList/${shopId}`);
-        if (!response.ok) throw new Error("Failed to fetch reservations");
-        const reservations = await response.json();
-        displayReservations(reservations);
-        
-        // Process data for chart
-        let reservationsArray = [];
-        if (reservations && reservations.reservationList && typeof reservations.reservationList === 'object') {
-          for (const date in reservations.reservationList) {
-            if (reservations.reservationList[date] && Array.isArray(reservations.reservationList[date].reservations)) {
-              reservationsArray = reservationsArray.concat(reservations.reservationList[date].reservations);
-            }
+    // Group reservations by ISO date (YYYY-MM-DD)
+    function groupReservationsByDate(reservationsArray) {
+      const grouped = {};
+      reservationsArray.forEach(reservation => {
+        if (reservation.reservationDate) {
+          const dateKey = new Date(reservation.reservationDate).toISOString().split('T')[0];
+          if (!grouped[dateKey]) {
+            grouped[dateKey] = [];
           }
-        } else if (reservations && reservations.reservations && Array.isArray(reservations.reservations)) {
-          reservationsArray = reservations.reservations;
-        } else if (Array.isArray(reservations)) {
-          reservationsArray = reservations;
+          grouped[dateKey].push(reservation);
         }
-        const chartData = processReservationData(reservationsArray);
-        renderReservationChart(chartData);
-      } catch (error) {
-        console.error("Error fetching reservations:", error);
-      }
+      });
+      return grouped;
     }
-    
-    function displayReservations(data) {
-      console.log("Raw reservation data:", data);
-      let reservationsArray = [];
-      if (data && data.reservationList && typeof data.reservationList === 'object') {
-        for (const date in data.reservationList) {
-          if (data.reservationList[date] && Array.isArray(data.reservationList[date].reservations)) {
-            reservationsArray = reservationsArray.concat(data.reservationList[date].reservations);
-          }
-        }
-      } else if (data && data.reservations && Array.isArray(data.reservations)) {
-        reservationsArray = data.reservations;
-      } else if (Array.isArray(data)) {
-        reservationsArray = data;
-      }
-      console.log("Processed reservations array:", reservationsArray);
-      const reservationsSection = document.getElementById("reservationsSection");
-      reservationsSection.innerHTML = "";
+
+    // Helper to format a date (ISO string) as "dd-mm-yy"
+    function formatDate_dd_mm_yy(isoDateStr) {
+      const dateObj = new Date(isoDateStr);
+      const dd = String(dateObj.getDate()).padStart(2, '0');
+      const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const yy = String(dateObj.getFullYear()).slice(-2);
+      return `${dd}-${mm}-${yy}`;
+    }
+
+    // Helper to get the day of the week from an ISO date (YYYY-MM-DD)
+    function getDayOfWeek(isoDateStr) {
+      const dateObj = new Date(isoDateStr);
+      const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+      return days[dateObj.getDay()];
+    }
+
+    // Render the scrollable list of reservation days
+    function renderDaysList(groupedReservations) {
+      const daysListDiv = document.getElementById("reservationsDaysList");
+      daysListDiv.innerHTML = "";
+      const sortedDates = Object.keys(groupedReservations).sort(); // ascending order
+      sortedDates.forEach(dateKey => {
+        const formattedDate = formatDate_dd_mm_yy(dateKey);
+        const dayOfWeek = getDayOfWeek(dateKey);
+        const btn = document.createElement("button");
+        btn.className = "list-group-item list-group-item-action";
+        btn.textContent = `${formattedDate} - ${dayOfWeek}`;
+        btn.onclick = function() {
+          renderReservationsForDay(groupedReservations[dateKey]);
+        };
+        daysListDiv.appendChild(btn);
+      });
+    }
+
+    // Render reservations for a specific day
+    function renderReservationsForDay(reservationsArray) {
+      const reservationsListDiv = document.getElementById("reservationsList");
+      reservationsListDiv.innerHTML = "";
       if (reservationsArray.length === 0) {
-        reservationsSection.innerHTML = `<p class="text-center">No reservations found.</p>`;
+        reservationsListDiv.innerHTML = "<p class='text-center'>No reservations for this day.</p>";
         return;
       }
       reservationsArray.forEach(reservation => {
-        reservationsSection.innerHTML += `
+        reservationsListDiv.innerHTML += `
           <div class="col-md-4">
             <div class="card mb-3">
               <div class="card-header">Reservation #${reservation._id}</div>
@@ -469,21 +485,57 @@
         `;
       });
     }
-    
-    async function deleteReservation(reservationId) {
-      if (confirm("Are you sure you want to delete this reservation?")) {
-        try {
-          const res = await fetch(`/api/reservation/${reservationId}`, { method: "DELETE" });
-          if (!res.ok) {
-            const err = await res.json();
-            alert("Error deleting reservation: " + err.message);
-            return;
+
+    // Display grouped reservations once data is fetched
+    function displayGroupedReservations(data) {
+      let reservationsArray = [];
+      if (data && data.reservationList && typeof data.reservationList === 'object') {
+        for (const date in data.reservationList) {
+          if (data.reservationList[date] && Array.isArray(data.reservationList[date].reservations)) {
+            reservationsArray = reservationsArray.concat(data.reservationList[date].reservations);
           }
-          alert("Reservation deleted successfully!");
-          fetchReservations();
-        } catch (error) {
-          console.error("Error deleting reservation:", error);
         }
+      } else if (data && data.reservations && Array.isArray(data.reservations)) {
+        reservationsArray = data.reservations;
+      } else if (Array.isArray(data)) {
+        reservationsArray = data;
+      }
+      const grouped = groupReservationsByDate(reservationsArray);
+      renderDaysList(grouped);
+      // Render the first day's reservations by default:
+      const sortedDates = Object.keys(grouped).sort();
+      if (sortedDates.length > 0) {
+        renderReservationsForDay(grouped[sortedDates[0]]);
+      } else {
+        document.getElementById("reservationsList").innerHTML = "<p class='text-center'>No reservations found.</p>";
+      }
+    }
+
+    // Modify your existing fetchReservations function to use the grouped display
+    async function fetchReservations() {
+      try {
+        const response = await fetch(`/api/shop/reservationList/${shopId}`);
+        if (!response.ok) throw new Error("Failed to fetch reservations");
+        const reservationsData = await response.json();
+        displayGroupedReservations(reservationsData);
+        
+        // Process data for chart (if needed) remains unchanged:
+        let reservationsArray = [];
+        if (reservationsData && reservationsData.reservationList && typeof reservationsData.reservationList === 'object') {
+          for (const date in reservationsData.reservationList) {
+            if (reservationsData.reservationList[date] && Array.isArray(reservationsData.reservationList[date].reservations)) {
+              reservationsArray = reservationsArray.concat(reservationsData.reservationList[date].reservations);
+            }
+          }
+        } else if (reservationsData && reservationsData.reservations && Array.isArray(reservationsData.reservations)) {
+          reservationsArray = reservationsData.reservations;
+        } else if (Array.isArray(reservationsData)) {
+          reservationsArray = reservationsData;
+        }
+        const chartData = processReservationData(reservationsArray);
+        renderReservationChart(chartData);
+      } catch (error) {
+        console.error("Error fetching reservations:", error);
       }
     }
     fetchReservations();
@@ -558,6 +610,41 @@
       });
     }
     
+    // In your shopOwnerDashboard.html within the <script> block:
+      async function deleteReservation(reservationId) {
+  if (confirm("Are you sure you want to delete this reservation?")) {
+    try {
+      const jwtToken = localStorage.getItem("jwtToken");
+      const shopId = localStorage.getItem("shopId"); // Παίρνουμε το shopId από το localStorage
+      console.log("id",shopId);
+
+      if (!jwtToken || !shopId) {
+        alert("You are not logged in. Please log in again.");
+        return;
+      }
+
+      const response = await fetch(`/api/reservation/${reservationId}?shopId=${shopId}`, { 
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${jwtToken}`
+        }
+      });
+
+      if (!response.ok) {
+        const errorResponse = await response.json();
+        alert("Error deleting reservation: " + errorResponse.message);
+        return;
+      }
+
+      alert("Reservation deleted successfully!");
+      fetchReservations(); // Ανανεώνουμε τη λίστα κρατήσεων
+    } catch (error) {
+      console.error("Error deleting reservation:", error);
+      alert("Error deleting reservation. Check console for details.");
+    }
+  }
+}
   </script>
 </body>
 </html>

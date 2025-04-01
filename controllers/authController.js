@@ -1,5 +1,6 @@
 const admin = require('../firebase_auth/firebaseAdmin');
 const User = require('../models/user');
+const Shop = require('../models/shop');
 
 // Εγγραφή χρήστη
 // Εγγραφή χρήστη
@@ -31,35 +32,56 @@ const signUp = async (req, res) => {
 };
 
 // Σύνδεση χρήστη
+const axios = require('axios');
+
 const login = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    // Επαλήθευση χρήστη στο Firebase Authentication
-    const userRecord = await admin.auth().getUserByEmail(email);
-    const user = await User.findOne({ firebaseUid: userRecord.uid });
+    // Firebase REST API για login
+    const response = await axios.post(
+      `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyD6yfJs_ICEC_M0lJvl3Q5_nTIbF-1nLOc`,
+      {
+        email,
+        password,
+        returnSecureToken: true,
+      }
+    );
 
+    const idToken = response.data.idToken;
+    const firebaseUid = response.data.localId; // Παίρνουμε το UID από το Firebase
+
+    // Εύρεση χρήστη στη MongoDB
+    const user = await User.findOne({ firebaseUid });
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: 'User not found in MongoDB' });
     }
 
-    // Επαλήθευση κωδικού πρόσβασης μέσω Firebase Authentication
-    const idToken = await admin.auth().createCustomToken(userRecord.uid);
-    res.status(200).json({ message: 'Login successful', idToken });
+    // Επιστροφή του token, του ρόλου και του shopId (αν υπάρχει)
+    res.status(200).json({
+      message: 'Login successful',
+      idToken,
+      role: user.role,
+      shopId: user.shopId || null,
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Error logging in', error: error.message });
+    res.status(500).json({
+      message: 'Error logging in',
+      error: error.response?.data || error.message,
+    });
   }
 };
 
+
 // Αλλαγή ρόλου χρήστη από admin
 const changeUserRole = async (req, res) => {
-  const { email, newRole } = req.body;
+  const { email, newRole, shopId } = req.body;
 
   try {
     // Αναζήτηση χρήστη στο Firebase Authentication βάσει email
     const userRecord = await admin.auth().getUserByEmail(email);
     if (!userRecord) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: 'User not found in Firebase' });
     }
 
     // Αναζήτηση χρήστη στη MongoDB βάσει firebaseUid
@@ -68,11 +90,31 @@ const changeUserRole = async (req, res) => {
       return res.status(404).json({ message: 'User not found in MongoDB' });
     }
 
-    // Αλλαγή ρόλου χρήστη
+    // Ενημέρωση του ρόλου του χρήστη
     user.role = newRole;
+
+    // Αν ο νέος ρόλος είναι "shopOwner", ορίζουμε το shopId
+    if (newRole === 'shopOwner') {
+      if (!shopId) {
+        return res.status(400).json({ message: 'shopId is required for shopOwner role' });
+      }
+
+      // Επαλήθευση ότι το shopId υπάρχει στη βάση δεδομένων
+      const shopExists = await Shop.findById(shopId);
+      if (!shopExists) {
+        return res.status(404).json({ message: 'Shop not found' });
+      }
+
+      user.shopId = shopId;
+    } else {
+      // Αν ο ρόλος δεν είναι "shopOwner", αφαιρούμε το shopId
+      user.shopId = null;
+    }
+
+    // Αποθήκευση των αλλαγών
     await user.save();
 
-    res.status(200).json({ message: 'User role updated successfully' });
+    res.status(200).json({ message: 'User role and shopId updated successfully' });
   } catch (error) {
     res.status(500).json({ message: 'Error updating user role', error: error.message });
   }
@@ -101,6 +143,22 @@ const deleteUser = async (req, res) => {
   }
 };
 
+const getUserRole = async (req, res) => {
+  try {
+    // Βρίσκουμε τον χρήστη στη βάση δεδομένων με βάση το firebaseUid
+    const user = await User.findOne({ firebaseUid: req.user.uid });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Επιστρέφουμε τον ρόλο και το shopId (αν υπάρχει)
+    res.status(200).json({ role: user.role, shopId: user.shopId || null });
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching user role', error: error.message });
+  }
+};
+
+
 
 
 module.exports = {
@@ -108,4 +166,5 @@ module.exports = {
   login,
   changeUserRole,
   deleteUser,
+  getUserRole,
 };

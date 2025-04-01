@@ -1,6 +1,7 @@
 const express = require('express');
+const { verifyToken } = require('../middlewares/authMiddleware');
 const { check, validationResult } = require('express-validator');
-const { signUp, login, changeUserRole, deleteUser } = require('../controllers/authController');
+const { signUp, login, changeUserRole, deleteUser ,getUserRole} = require('../controllers/authController');
 const authRouter = express.Router();
 
 // Route για εγγραφή χρήστη
@@ -29,10 +30,16 @@ authRouter.post('/api/login', [
   next();
 }, login);
 
+
+
+
 // Route για αλλαγή ρόλου χρήστη από admin
 authRouter.patch('/api/change-role', changeUserRole);
 
 // Route για διαγραφή χρήστη
 authRouter.delete('/api/delete-user', deleteUser);
+
+// Route για επιστροφή του ρόλου του χρήστη
+authRouter.get('/api/get-role', verifyToken, getUserRole);
 
 module.exports = authRouter;

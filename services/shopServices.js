@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Shop = require('../models/shop');
 const Reservation = require('../models/reservation');
 
@@ -26,6 +27,10 @@ const getAllShopsService = async () => {
 
 // Επιστροφή συγκεκριμένου καταστήματος
 const getShopByIdService = async (shopId) => {
+    if (!mongoose.Types.ObjectId.isValid(shopId)) {
+        throw new Error('Invalid shopId');
+    }
+
     const shop = await Shop.findById(shopId).populate('tables').populate('reservationList');
     if (!shop) {
         throw new Error('Shop not found');
