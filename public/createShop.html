@@ -62,15 +62,16 @@
                 <input type="number" class="form-control" id="timeSlotSplit" name="timeSlotSplit" required>
             </div>
             <h3>Opening Hours:</h3>
-            <div id="openingHours">
-                <div class="mb-3">
-                    <label for="monday" class="form-label">Monday:</label>
-                    <input type="checkbox" id="mondayIsOpen" name="openingHours[monday][isOpen]"> Open
+            <div class="mb-3">
+                <label for="monday" class="form-label">Monday:</label>
+                <input type="checkbox" id="mondayIsOpen" name="openingHours[monday][isOpen]"> Open
+                <div id="mondayFields">
                     <input type="number" class="form-control" id="mondayOpen" name="openingHours[monday][open]" placeholder="Open Time">
                     <input type="number" class="form-control" id="mondayClose" name="openingHours[monday][close]" placeholder="Close Time">
                     <input type="number" class="form-control" id="mondayBookingStart" name="openingHours[monday][bookingStart]" placeholder="Booking Start">
                     <input type="number" class="form-control" id="mondayBookingEnd" name="openingHours[monday][bookingEnd]" placeholder="Booking End">
                 </div>
+            </div>
                 <!-- Repeat for other days... -->
                 <div class="mb-3">
                     <label for="tuesday" class="form-label">Tuesday:</label>
@@ -125,6 +126,40 @@
         </form>
     </div>
     <script>
+
+document.addEventListener('DOMContentLoaded', function () {
+    // Λειτουργία για εμφάνιση/απόκρυψη πεδίων ανάλογα με το isOpen
+    const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+
+    days.forEach(day => {
+        const isOpenCheckbox = document.getElementById(`${day}IsOpen`);
+        const openField = document.getElementById(`${day}Open`);
+        const closeField = document.getElementById(`${day}Close`);
+        const bookingStartField = document.getElementById(`${day}BookingStart`);
+        const bookingEndField = document.getElementById(`${day}BookingEnd`);
+
+        // Αρχική κατάσταση
+        toggleFields(isOpenCheckbox.checked, openField, closeField, bookingStartField, bookingEndField);
+
+        // Προσθήκη event listener για αλλαγές στο checkbox
+        isOpenCheckbox.addEventListener('change', function () {
+            toggleFields(isOpenCheckbox.checked, openField, closeField, bookingStartField, bookingEndField);
+        });
+    });
+
+    // Συνάρτηση για εμφάνιση/απόκρυψη πεδίων
+    function toggleFields(isOpen, ...fields) {
+        fields.forEach(field => {
+            field.style.display = isOpen ? 'block' : 'none';
+            if (!isOpen) {
+                field.value = ''; // Καθαρισμός τιμών αν είναι κρυφό
+            }
+        });
+    }
+});
+
+
+
         document.addEventListener('DOMContentLoaded', async function() {
             try {
                 // Fetch categories, cities, and regions from the backend
@@ -185,51 +220,92 @@
         });
 
         document.getElementById('createShopForm').addEventListener('submit', async function(event) {
-            event.preventDefault();
+    event.preventDefault();
+    console.log('Form submission started.');
 
-            const formData = new FormData(event.target);
-            const shopData = Object.fromEntries(formData.entries());
+    const formData = new FormData(event.target);
+    const shopData = Object.fromEntries(formData.entries());
+    console.log('Form data collected:', shopData);
 
-            // Parse location
-            const [longitude, latitude] = shopData.location.split(',').map(Number);
-            shopData.location = { type: 'Point', coordinates: [longitude, latitude] };
+    // Parse location
+    const [longitude, latitude] = shopData.location.split(',').map(Number);
+    shopData.location = { type: 'Point', coordinates: [longitude, latitude] };
+    console.log('Parsed location:', shopData.location);
 
-            // Parse images
-            shopData.images = shopData.images.split(',').map(url => url.trim());
+    // Parse images
+    shopData.images = shopData.images.split(',').map(url => url.trim());
+    console.log('Parsed images:', shopData.images);
 
-            // Parse opening hours
-            const openingHours = {};
-            for (const day of ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']) {
-                openingHours[day] = {
-                    isOpen: document.getElementById(`${day}IsOpen`).checked,
-                    open: document.getElementById(`${day}Open`).value ? Number(document.getElementById(`${day}Open`).value) : null,
-                    close: document.getElementById(`${day}Close`).value ? Number(document.getElementById(`${day}Close`).value) : null,
-                    bookingStart: document.getElementById(`${day}BookingStart`).value ? Number(document.getElementById(`${day}BookingStart}`).value) : null,
-                    bookingEnd: document.getElementById(`${day}BookingEnd`).value ? Number(document.getElementById(`${day}BookingEnd}`).value) : null,
-                };
-            }
-            shopData.openingHours = openingHours;
+    // Parse opening hours
+    const openingHours = {};
+    for (const day of ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']) {
+        const isOpen = document.getElementById(`${day}IsOpen`).checked;
+        openingHours[day] = {
+            isOpen: isOpen,
+            open: isOpen ? (document.getElementById(`${day}Open`).value ? Number(document.getElementById(`${day}Open`).value) : null) : null,
+            close: isOpen ? (document.getElementById(`${day}Close`).value ? Number(document.getElementById(`${day}Close`).value) : null) : null,
+            bookingStart: isOpen ? (document.getElementById(`${day}BookingStart`).value ? Number(document.getElementById(`${day}BookingStart`).value) : null) : null,
+            bookingEnd: isOpen ? (document.getElementById(`${day}BookingEnd`).value ? Number(document.getElementById(`${day}BookingEnd`).value) : null) : null,
+        };
+    }
+    shopData.openingHours = openingHours;
+    console.log('Parsed opening hours:', shopData.openingHours);
 
-            try {
-                const response = await fetch('api/shop', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(shopData)
-                });
-
-                const result = await response.json();
-                if (response.ok) {
-                    alert('Shop created successfully!');
-                } else {
-                    alert('Error creating shop: ' + result.message);
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Error creating shop');
-            }
+    try {
+        console.log('Sending shop creation request...');
+        const response = await fetch('api/shop', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(shopData)
         });
+
+        const result = await response.json();
+        console.log('Shop creation response received:', result);
+
+        if (response.ok) {
+            console.log('Shop created successfully:', result);
+
+            // Ενημέρωση του shopId του χρήστη
+            const jwtToken = localStorage.getItem('jwtToken');
+            if (!jwtToken) {
+                alert('You are not logged in. Please log in again.');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            console.log('Sending shopId update request...');
+            const shopIdResponse = await fetch('/api/user/shopId', {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${jwtToken}`,
+                },
+                body: JSON.stringify({ shopId: result.shop._id }),
+            });
+
+            if (!shopIdResponse.ok) {
+                const errorResponse = await shopIdResponse.json();
+                console.error('Error setting shop ID:', errorResponse);
+                alert('Error setting shop ID: ' + errorResponse.message);
+                return;
+            }
+
+            console.log('Shop ID set successfully.');
+
+            // Ανακατεύθυνση στο dashboard με το shopId
+            alert('Shop created successfully!');
+            window.location.href = `shopOwnerDashboard.html?shop_id=${result.shop._id}`;
+        } else {
+            console.error('Error creating shop:', result.message);
+            alert('Error creating shop: ' + result.message);
+        }
+    } catch (error) {
+        console.error('Error during shop creation:', error);
+        alert('Error creating shop');
+    }
+});
     </script>
 </body>
 </html>

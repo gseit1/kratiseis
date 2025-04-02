@@ -25,7 +25,12 @@ const signUp = async (req, res) => {
     });
 
     await newUser.save();
-    res.status(201).json({ message: 'User registered successfully' });
+
+    // Επιστροφή επιτυχίας με το userId
+    res.status(201).json({
+      message: 'User registered successfully',
+      userId: newUser._id, // Επιστροφή του MongoDB userId
+    });
   } catch (error) {
     res.status(500).json({ message: 'Error registering user', error: error.message });
   }
@@ -158,8 +163,61 @@ const getUserRole = async (req, res) => {
   }
 };
 
+const getUserProfile = async (req, res) => {
+  try {
+    // Παίρνουμε το firebaseUid από το token που επαληθεύτηκε στο middleware
+    const user = await User.findOne({ firebaseUid: req.user.uid }).select('-password'); // Εξαιρούμε το password
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.status(200).json({
+      name: user.name,
+      surname: user.surname,
+      email: user.email,
+      role: user.role,
+      shopId: user.shopId,
+      reservationHistory: user.reservationHistory,
+    });
+  } catch (error) {
+    console.error('Error fetching user profile:', error.message);
+    res.status(500).json({ message: 'Error fetching user profile', error: error.message });
+  }
+};
 
 
+const setUserShopId = async (req, res) => {
+  const { shopId } = req.body;
+
+  console.log('setUserShopId called');
+  console.log('Received shopId:', shopId);
+
+  try {
+    // Παίρνουμε το firebaseUid από το token που επαληθεύτηκε στο middleware
+    console.log('Fetching user with firebaseUid:', req.user?.uid);
+    const user = await User.findOne({ firebaseUid: req.user?.uid });
+
+    if (!user) {
+      console.error('User not found for firebaseUid:', req.user?.uid);
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    console.log('User found:', user);
+
+    // Ενημέρωση του shopId του χρήστη
+    user.shopId = shopId;
+    console.log('Updating user shopId to:', shopId);
+    await user.save();
+
+    console.log('Shop ID updated successfully for user:', user);
+    res.status(200).json({ message: 'Shop ID set successfully', shopId: user.shopId });
+  } catch (error) {
+    console.error('Error setting shop ID:', error.message);
+    res.status(500).json({ message: 'Error setting shop ID', error: error.message });
+  }
+};
+module.exports = { setUserShopId };
 
 module.exports = {
   signUp,
@@ -167,4 +225,6 @@ module.exports = {
   changeUserRole,
   deleteUser,
   getUserRole,
+  getUserProfile,
+  setUserShopId,
 };

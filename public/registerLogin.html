@@ -68,50 +68,51 @@
 
         // Login form submission (unchanged)
         document.getElementById('loginForm').addEventListener('submit', async function (event) {
-  event.preventDefault();
+    event.preventDefault();
 
-  const email = document.getElementById('loginEmail').value;
-  const password = document.getElementById('loginPassword').value;
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
 
-  try {
-    // Κάνε login και πάρε το token, τον ρόλο και το shopId
-    const response = await fetch('/api/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, password }),
-    });
+    try {
+      // Κάνε login και πάρε το token, τον ρόλο και το shopId
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-    const result = await response.json();
-    console.log('Login response:', result);
+      const result = await response.json();
+      console.log('Login response:', result);
 
-    if (response.ok) {
-      // Αποθήκευση του token στο localStorage
-      localStorage.setItem('jwtToken', result.idToken);
+      if (response.ok) {
+        // Αποθήκευση του token στο localStorage
+        localStorage.setItem('jwtToken', result.idToken);
 
-      // Ανακατεύθυνση ανάλογα με τον ρόλο
-      if (result.role === 'user') {
-        window.location.href = 'index.html'; // Αρχική σελίδα για χρήστες
-      } else if (result.role === 'shopOwner') {
-        if (result.shopId) {
-          window.location.href = `shopOwnerDashboard.html?shop_id=${result.shopId}`; // Σελίδα μαγαζιού
+        // Αποθήκευση του ρόλου και του shopId στο localStorage
+        localStorage.setItem('role', result.role);
+        localStorage.setItem('shopId', result.shopId || 'null'); // Αν δεν υπάρχει shopId, αποθηκεύουμε 'null'
+
+        // Ανακατεύθυνση ανάλογα με τον ρόλο
+        if (result.role === 'user') {
+          window.location.href = 'index.html'; // Αρχική σελίδα για χρήστες
+        } else if (result.role === 'shopOwner') {
+          // Ανακατεύθυνση στο dashboard ανεξαρτήτως shopId
+          window.location.href = 'shopOwnerDashboard.html';
+        } else if (result.role === 'admin') {
+          window.location.href = 'admin.html'; // Σελίδα διαχειριστή
         } else {
-          alert('No shop associated with this shop owner.');
+          alert('Unknown role!');
         }
-      } else if (result.role === 'admin') {
-        window.location.href = 'admin.html'; // Σελίδα διαχειριστή
       } else {
-        alert('Unknown role!');
+        alert('Login failed: ' + result.message);
       }
-    } else {
-      alert('Login failed: ' + result.message);
+    } catch (error) {
+      console.error('Error logging in:', error);
+      alert('Error logging in: ' + error.message);
     }
-  } catch (error) {
-    console.error('Error logging in:', error);
-    alert('Error logging in: ' + error.message);
-  }
-});
+  });
     </script>
 </head>
 <body>

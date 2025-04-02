@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up & Post Application</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+        }
+        .form-container {
+            margin-bottom: 40px;
+        }
+        form {
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 5px;
+            max-width: 400px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        input, textarea, button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h2>Sign Up</h2>
+        <form id="signup-form">
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" required>
+
+            <label for="surname">Surname:</label>
+            <input type="text" id="surname" name="surname" required>
+
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
+
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+
+            <button type="submit">Sign Up</button>
+        </form>
+    </div>
+
+    <div class="form-container">
+        <h2>Post Application</h2>
+        <form id="post-application-form">
+            <label for="shopName">Shop Name:</label>
+            <input type="text" id="shopName" name="shopName" required>
+
+            <label for="shopDescription">Shop Description:</label>
+            <textarea id="shopDescription" name="shopDescription" rows="5" required></textarea>
+
+            <button type="submit">Submit Application</button>
+        </form>
+    </div>
+
+    <script>
+        // Αρχικοποίηση του userId από το localStorage
+        let userId = localStorage.getItem('userId');
+    
+        // Handle Sign Up Form Submission
+        document.getElementById('signup-form').addEventListener('submit', async function(event) {
+            event.preventDefault();
+    
+            const name = document.getElementById('name').value;
+            const surname = document.getElementById('surname').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+    
+            try {
+                const response = await fetch('/api/signup', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ name, surname, email, password }),
+                });
+    
+                const result = await response.json();
+                if (response.ok) {
+                    alert('Sign Up Successful!');
+                    userId = result.userId; // Αποθήκευση του userId
+                    localStorage.setItem('userId', userId); // Αποθήκευση στο localStorage
+                    console.log('User ID saved to localStorage:', userId);
+                } else {
+                    alert('Error: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Error during sign up:', error);
+                alert('An error occurred during sign up.');
+            }
+        });
+    
+        // Handle Post Application Form Submission
+        document.getElementById('post-application-form').addEventListener('submit', async function(event) {
+            event.preventDefault();
+    
+            if (!userId) {
+                alert('Please sign up first!');
+                return;
+            }
+    
+            const shopName = document.getElementById('shopName').value;
+            const shopDescription = document.getElementById('shopDescription').value;
+    
+            try {
+                const response = await fetch('/api/applications', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ userId, shopName, shopDescription }),
+                });
+    
+                const result = await response.json();
+                if (response.ok) {
+                    alert('Application Submitted Successfully!');
+                } else {
+                    alert('Error: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Error during application submission:', error);
+                alert('An error occurred during application submission.');
+            }
+        });
+    </script>
+</body>
+</html>

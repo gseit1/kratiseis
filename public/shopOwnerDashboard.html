@@ -120,40 +120,73 @@
     </div>
   </section>
 
-  <!-- Section A: General Shop Details Form -->
-  <section id="generalShopDetails">
-    <div class="container mt-5">
-      <h2>General Shop Details</h2>
-      <form id="generalShopForm">
-        <div class="mb-3">
-          <label class="form-label">Shop Name</label>
-          <input type="text" id="shopName" class="form-control" disabled>
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Description</label>
-          <textarea id="shopDescription" class="form-control" rows="3" disabled></textarea>
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Phone</label>
-          <input type="text" id="shopPhone" class="form-control" disabled>
-        </div>
-        <div class="mb-3">
-          <label class="form-label">City</label>
-          <input type="text" id="shopCity" class="form-control" disabled>
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Region</label>
-          <input type="text" id="shopRegion" class="form-control" disabled>
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Category</label>
-          <input type="text" id="shopCategory" class="form-control" disabled>
-        </div>
-        <button type="button" id="editGeneralBtn" class="btn btn-warning">Edit General Details</button>
-        <button type="button" id="saveGeneralBtn" class="btn btn-success" style="display:none;">Save General Details</button>
-      </form>
-    </div>
-  </section>
+  <!-- Section: My Profile -->
+<section id="myProfile">
+  <div class="container mt-5">
+    <h2>My Profile</h2>
+    <form id="profileForm">
+      <div class="mb-3">
+        <label class="form-label">Name</label>
+        <input type="text" id="userName" class="form-control" disabled>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Surname</label>
+        <input type="text" id="userSurname" class="form-control" disabled>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Email</label>
+        <input type="email" id="userEmail" class="form-control" disabled>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Role</label>
+        <input type="text" id="userRole" class="form-control" disabled>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Shop ID</label>
+        <input type="text" id="userShopId" class="form-control" disabled>
+      </div>
+    </form>
+  </div>
+</section>
+
+ <!-- Section A: General Shop Details Form -->
+<section id="generalShopDetails">
+  <div class="container mt-5">
+    <h2>General Shop Details</h2>
+    <form id="generalShopForm">
+      <div class="mb-3">
+        <label class="form-label">Shop Name</label>
+        <input type="text" id="shopName" class="form-control" disabled>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Description</label>
+        <textarea id="shopDescription" class="form-control" rows="3" disabled></textarea>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Phone</label>
+        <input type="text" id="shopPhone" class="form-control" disabled>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">City</label>
+        <input type="text" id="shopCity" class="form-control" disabled>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Region</label>
+        <input type="text" id="shopRegion" class="form-control" disabled>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Category</label>
+        <input type="text" id="shopCategory" class="form-control" disabled>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Opening Hours</label>
+        <div id="shopOpeningHours" class="border p-3 rounded bg-light text-dark"></div>
+      </div>
+      <button type="button" id="editGeneralBtn" class="btn btn-warning">Edit General Details</button>
+      <button type="button" id="saveGeneralBtn" class="btn btn-success" style="display:none;">Save General Details</button>
+    </form>
+  </div>
+</section>
 
   <!-- Section B: Booking Hours Form -->
   <section id="bookingHours">
@@ -208,16 +241,18 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    // Get shopId from URL parameters and display it
-    const urlParams = new URLSearchParams(window.location.search);
-  const shopId = urlParams.get('shop_id');
+   // Get shopId from URL parameters or localStorage
+const urlParams = new URLSearchParams(window.location.search);
+let shopId = urlParams.get('shop_id') || localStorage.getItem('shopId');
 
-  if (shopId) {
-    localStorage.setItem('shopId', shopId); // Αποθήκευση του shopId στο localStorage
-  } else {
-   alert('No shop ID found. Please log in again.');
-    window.location.href = 'registerLogin.html'; // Ανακατεύθυνση αν δεν υπάρχει shopId
-    } 
+// Έλεγχος αν το shopId είναι null ή undefined
+if (!shopId || shopId === 'null' || shopId === 'undefined') {
+  alert("Shop ID is missing. Redirecting to create shop page.");
+  window.location.href = 'createShop.html';
+} else {
+  // Αποθήκευση του shopId στο localStorage για μελλοντική χρήση
+  localStorage.setItem('shopId', shopId);
+}
      
     const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
 
@@ -278,20 +313,33 @@
     // Section A: General Shop Details
     // ------------------------------
     async function fetchGeneralDetails() {
-      try {
-        const response = await fetch(`/api/shop/${shopId}`);
-        if (!response.ok) throw new Error("Failed to fetch shop details");
-        const shop = await response.json();
-        document.getElementById("shopName").value = shop.shopName;
-        document.getElementById("shopDescription").value = shop.shopDescription;
-        document.getElementById("shopPhone").value = shop.phone;
-        document.getElementById("shopCity").value = shop.city || "";
-        document.getElementById("shopRegion").value = shop.region || "";
-        document.getElementById("shopCategory").value = shop.category || "";
-      } catch (error) {
-        console.error("Error fetching general shop details:", error);
-      }
-    }
+  try {
+    const response = await fetch(`/api/shop/${shopId}`);
+    if (!response.ok) throw new Error("Failed to fetch shop details");
+    const shop = await response.json();
+
+    // Ενημέρωση των πεδίων
+    document.getElementById("shopName").value = shop.shopName;
+    document.getElementById("shopDescription").value = shop.shopDescription;
+    document.getElementById("shopPhone").value = shop.phone;
+    document.getElementById("shopCity").value = shop.city || "";
+    document.getElementById("shopRegion").value = shop.region || "";
+    document.getElementById("shopCategory").value = shop.category || "";
+
+    // Εμφάνιση των openingHours
+    const openingHoursDiv = document.getElementById("shopOpeningHours");
+    openingHoursDiv.innerHTML = Object.entries(shop.openingHours)
+      .map(([day, hours]) => `
+        <p>
+          <strong>${day.charAt(0).toUpperCase() + day.slice(1)}:</strong> 
+          ${hours.isOpen ? `${hours.open}:00 - ${hours.close}:00` : 'Closed'}
+        </p>
+      `)
+      .join('');
+  } catch (error) {
+    console.error("Error fetching general shop details:", error);
+  }
+}
     fetchGeneralDetails();
     
     document.getElementById("editGeneralBtn").addEventListener("click", () => {
@@ -645,6 +693,45 @@
     }
   }
 }
+
+async function fetchUserProfile() {
+  try {
+    const jwtToken = localStorage.getItem('jwtToken');
+    if (!jwtToken) {
+      alert('You are not logged in. Please log in again.');
+      window.location.href = 'login.html';
+      return;
+    }
+
+    const response = await fetch('/api/user/profile', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${jwtToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      const errorResponse = await response.json();
+      alert('Error fetching user profile: ' + errorResponse.message);
+      return;
+    }
+
+    const user = await response.json();
+    console.log('User Profile:', user);
+
+    // Ενημέρωση των πεδίων της φόρμας My Profile
+    document.getElementById('userName').value = user.name || 'N/A';
+    document.getElementById('userSurname').value = user.surname || 'N/A';
+    document.getElementById('userEmail').value = user.email || 'N/A';
+    document.getElementById('userRole').value = user.role || 'N/A';
+    document.getElementById('userShopId').value = user.shopId || 'N/A';
+  } catch (error) {
+    console.error('Error fetching user profile:', error);
+  }
+}
+fetchUserProfile();
+
   </script>
 </body>
 </html>
