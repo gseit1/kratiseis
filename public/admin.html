@@ -27,28 +27,90 @@
         </div>
 
         <!-- Cities Section -->
-        <div class="mb-4">
-            <h2>Cities</h2>
-            <form id="cityForm" class="mb-3">
-                <input type="text" id="cityName" class="form-control" placeholder="City Name">
-                <button type="submit" class="btn btn-primary mt-2">Add City</button>
-            </form>
-            <ul id="cityList" class="list-group">
-                <!-- Cities will be dynamically inserted here -->
-            </ul>
-        </div>
+        
+        <section id="cityManagement" class="mt-5">
+            <div class="container">
+              <h2>City Management</h2>
+              <form id="addCityForm" class="mb-3">
+                <div class="row">
+                  <div class="col-md-4">
+                    <input type="text" id="cityName" class="form-control" placeholder="Enter city name" required>
+                  </div>
+                  <div class="col-md-4">
+                    <input type="text" id="cityImageUrl" class="form-control" placeholder="Enter city image URL" required>
+                  </div>
+                  <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary w-100">Add City</button>
+                  </div>
+                </div>
+              </form>
+              <div id="citiesList" class="list-group"></div>
+            </div>
+          </section>
 
-        <!-- Regions Section -->
-        <div class="mb-4">
-            <h2>Regions</h2>
-            <form id="regionForm" class="mb-3">
-                <input type="text" id="regionName" class="form-control" placeholder="Region Name">
-                <button type="submit" class="btn btn-primary mt-2">Add Region</button>
-            </form>
-            <ul id="regionList" class="list-group">
-                <!-- Regions will be dynamically inserted here -->
-            </ul>
+
+       
+          <!--Regions sections-->
+
+        <section id="regionManagement" class="mt-5">
+            <div class="container">
+              <h2>Region Management</h2>
+              <form id="addRegionForm" class="mb-3">
+                <div class="row">
+                  <div class="col-md-6">
+                    <input type="text" id="regionName" class="form-control" placeholder="Enter region name" required>
+                  </div>
+                  <div class="col-md-4">
+                    <select id="cityFilter" class="form-select" required>
+                      <option value="" disabled selected>Select a city</option>
+                    </select>
+                  </div>
+                  <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">Add Region</button>
+                  </div>
+                </div>
+              </form>
+              <div id="regionsList" class="list-group"></div>
+            </div>
+          </section>
+
+
+
+        <!-- Section: Attributes Management -->
+<section id="attributesManagement" class="mt-5">
+    <div class="container">
+      <h2>Attributes Management</h2>
+      <form id="addAttributeForm" class="mb-3">
+        <div class="row">
+          <div class="col-md-8">
+            <input type="text" id="attributeName" class="form-control" placeholder="Enter attribute name" required>
+          </div>
+          <div class="col-md-4">
+            <button type="submit" class="btn btn-primary w-100">Add Attribute</button>
+          </div>
         </div>
+      </form>
+      <div id="attributesList" class="list-group"></div>
+    </div>
+  </section>
+
+  <!-- Section: Applications Management -->
+<section id="applicationsManagement" class="mt-5">
+    <div class="container">
+      <h2>Applications Management</h2>
+      <div id="applicationsList" class="list-group"></div>
+      <div id="applicationDetails" class="mt-4" style="display: none;">
+        <h3>Application Details</h3>
+        <p><strong>Shop Name:</strong> <span id="appShopName"></span></p>
+        <p><strong>Description:</strong> <span id="appShopDescription"></span></p>
+        <p><strong>User:</strong> <span id="appUser"></span></p>
+        <button class="btn btn-success me-2" onclick="handleApplicationDecision('accept')">Accept</button>
+        <button class="btn btn-danger" onclick="handleApplicationDecision('reject')">Reject</button>
+      </div>
+    </div>
+  </section>
+
+
     </div>
 
     <script>
@@ -76,50 +138,79 @@
         }
 
         async function fetchCities() {
-            try {
-                const response = await fetch('/city');
-                const data = await response.json();
-                const cityList = document.getElementById('cityList');
-                cityList.innerHTML = '';
-                data.forEach(city => {
-                    const li = document.createElement('li');
-                    li.className = 'list-group-item d-flex justify-content-between align-items-center';
-                    li.innerHTML = `
-                        ${city.name}
-                        <div>
-                            <button class="btn btn-sm btn-warning" onclick="editCity('${city._id}', '${city.name}')">Edit</button>
-                            <button class="btn btn-sm btn-danger" onclick="deleteCity('${city._id}')">Delete</button>
-                        </div>
-                    `;
-                    cityList.appendChild(li);
-                });
-            } catch (error) {
-                console.error('Error fetching cities:', error);
-            }
-        }
+  try {
+    const response = await fetch('/city');
+    if (!response.ok) throw new Error('Failed to fetch cities');
+    const cities = await response.json();
+    console.log('Fetched cities:', cities); // Προσθήκη log για έλεγχο
 
-        async function fetchRegions() {
-            try {
-                const response = await fetch('/region');
-                const data = await response.json();
-                const regionList = document.getElementById('regionList');
-                regionList.innerHTML = '';
-                data.regions.forEach(region => {
-                    const li = document.createElement('li');
-                    li.className = 'list-group-item d-flex justify-content-between align-items-center';
-                    li.innerHTML = `
-                        ${region.name}
-                        <div>
-                            <button class="btn btn-sm btn-warning" onclick="editRegion('${region._id}', '${region.name}')">Edit</button>
-                            <button class="btn btn-sm btn-danger" onclick="deleteRegion('${region._id}')">Delete</button>
-                        </div>
-                    `;
-                    regionList.appendChild(li);
-                });
-            } catch (error) {
-                console.error('Error fetching regions:', error);
-            }
-        }
+    const citiesList = document.getElementById('citiesList');
+    citiesList.innerHTML = '';
+    cities.forEach(city => {
+      const item = document.createElement('div');
+      item.className = 'list-group-item d-flex justify-content-between align-items-center';
+      item.innerHTML = `
+        <span>${city.name}</span>
+        <img src="${city.ImageUrl}" alt="${city.name}" style="width: 50px; height: 50px; object-fit: cover;">
+      `;
+      citiesList.appendChild(item);
+    });
+  } catch (error) {
+    console.error('Error fetching cities:', error);
+  }
+}
+
+
+
+async function populateCityDropdown() {
+  try {
+    const response = await fetch('/city');
+    if (!response.ok) throw new Error('Failed to fetch cities');
+    const cities = await response.json();
+
+    const cityFilter = document.getElementById('cityFilter');
+    cityFilter.innerHTML = '<option value="" disabled selected>Select a city</option>';
+    cities.forEach(city => {
+      const option = document.createElement('option');
+      option.value = city._id;
+      option.textContent = city.name;
+      cityFilter.appendChild(option);
+    });
+  } catch (error) {
+    console.error('Error populating city dropdown:', error);
+  }
+}
+
+// Fetch regions and display them
+async function fetchRegions() {
+  try {
+    const response = await fetch('/region');
+    if (!response.ok) throw new Error('Failed to fetch regions');
+    const data = await response.json();
+
+    const regionList = document.getElementById('regionsList');
+    regionList.innerHTML = '';
+    data.regions.forEach(region => {
+      const li = document.createElement('li');
+      li.className = 'list-group-item d-flex justify-content-between align-items-center';
+      li.innerHTML = `
+        ${region.name} (City: ${region.city ? region.city.name : 'No City'})
+        <div>
+          <button class="btn btn-sm btn-warning" onclick="editRegion('${region._id}', '${region.name}')">Edit</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteRegion('${region._id}')">Delete</button>
+        </div>
+      `;
+      regionList.appendChild(li);
+    });
+  } catch (error) {
+    console.error('Error fetching regions:', error);
+  }
+}
+
+// Populate city dropdown and fetch regions on page load
+
+
+        
 
         async function addCategory(event) {
             event.preventDefault();
@@ -148,48 +239,33 @@
         }
 
         async function addCity(event) {
-            event.preventDefault();
-            const cityName = document.getElementById('cityName').value;
-            if (!cityName) {
-                alert('City name cannot be empty');
-                return;
-            }
-            try {
-                await fetch('/city', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ name: cityName })
-                });
-                document.getElementById('cityName').value = '';
-                fetchCities();
-            } catch (error) {
-                console.error('Error adding city:', error);
-            }
-        }
+  event.preventDefault();
+  const cityName = document.getElementById('cityName').value;
+  const cityImageUrl = document.getElementById('cityImageUrl').value;
 
-        async function addRegion(event) {
-            event.preventDefault();
-            const regionName = document.getElementById('regionName').value;
-            if (!regionName) {
-                alert('Region name cannot be empty');
-                return;
-            }
-            try {
-                await fetch('/region', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ name: regionName })
-                });
-                document.getElementById('regionName').value = '';
-                fetchRegions();
-            } catch (error) {
-                console.error('Error adding region:', error);
-            }
-        }
+  if (!cityName || !cityImageUrl) {
+    alert('City name and image URL cannot be empty');
+    return;
+  }
+
+  try {
+    const response = await fetch('/city', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ name: cityName, ImageUrl: cityImageUrl }),
+    });
+
+    if (!response.ok) throw new Error('Failed to add city');
+    document.getElementById('cityName').value = '';
+    document.getElementById('cityImageUrl').value = '';
+    fetchCities();
+  } catch (error) {
+    console.error('Error adding city:', error);
+  }
+}
+
 
         async function editCategory(id, name, image, banner) {
             const newName = prompt('Enter new category name:', name);
@@ -211,23 +287,58 @@
             }
         }
 
-        async function editCity(id, name) {
-            const newName = prompt('Enter new city name:', name);
-            if (newName && newName !== name) {
-                try {
-                    await fetch(`/city/${id}`, {
-                        method: 'PATCH',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ name: newName })
-                    });
-                    fetchCities();
-                } catch (error) {
-                    console.error('Error editing city:', error);
-                }
-            }
-        }
+        async function editCity(id, name, imageUrl) {
+  const newName = prompt('Enter new city name:', name);
+  const newImageUrl = prompt('Enter new city image URL:', imageUrl);
+  if ((newName && newName !== name) || (newImageUrl && newImageUrl !== imageUrl)) {
+    try {
+      await fetch(`/city/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name: newName, ImageUrl: newImageUrl }),
+      });
+      fetchCities();
+    } catch (error) {
+      console.error('Error editing city:', error);
+    }
+  }
+}
+
+
+        async function addRegion(event) {
+  event.preventDefault();
+  const regionName = document.getElementById('regionName').value;
+  const cityId = document.getElementById('cityFilter').value;
+
+  if (!regionName || !cityId) {
+    alert('Region name and city are required');
+    return;
+  }
+
+  try {
+    const response = await fetch('/region', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ name: regionName, city: cityId }),
+    });
+
+    if (!response.ok) throw new Error('Failed to add region');
+    document.getElementById('regionName').value = '';
+    fetchRegions();
+  } catch (error) {
+    console.error('Error adding region:', error);
+  }
+}
+
+
+
+
+
+
 
         async function editRegion(id, name) {
             const newName = prompt('Enter new region name:', name);
@@ -286,14 +397,173 @@
             }
         }
 
+
+        // Fetch and display all attributes
+async function fetchAttributes() {
+  try {
+    const response = await fetch('/api/attributes');
+    if (!response.ok) throw new Error('Failed to fetch attributes');
+    const { attributes } = await response.json();
+
+    const attributesList = document.getElementById('attributesList');
+    attributesList.innerHTML = '';
+    attributes.forEach(attribute => {
+      const item = document.createElement('div');
+      item.className = 'list-group-item d-flex justify-content-between align-items-center';
+      item.innerHTML = `
+        <span>${attribute.name}</span>
+        <div>
+          <button class="btn btn-sm btn-secondary me-2" onclick="editAttribute('${attribute._id}', '${attribute.name}')">Edit</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteAttribute('${attribute._id}')">Delete</button>
+        </div>
+      `;
+      attributesList.appendChild(item);
+    });
+  } catch (error) {
+    console.error('Error fetching attributes:', error);
+  }
+}
+
+// Add a new attribute
+document.getElementById('addAttributeForm').addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const attributeName = document.getElementById('attributeName').value;
+
+  try {
+    const response = await fetch('/api/attributes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: attributeName }),
+    });
+
+    if (!response.ok) throw new Error('Failed to add attribute');
+    document.getElementById('attributeName').value = '';
+    fetchAttributes();
+  } catch (error) {
+    console.error('Error adding attribute:', error);
+  }
+});
+
+// Edit an attribute
+async function editAttribute(id, currentName) {
+  const newName = prompt('Edit attribute name:', currentName);
+  if (!newName) return;
+
+  try {
+    const response = await fetch(`/api/attributes/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: newName }),
+    });
+
+    if (!response.ok) throw new Error('Failed to edit attribute');
+    fetchAttributes();
+  } catch (error) {
+    console.error('Error editing attribute:', error);
+  }
+}
+
+// Delete an attribute
+async function deleteAttribute(id) {
+  if (!confirm('Are you sure you want to delete this attribute?')) return;
+
+  try {
+    const response = await fetch(`/api/attributes/${id}`, { method: 'DELETE' });
+    if (!response.ok) throw new Error('Failed to delete attribute');
+    fetchAttributes();
+  } catch (error) {
+    console.error('Error deleting attribute:', error);
+  }
+}
+
+// Fetch attributes on page load
+fetchAttributes();
+
+
+
+
+
+
+let selectedApplicationId = null;
+
+// Fetch and display all applications
+async function fetchApplications() {
+  try {
+    const response = await fetch('/api/applications');
+    if (!response.ok) throw new Error('Failed to fetch applications');
+    const applications = await response.json();
+
+    const applicationsList = document.getElementById('applicationsList');
+    applicationsList.innerHTML = '';
+    applications.forEach(app => {
+      const item = document.createElement('div');
+      item.className = 'list-group-item d-flex justify-content-between align-items-center';
+      item.innerHTML = `
+        <span>${app.shopName}</span>
+        <button class="btn btn-sm btn-primary" onclick="viewApplicationDetails('${app._id}')">View Details</button>
+      `;
+      applicationsList.appendChild(item);
+    });
+  } catch (error) {
+    console.error('Error fetching applications:', error);
+  }
+}
+
+// View application details
+async function viewApplicationDetails(applicationId) {
+  try {
+    const response = await fetch(`/api/applications/${applicationId}`);
+    if (!response.ok) throw new Error('Failed to fetch application details');
+    const application = await response.json();
+
+    selectedApplicationId = applicationId;
+    document.getElementById('appShopName').textContent = application.shopName;
+    document.getElementById('appShopDescription').textContent = application.shopDescription;
+    document.getElementById('appUser').textContent = `${application.userId.name} (${application.userId.email})`;
+    document.getElementById('applicationDetails').style.display = 'block';
+  } catch (error) {
+    console.error('Error fetching application details:', error);
+  }
+}
+
+// Handle application decision
+async function handleApplicationDecision(decision) {
+  if (!selectedApplicationId) return;
+
+  try {
+    const response = await fetch('/api/applications/handle', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ applicationId: selectedApplicationId, decision }),
+    });
+
+    if (!response.ok) throw new Error('Failed to handle application decision');
+    alert(`Application ${decision}ed successfully!`);
+    document.getElementById('applicationDetails').style.display = 'none';
+    fetchApplications();
+  } catch (error) {
+    console.error('Error handling application decision:', error);
+  }
+}
+
+// Fetch applications on page load
+fetchApplications();
+
+
+
+
+
         document.addEventListener('DOMContentLoaded', () => {
             fetchCategories();
             fetchCities();
             fetchRegions();
+            populateCityDropdown();
+
+            
 
             document.getElementById('categoryForm').addEventListener('submit', addCategory);
-            document.getElementById('cityForm').addEventListener('submit', addCity);
-            document.getElementById('regionForm').addEventListener('submit', addRegion);
+            document.getElementById('addCityForm').addEventListener('submit', addCity);
+            document.getElementById('addRegionForm').addEventListener('submit', addRegion);
         });
     </script>
 </body>

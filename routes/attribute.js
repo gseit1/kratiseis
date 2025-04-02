@@ -11,9 +11,9 @@ const {
 const attributeRouter = express.Router();
 
 // Routes
-attributeRouter.post('/attributes', addAttribute);
-attributeRouter.put('/attibrutes/:id', editAttribute);
-attributeRouter.delete('/attributes/:id', deleteAttribute);
-attributeRouter.get('/attributes', getAllAttributes);
+attributeRouter.post('/api/attributes', addAttribute);
+attributeRouter.put('/api/attributes/:id', editAttribute);
+attributeRouter.delete('/api/attributes/:id', deleteAttribute);
+attributeRouter.get('/api/attributes', getAllAttributes);
 
 module.exports = attributeRouter;

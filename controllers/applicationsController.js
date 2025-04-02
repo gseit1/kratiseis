@@ -78,8 +78,29 @@ const handleApplicationDecision = async (req, res) => {
   }
 };
 
+// GET: Επιστροφή συγκεκριμένης αίτησης
+const getApplicationById = async (req, res) => {
+  const { applicationId } = req.params;
+
+  try {
+    // Εύρεση της αίτησης με το applicationId
+    const application = await Application.findById(applicationId).populate('userId', 'name surname email');
+    if (!application) {
+      return res.status(404).json({ message: 'Application not found' });
+    }
+
+    res.status(200).json(application);
+  } catch (error) {
+    console.error('Error fetching application by ID:', error.message);
+    res.status(500).json({ message: 'Error fetching application', error: error.message });
+  }
+};
+
+
 module.exports = {
   getApplications,
+  getApplicationById,
   postApplication,
   handleApplicationDecision,
+  
 };
