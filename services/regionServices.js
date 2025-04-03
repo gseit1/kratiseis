@@ -36,6 +36,14 @@ const deleteRegionService = async (regionId) => {
   return region;
 };
 
+const editRegionService = async (regionId, regionData) => {
+  const updatedRegion = await Region.findByIdAndUpdate(regionId, regionData, { new: true });
+  if (!updatedRegion) {
+    throw new Error('Region not found');
+  }
+  return updatedRegion;
+};
+
 const getAllRegionsService= async () => {
   const regions = await Region.find().populate('city', 'name');
   return regions;
@@ -44,5 +52,6 @@ const getAllRegionsService= async () => {
 module.exports = {
   addRegionService,
   deleteRegionService,
-  getAllRegionsService
+  getAllRegionsService,
+  editRegionService,
 };

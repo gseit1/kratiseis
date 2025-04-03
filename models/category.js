@@ -11,11 +11,6 @@ const categorySchema = mongoose.Schema({
         required:true,
     },
 
-    banner:{
-        type:String,
-        required:true,
-    },
-
     count:{
         type:Number,
         default:0,

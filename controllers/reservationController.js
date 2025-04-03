@@ -1,4 +1,5 @@
 const Table = require('../models/table');
+const Reservation = require('../models/reservation');
 const { addReservationService, editReservationService, deleteReservationService } = require('../services/reservationServices');
 const { addToReservationList, deleteToReservationList } = require('../services/shopServices');
 const { findBestAvailableTable, updateTableAvailability, updateWhenReservationDelete } = require('../services/tableServices');
@@ -120,10 +121,39 @@ const editReservation = async (req, res) => {
   }
 };
 
+// filepath: c:\Users\kon21\backend-13\controllers\reservationController.js
+const getReservationById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const reservation = await Reservation.findById(id).populate('userId shopId');
+    if (!reservation) {
+      return res.status(404).json({ message: 'Reservation not found' });
+    }
+    res.json(reservation);
+  } catch (error) {
+    console.error('Error fetching reservation by ID:', error);
+    res.status(500).json({ message: 'Failed to fetch reservation' });
+  }
+};
+
+
+// filepath: c:\Users\kon21\backend-13\controllers\reservationController.js
+const getTotalReservations = async (req, res) => {
+  try {
+    const total = await Reservation.countDocuments();
+    res.json({ total });
+  } catch (error) {
+    console.error('Error fetching total reservations count:', error);
+    res.status(500).json({ message: 'Failed to fetch total reservations count' });
+  }
+};
+
 
 
 module.exports = {
   addReservation,
   editReservation,
   deleteReservation,
+  getTotalReservations,
+  getReservationById,
 };

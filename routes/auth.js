@@ -1,7 +1,7 @@
 const express = require('express');
 const { verifyToken } = require('../middlewares/authMiddleware');
 const { check, validationResult } = require('express-validator');
-const { signUp, login, changeUserRole, deleteUser ,getUserRole,getUserProfile,setUserShopId} = require('../controllers/authController');
+const { signUp, login, changeUserRole, deleteUser ,getUserRole,getUserDetails,getAllUsers,setUserShopId,filterByRole} = require('../controllers/authController');
 const authRouter = express.Router();
 
 // Route για εγγραφή χρήστη
@@ -40,12 +40,16 @@ authRouter.patch('/api/change-role', changeUserRole);
 authRouter.delete('/api/delete-user', deleteUser);
 
 // Route για επιστροφή του ρόλου του χρήστη
-authRouter.get('/api/get-role', verifyToken, getUserRole);
+authRouter.get('/api/get-role',  getUserRole);
 
 // Route για επιστροφή των δεδομένων του χρήστη
-authRouter.get('/api/user/profile', verifyToken, getUserProfile);
+authRouter.get('/api/users/details/:id',  getUserDetails);
 
 // Route για ενημέρωση του shopId του χρήστη
-authRouter.patch('/api/user/shopId', verifyToken, setUserShopId);
+authRouter.patch('/api/user/shopId',  setUserShopId);
+//
+//authRouter.get('/api/users', getAllUsers); // Επιστροφή όλων των χρηστών
+//
+authRouter.get('/api/users/filter', filterByRole);
 
 module.exports = authRouter;

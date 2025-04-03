@@ -80,7 +80,7 @@ const login = async (req, res) => {
 
 // Αλλαγή ρόλου χρήστη από admin
 const changeUserRole = async (req, res) => {
-  const { email, newRole, shopId } = req.body;
+  const { email, newRole } = req.body;
 
   try {
     // Αναζήτηση χρήστη στο Firebase Authentication βάσει email
@@ -98,23 +98,6 @@ const changeUserRole = async (req, res) => {
     // Ενημέρωση του ρόλου του χρήστη
     user.role = newRole;
 
-    // Αν ο νέος ρόλος είναι "shopOwner", ορίζουμε το shopId
-    if (newRole === 'shopOwner') {
-      if (!shopId) {
-        return res.status(400).json({ message: 'shopId is required for shopOwner role' });
-      }
-
-      // Επαλήθευση ότι το shopId υπάρχει στη βάση δεδομένων
-      const shopExists = await Shop.findById(shopId);
-      if (!shopExists) {
-        return res.status(404).json({ message: 'Shop not found' });
-      }
-
-      user.shopId = shopId;
-    } else {
-      // Αν ο ρόλος δεν είναι "shopOwner", αφαιρούμε το shopId
-      user.shopId = null;
-    }
 
     // Αποθήκευση των αλλαγών
     await user.save();
@@ -130,7 +113,7 @@ const deleteUser = async (req, res) => {
   const { email } = req.body;
 
   try {
-    // Αναζήτηση χρήστη στο Firebase Authentication βάσει email
+    // Αναζήτηση χρήστη στο Firebase Auhentication βάσει email
     const userRecord = await admin.auth().getUserByEmail(email);
     if (!userRecord) {
       return res.status(404).json({ message: 'User not found' });
@@ -151,7 +134,7 @@ const deleteUser = async (req, res) => {
 const getUserRole = async (req, res) => {
   try {
     // Βρίσκουμε τον χρήστη στη βάση δεδομένων με βάση το firebaseUid
-    const user = await User.findOne({ firebaseUid: req.user.uid });
+    const user = await User.findById(id).select('-password'); // Εξαιρούμε το password
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -163,29 +146,34 @@ const getUserRole = async (req, res) => {
   }
 };
 
-const getUserProfile = async (req, res) => {
+
+const getAllUsers = async (req, res) => {
   try {
-    // Παίρνουμε το firebaseUid από το token που επαληθεύτηκε στο middleware
-    const user = await User.findOne({ firebaseUid: req.user.uid }).select('-password'); // Εξαιρούμε το password
-
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    res.status(200).json({
-      name: user.name,
-      surname: user.surname,
-      email: user.email,
-      role: user.role,
-      shopId: user.shopId,
-      reservationHistory: user.reservationHistory,
-    });
+    const users = await User.find({}, 'email'); // Επιστροφή μόνο του email
+    res.status(200).json(users);
   } catch (error) {
-    console.error('Error fetching user profile:', error.message);
-    res.status(500).json({ message: 'Error fetching user profile', error: error.message });
+    console.error('Error fetching users:', error.message);
+    res.status(500).json({ message: 'Error fetching users', error: error.message });
   }
 };
 
+
+   
+    const getUserDetails = async (req, res) => {
+      try {
+        const { id } = req.params;
+          // Παίρνουμε το firebaseUid από το token που επαληθεύτηκε στο middleware
+
+          const user = await User.findById(id).select('-password'); // Χρησιμοποιούμε το _id για αναζήτηση
+          if (!user) {
+          return res.status(404).json({ message: 'User not found' });
+        }
+        res.status(200).json(user);
+      } catch (error) {
+        console.error('Error fetching user details:', error.message);
+        res.status(500).json({ message: 'Error fetching user details', error: error.message });
+      }
+    };
 
 const setUserShopId = async (req, res) => {
   const { shopId } = req.body;
@@ -217,6 +205,41 @@ const setUserShopId = async (req, res) => {
     res.status(500).json({ message: 'Error setting shop ID', error: error.message });
   }
 };
+
+const filterByRole = async (req, res) => {
+  const { role } = req.query; // Παίρνουμε το role από το body
+
+  console.log('filterByRole called'); // Log για την κλήση της συνάρτησης
+  console.log('Received role:', role); // Log για το role που λαμβάνεται
+  
+  // Έλεγχος για έγκυρο role
+  const validRoles = ['user', 'shopOwner', 'admin'];
+  if (!role || !validRoles.includes(role)) {
+    console.error('Invalid or missing role parameter:', role); // Log για μη έγκυρο role
+    return res.status(400).json({ message: 'Invalid or missing role parameter' });
+  }
+
+  try {
+    // Εύρεση χρηστών με το συγκεκριμένο role
+    console.log('Searching for users with role:', role); // Log πριν την αναζήτηση
+    const users = await User.find({ role }).select('email'); // Επιλέγουμε μόνο το email (το _id περιλαμβάνεται αυτόματα)
+
+    if (!users || users.length === 0) {
+      console.warn('No users found with the specified role:', role); // Log αν δεν βρεθούν χρήστες
+      return res.status(404).json({ message: 'No users found with the specified role' });
+    }
+
+    console.log('Users found:', users); // Log για τους χρήστες που βρέθηκαν
+
+    // Επιστροφή των χρηστών
+    res.status(200).json(users);
+  } catch (error) {
+    console.error('Error filtering users by role:', error.message); // Log για σφάλμα
+    res.status(500).json({ message: 'Error filtering users by role', error: error.message });
+  }
+};
+
+
 module.exports = { setUserShopId };
 
 module.exports = {
@@ -225,6 +248,8 @@ module.exports = {
   changeUserRole,
   deleteUser,
   getUserRole,
-  getUserProfile,
+  getUserDetails,
   setUserShopId,
+  getAllUsers,
+  filterByRole,
 };

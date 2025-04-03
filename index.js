@@ -15,6 +15,8 @@ const cityRouter = require('./routes/city');
 const regionRouter = require('./routes/region');
 const applicationRouter = require('./routes/applications');
 
+const uploadRouter = require('./routes/upload');
+
 const PORT = 300; // Define port number server will listen
 const app = express(); // Create an instance of express application
 //mongoDB string
@@ -45,13 +47,18 @@ app.use(searchShopsRouter);
 app.use(cityRouter);
 app.use(regionRouter);
 app.use(applicationRouter);
+app.use(uploadRouter);
+
+
+// Εξυπηρέτηση του φακέλου public
+app.use(express.static(path.join(__dirname, 'public')));
+
+
 app.use((req, res, next) => {
     console.log(`${req.method} ${req.url}`);
     next();
 });
 
-// Serve static files from the public directory
-app.use(express.static(path.join(__dirname, 'public')));
 
 mongoose.connect(DB).then(() => {
     console.log('Mongo connected');

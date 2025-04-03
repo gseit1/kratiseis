@@ -1,5 +1,5 @@
 const express = require('express');
-const { addCity, deleteCity, getAllCities } = require('../controllers/cityController');
+const { addCity, deleteCity, getAllCities ,editCity} = require('../controllers/cityController');
 
 const cityRouter = express.Router();
 
@@ -11,5 +11,7 @@ cityRouter.delete('/city/:id', deleteCity);
 
 // Route για επιστροφή όλων των πόλεων με τα regions populated
 cityRouter.get('/city', getAllCities);
+
+cityRouter.patch('/city/:id', editCity);
 
 module.exports = cityRouter;

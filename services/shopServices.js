@@ -31,7 +31,7 @@ const getShopByIdService = async (shopId) => {
         throw new Error('Invalid shopId');
     }
 
-    const shop = await Shop.findById(shopId).populate('tables').populate('reservationList');
+    const shop = await Shop.findById(shopId).populate('category city region tables reviewList'); // Επιστροφή όλων των πεδίων και σχετικών δεδομένων
     if (!shop) {
         throw new Error('Shop not found');
     }
