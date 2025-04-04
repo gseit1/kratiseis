@@ -46,7 +46,7 @@ authRouter.get('/api/get-role',  getUserRole);
 authRouter.get('/api/users/details/:id',  getUserDetails);
 
 // Route για ενημέρωση του shopId του χρήστη
-authRouter.patch('/api/user/shopId',  setUserShopId);
+authRouter.patch('/api/user/shopId',verifyToken,  setUserShopId);
 //
 //authRouter.get('/api/users', getAllUsers); // Επιστροφή όλων των χρηστών
 //

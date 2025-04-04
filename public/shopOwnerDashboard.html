@@ -188,6 +188,52 @@
   </div>
 </section>
 
+
+
+
+
+<!-- Section: Photo Management -->
+<section id="photoManagement" class="mt-5">
+  <div class="container">
+    <h2>Photo Management</h2>
+    <div class="mb-3">
+      <button id="addPhotoBtn" class="btn btn-primary">Add Photo</button>
+    </div>
+    <div id="photoGallery" class="d-flex flex-wrap gap-3"></div>
+  </div>
+
+  <!-- Modal for Viewing Photos -->
+  <div class="modal fade" id="photoModal" tabindex="-1" aria-labelledby="photoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="photoModalLabel">Photo Viewer</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body text-center">
+          <img id="modalPhoto" src="" alt="Photo" class="img-fluid">
+        </div>
+        <div class="modal-footer">
+          <button id="prevPhotoBtn" class="btn btn-secondary">Previous</button>
+          <button id="nextPhotoBtn" class="btn btn-secondary">Next</button>
+          <button id="deletePhotoBtn" class="btn btn-danger">Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+
+
+
+
+
+
+
+
+
   <!-- Section B: Booking Hours Form -->
   <section id="bookingHours">
     <div class="container mt-5">
@@ -318,17 +364,17 @@ if (!shopId || shopId === 'null' || shopId === 'undefined') {
     if (!response.ok) throw new Error("Failed to fetch shop details");
     const shop = await response.json();
 
-    // Ενημέρωση των πεδίων
-    document.getElementById("shopName").value = shop.shopName;
-    document.getElementById("shopDescription").value = shop.shopDescription;
-    document.getElementById("shopPhone").value = shop.phone;
-    document.getElementById("shopCity").value = shop.city || "";
-    document.getElementById("shopRegion").value = shop.region || "";
-    document.getElementById("shopCategory").value = shop.category || "";
+    // Update the fields with the populated data
+    document.getElementById("shopName").value = shop.shopName || 'N/A';
+    document.getElementById("shopDescription").value = shop.shopDescription || 'N/A';
+    document.getElementById("shopPhone").value = shop.phone || 'N/A';
+    document.getElementById("shopCity").value = shop.city?.name || 'N/A'; // Use the populated city name
+    document.getElementById("shopRegion").value = shop.region?.name || 'N/A'; // Use the populated region name
+    document.getElementById("shopCategory").value = shop.category?.name || 'N/A'; // Use the populated category name
 
-    // Εμφάνιση των openingHours
+    // Display opening hours
     const openingHoursDiv = document.getElementById("shopOpeningHours");
-    openingHoursDiv.innerHTML = Object.entries(shop.openingHours)
+    openingHoursDiv.innerHTML = Object.entries(shop.openingHours || {})
       .map(([day, hours]) => `
         <p>
           <strong>${day.charAt(0).toUpperCase() + day.slice(1)}:</strong> 
@@ -341,6 +387,10 @@ if (!shopId || shopId === 'null' || shopId === 'undefined') {
   }
 }
     fetchGeneralDetails();
+
+
+
+
     
     document.getElementById("editGeneralBtn").addEventListener("click", () => {
       ["shopName","shopDescription","shopPhone","shopCity","shopRegion","shopCategory"].forEach(id => {
@@ -379,6 +429,127 @@ if (!shopId || shopId === 'null' || shopId === 'undefined') {
         console.error("Error updating general shop details:", error);
       }
     });
+
+
+
+
+
+
+
+
+
+    let photos = []; // Array to store photo URLs
+let currentPhotoIndex = 0;
+
+async function fetchPhotos() {
+  try {
+    const response = await fetch(`/api/shop/${shopId}/photos`);
+    if (!response.ok) throw new Error('Failed to fetch images');
+    photos = await response.json(); // `photos` now contains the `images` array
+    displayPhotos();
+  } catch (error) {
+    console.error('Error fetching images:', error);
+  }
+}
+
+// Display photos in the gallery
+function displayPhotos() {
+  const photoGallery = document.getElementById('photoGallery');
+  photoGallery.innerHTML = '';
+  photos.forEach((photo, index) => {
+    const img = document.createElement('img');
+    img.src = photo;
+    img.alt = `Photo ${index + 1}`;
+    img.className = 'img-thumbnail';
+    img.style.width = '150px';
+    img.style.cursor = 'pointer';
+    img.addEventListener('click', () => openPhotoModal(index));
+    photoGallery.appendChild(img);
+  });
+}
+
+// Open the photo modal
+function openPhotoModal(index) {
+  currentPhotoIndex = index;
+  document.getElementById('modalPhoto').src = photos[currentPhotoIndex];
+  const photoModal = new bootstrap.Modal(document.getElementById('photoModal'));
+  photoModal.show();
+}
+
+// Handle next photo
+document.getElementById('nextPhotoBtn').addEventListener('click', () => {
+  currentPhotoIndex = (currentPhotoIndex + 1) % photos.length;
+  document.getElementById('modalPhoto').src = photos[currentPhotoIndex];
+});
+
+// Handle previous photo
+document.getElementById('prevPhotoBtn').addEventListener('click', () => {
+  currentPhotoIndex = (currentPhotoIndex - 1 + photos.length) % photos.length;
+  document.getElementById('modalPhoto').src = photos[currentPhotoIndex];
+});
+
+// Handle delete photo
+document.getElementById('deletePhotoBtn').addEventListener('click', async () => {
+  const photoToDelete = photos[currentPhotoIndex];
+  try {
+    const response = await fetch(`/api/shop/${shopId}/photos`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ photo: photoToDelete }),
+    });
+    if (!response.ok) throw new Error('Failed to delete photo');
+    alert('Photo deleted successfully!');
+    photos.splice(currentPhotoIndex, 1);
+    displayPhotos();
+    const photoModal = bootstrap.Modal.getInstance(document.getElementById('photoModal'));
+    photoModal.hide();
+  } catch (error) {
+    console.error('Error deleting photo:', error);
+  }
+});
+
+// Handle add photo
+document.getElementById('addPhotoBtn').addEventListener('click', async () => {
+  const photoInput = document.createElement('input');
+  photoInput.type = 'file';
+  photoInput.accept = 'image/*';
+  photoInput.addEventListener('change', async () => {
+    const file = photoInput.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('photo', file);
+
+    try {
+      const response = await fetch(`/api/shop/${shopId}/photos`, {
+        method: 'POST',
+        body: formData,
+      });
+      if (!response.ok) throw new Error('Failed to upload photo');
+      const newPhoto = await response.json();
+      photos.push(newPhoto.url);
+      displayPhotos();
+    } catch (error) {
+      console.error('Error uploading photo:', error);
+    }
+  });
+  photoInput.click();
+});
+
+// Fetch photos on page load
+fetchPhotos();
+
+
+
+
+
+
+
+
+
+
+
+    
 
     // ------------------------------
     // Section B: Booking Hours
@@ -697,13 +868,22 @@ if (!shopId || shopId === 'null' || shopId === 'undefined') {
 async function fetchUserProfile() {
   try {
     const jwtToken = localStorage.getItem('jwtToken');
+    const userId = localStorage.getItem('userId'); // Retrieve userId from localStorage
+
     if (!jwtToken) {
       alert('You are not logged in. Please log in again.');
       window.location.href = 'login.html';
       return;
     }
 
-    const response = await fetch('/api/user/profile', {
+    if (!userId) {
+      alert('User ID is missing. Please log in again.');
+      window.location.href = 'login.html';
+      return;
+    }
+
+    // Fetch user details using the userId
+    const response = await fetch(`/api/users/details/${userId}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -720,7 +900,7 @@ async function fetchUserProfile() {
     const user = await response.json();
     console.log('User Profile:', user);
 
-    // Ενημέρωση των πεδίων της φόρμας My Profile
+    // Update the form fields in the My Profile section
     document.getElementById('userName').value = user.name || 'N/A';
     document.getElementById('userSurname').value = user.surname || 'N/A';
     document.getElementById('userEmail').value = user.email || 'N/A';
@@ -728,6 +908,7 @@ async function fetchUserProfile() {
     document.getElementById('userShopId').value = user.shopId || 'N/A';
   } catch (error) {
     console.error('Error fetching user profile:', error);
+    alert('An error occurred while fetching your profile. Check the console for details.');
   }
 }
 fetchUserProfile();

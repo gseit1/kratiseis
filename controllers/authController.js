@@ -165,6 +165,7 @@ const getAllUsers = async (req, res) => {
           // Παίρνουμε το firebaseUid από το token που επαληθεύτηκε στο middleware
 
           const user = await User.findById(id).select('-password'); // Χρησιμοποιούμε το _id για αναζήτηση
+          console.log(user);
           if (!user) {
           return res.status(404).json({ message: 'User not found' });
         }
@@ -175,37 +176,38 @@ const getAllUsers = async (req, res) => {
       }
     };
 
-const setUserShopId = async (req, res) => {
-  const { shopId } = req.body;
-
-  console.log('setUserShopId called');
-  console.log('Received shopId:', shopId);
-
-  try {
-    // Παίρνουμε το firebaseUid από το token που επαληθεύτηκε στο middleware
-    console.log('Fetching user with firebaseUid:', req.user?.uid);
-    const user = await User.findOne({ firebaseUid: req.user?.uid });
-
-    if (!user) {
-      console.error('User not found for firebaseUid:', req.user?.uid);
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    console.log('User found:', user);
-
-    // Ενημέρωση του shopId του χρήστη
-    user.shopId = shopId;
-    console.log('Updating user shopId to:', shopId);
-    await user.save();
-
-    console.log('Shop ID updated successfully for user:', user);
-    res.status(200).json({ message: 'Shop ID set successfully', shopId: user.shopId });
-  } catch (error) {
-    console.error('Error setting shop ID:', error.message);
-    res.status(500).json({ message: 'Error setting shop ID', error: error.message });
-  }
-};
-
+    const setUserShopId = async (req, res) => {
+      const { shopId } = req.body;
+      console.log('setUserShopId called');
+      console.log('Received shopId:', shopId);
+    
+      if (!req.user || !req.user.uid) {
+        console.error('Missing or invalid user in request');
+        return res.status(401).json({ message: 'Unauthorized: Missing user information' });
+      }
+    
+      try {
+        console.log('Fetching user with firebaseUid:', req.user.uid);
+    
+        const user = await User.findOne({ firebaseUid: req.user.uid });
+        if (!user) {
+          console.error('User not found for firebaseUid:', req.user.uid);
+          return res.status(404).json({ message: 'User not found' });
+        }
+    
+        console.log('User found:', user);
+    
+        user.shopId = shopId;
+        console.log('Updating user shopId to:', shopId);
+        await user.save();
+    
+        console.log('Shop ID updated successfully for user:', user);
+        res.status(200).json({ message: 'Shop ID set successfully', shopId: user.shopId });
+      } catch (error) {
+        console.error('Error setting shop ID:', error.message);
+        res.status(500).json({ message: 'Error setting shop ID', error: error.message });
+      }
+    };
 const filterByRole = async (req, res) => {
   const { role } = req.query; // Παίρνουμε το role από το body
 

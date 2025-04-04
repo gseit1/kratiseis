@@ -16,9 +16,12 @@ const storage = multer.diskStorage({
     let folder = 'categories'; // Default folder
     if (req.originalUrl.includes('/city')) {
       folder = 'cities';
+    } else if (req.originalUrl.includes('/shop')) {
+      folder = 'shops';
     }
 
-    console.log('Uploading to folder:', folder);
+    console.log(`[multerMiddleware] Uploading to folder: ${folder}`);
+    console.log(`[multerMiddleware] Request URL: ${req.originalUrl}`);
 
     const uploadDir = path.join(__dirname, '..', `public/uploads/${folder}`);
     createFolderIfNotExists(uploadDir);

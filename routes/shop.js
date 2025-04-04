@@ -3,8 +3,10 @@ const mongoose = require('mongoose');
 const shopRouter = express.Router();
 const Shop = require('../models/shop'); 
 
-const { addShop, getAllShops, getShopById, editShop, getShopReservationList, patchBookingHoursForDay, getShopTables, getReviewsForShop } = require('../controllers/shopController');
+const { addShop, getAllShops, getShopById, editShop, getShopReservationList, patchBookingHoursForDay, getShopTables, getReviewsForShop ,getGeneralDetails , addPhoto,deletePhoto,getPhotos } = require('../controllers/shopController');
 const { handleBookingHoursUpdate } = require('../middlewares/editsMiddleware');
+const upload = require('../middlewares/multerMiddleware');
+
 
 //! POST: Δημιουργία νέου καταστήματος με τα απαραιτητα πεδια
 shopRouter.post('/api/shop', addShop);
@@ -29,5 +31,13 @@ shopRouter.get('/api/shop/:shopId/tables', getShopTables);
 
 //!GET : Επιστροφη κριτικων του καταστηματος
 shopRouter.get('/api/shop/:shopId/reviews',getReviewsForShop)
+
+shopRouter.get('/api/shop/:shopId/generalDetails', getGeneralDetails);
+
+
+shopRouter.get('/api/shop/:shopId/photos', getPhotos); // Fetch photos
+shopRouter.post('/api/shop/:shopId/photos', upload.single('photo'), addPhoto); // Add photo
+shopRouter.delete('/api/shop/:shopId/photos', deletePhoto); // Delete photo
+
 
 module.exports = shopRouter;
