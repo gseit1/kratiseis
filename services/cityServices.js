@@ -3,6 +3,7 @@ const Region =require('../models/region');
 
 // Προσθήκη νέας πόλης
 const addCityService = async (cityData) => {
+  console.log('City data to save:', cityData);
   const newCity = new City(cityData);
   await newCity.save();
   return newCity;
@@ -26,7 +27,13 @@ const deleteCityService = async (cityId) => {
 
 
 const editCityService = async (cityId, cityData) => {
-  const updatedCity = await City.findByIdAndUpdate(cityId, cityData, { new: true });
+  const { name, image } = cityData;
+
+  const updatedData = {};
+  if (name) updatedData.name = name;
+  if (image) updatedData.image = image;
+
+  const updatedCity = await City.findByIdAndUpdate(cityId, updatedData, { new: true });
   if (!updatedCity) {
     throw new Error('City not found');
   }

@@ -11,8 +11,7 @@ const {
 } = require('../controllers/categoryController');
 
 
-
-categoryRouter.post('/category', addCategory);
+categoryRouter.post('/category', upload.single('image'), addCategory);
 categoryRouter.patch('/category/:id', upload.single('image'), editCategory);
 categoryRouter.delete('/category/:id', deleteCategory);
 categoryRouter.get('/category', getAllCategories);

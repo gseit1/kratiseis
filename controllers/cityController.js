@@ -3,11 +3,20 @@ const { addCityService, deleteCityService, getAllCitiesService , editCityService
 // Προσθήκη νέας πόλης
 const addCity = async (req, res) => {
   try {
-    const cityData = req.body; // Λαμβάνει τα δεδομένα από το αίτημα
-    const newCity = await addCityService(cityData); // Καλεί την υπηρεσία
+    console.log('Request body:', req.body);
+    console.log('Request file:', req.file);
+
+    const { name } = req.body;
+    const image = req.file ? `/uploads/cities/${req.file.filename}` : null;
+
+    if (!image) {
+      return res.status(400).json({ success: false, message: 'Image is required' });
+    }
+
+    const newCity = await addCityService({ name, image });
     res.status(201).json({ success: true, message: 'City added successfully', city: newCity });
   } catch (error) {
-    console.error(error);
+    console.error('Error adding city:', error.message);
     res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -32,17 +41,19 @@ const deleteCity = async (req, res) => {
 
 
 
-
 const editCity = async (req, res) => {
   try {
     const { id } = req.params;
-    const updatedCity = await editCityService(id, req.body);
+    const { name } = req.body;
+    const image = req.file ? `/uploads/cities/${req.file.filename}` : null;
+
+    const updatedCity = await editCityService(id, { name, image });
     res.status(200).json({ success: true, message: 'City updated successfully', city: updatedCity });
   } catch (error) {
+    console.error('Error editing city:', error.message);
     res.status(500).json({ success: false, message: error.message });
   }
 };
-
 
 
 // Επιστροφή όλων των πόλεων με τα regions populated

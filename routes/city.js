@@ -1,17 +1,12 @@
 const express = require('express');
-const { addCity, deleteCity, getAllCities ,editCity} = require('../controllers/cityController');
+const upload = require('../middlewares/multerMiddleware');
+const { addCity, editCity, deleteCity, getAllCities } = require('../controllers/cityController');
 
 const cityRouter = express.Router();
 
-// Route για προσθήκη πόλης
-cityRouter.post('/city', addCity);
-
-// Route για διαγραφή πόλης
+cityRouter.post('/city', upload.single('image'), addCity); // Προσθήκη πόλης με εικόνα
+cityRouter.patch('/city/:id', upload.single('image'), editCity); // Επεξεργασία πόλης με εικόνα
 cityRouter.delete('/city/:id', deleteCity);
-
-// Route για επιστροφή όλων των πόλεων με τα regions populated
 cityRouter.get('/city', getAllCities);
-
-cityRouter.patch('/city/:id', editCity);
 
 module.exports = cityRouter;
