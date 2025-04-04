@@ -583,6 +583,69 @@ footer .social-icons a:hover {
         transform: translateY(-5px);
     }
 }
+
+
+/* CTA Section */
+.cta {
+    position: relative;
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--text-light);
+    overflow: hidden;
+}
+
+.cta .cta-heading {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: var(--text-light);
+    z-index: 1;
+    position: relative;
+}
+
+.cta .cta-text {
+    font-size: 1.2rem;
+    color: var(--text-light);
+    margin-bottom: 30px;
+    z-index: 1;
+    position: relative;
+}
+
+.cta .btn {
+    font-size: 1.2rem;
+    font-weight: bold;
+    padding: 15px 30px;
+    border-radius: 50px;
+    transition: transform 0.3s ease, background-color 0.3s ease;
+    z-index: 1;
+    position: relative;
+}
+
+.cta .btn:hover {
+    transform: scale(1.1);
+    background-color: #0056b3; /* Darker shade of primary color */
+}
+
+.cta .cta-overlay {
+    background: rgba(0, 0, 0, 0.5); /* Dark overlay for better text contrast */
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+}
+
+.cta .cta-background {
+    background: url('index/cta-bg.jpg') no-repeat center center/cover; /* Replace with your background image */
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    filter: blur(5px); /* Add a blur effect to the background */
+    opacity: 0.8;
+}
     </style>
 </head>
 <body>
@@ -603,16 +666,20 @@ footer .social-icons a:hover {
                     <li class="nav-item">
                         <a class="nav-link" href="createShop.html">Create Shop</a>
                     </li>
-                    <li class="nav-item">
+                    <li class="nav-item" id="registerLoginNavItem">
                         <a class="nav-link" href="registerLogin.html">Register/Login</a>
                     </li>
-                    <!-- Profile and Logout Options -->
-                <li class="nav-item d-none" id="profileNavItem">
-                    <a class="nav-link" href="profile.html">Profile</a>
-                </li>
-                <li class="nav-item d-none" id="logoutNavItem">
-                    <a class="nav-link" href="#" id="logoutBtn">Logout</a>
-                </li>
+                    <!-- Profile Dropdown -->
+                    <li class="nav-item dropdown d-none" id="profileDropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="profileDropdownMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-person-circle"></i> Profile
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdownMenu">
+                            <li><a class="dropdown-item" href="profile.html">View Profile</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" id="logoutBtn">Logout</a></li>
+                        </ul>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -715,6 +782,17 @@ footer .social-icons a:hover {
       </section>
       
 
+
+      <section class="cta text-center py-5 bg-primary text-light position-relative overflow-hidden">
+        <div class="container position-relative z-index-1">
+            <h2 class="cta-heading mb-4">Ready to Discover Your Next Favorite Spot?</h2>
+            <p class="cta-text mb-4">Sign up now and start exploring the best places near you!</p>
+            <a href="registerLogin.html" class="btn btn-light btn-lg px-5 py-3 shadow">Get Started</a>
+        </div>
+        <div class="cta-overlay position-absolute top-0 start-0 w-100 h-100" style="background: rgba(0, 0, 0, 0.5);"></div>
+        <div class="cta-background position-absolute top-0 start-0 w-100 h-100" style="background: url('index/cta-bg.jpg') no-repeat center center/cover;"></div>
+    </section>
+
     <section class="newsletter text-center">
         <div class="container">
             <h2>Stay in the Loop</h2>
@@ -730,6 +808,8 @@ footer .social-icons a:hover {
         </div>
     </section>
 
+
+    
   
     <footer class="text-center">
         <p>&copy; 2025 MyShop. All rights reserved. <a href="privacy.html">Privacy Policy</a> | <a href="terms.html">Terms of Service</a></p>
@@ -748,13 +828,13 @@ footer .social-icons a:hover {
         document.addEventListener('DOMContentLoaded', () => {
     displayFeaturedShops();
     const jwtToken = localStorage.getItem('jwtToken');
-        const profileNavItem = document.getElementById('profileNavItem');
-        const logoutNavItem = document.getElementById('logoutNavItem');
+        const registerLoginNavItem = document.getElementById('registerLoginNavItem');
+        const profileDropdown = document.getElementById('profileDropdown');
 
         if (jwtToken) {
-            // Show Profile and Logout options if the user is logged in
-            profileNavItem.classList.remove('d-none');
-            logoutNavItem.classList.remove('d-none');
+            // Hide "Register/Login" and show "Profile" dropdown
+            registerLoginNavItem.classList.add('d-none');
+            profileDropdown.classList.remove('d-none');
         }
 
         // Logout functionality
@@ -763,7 +843,7 @@ footer .social-icons a:hover {
             alert('You have been logged out.');
             window.location.href = 'registerLogin.html'; // Redirect to login page
         });
-});
+    });
 
 async function fetchShopById(id) {
     console.log('Fetching shop with ID:', id);
