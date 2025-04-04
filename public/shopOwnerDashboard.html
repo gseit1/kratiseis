@@ -100,6 +100,9 @@
           <li class="nav-item"><a class="nav-link" href="#reservations">Reservations</a></li>
           <li class="nav-item"><a class="nav-link" href="#availability">Availability</a></li>
           <li class="nav-item"><a class="nav-link" href="#charts">Reservations Chart</a></li>
+          <li class="nav-item " id="logoutNavItem">
+            <a class="nav-link" href="#" id="logoutBtn">Logout</a>
+        </li>
         </ul>
       </div>
     </div>
@@ -287,6 +290,12 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
+     // Logout functionality
+     document.getElementById('logoutBtn').addEventListener('click', () => {
+            localStorage.clear(); // Clear all localStorage data
+            alert('You have been logged out.');
+            window.location.href = 'registerLogin.html'; // Redirect to login page
+        });
    // Get shopId from URL parameters or localStorage
 const urlParams = new URLSearchParams(window.location.search);
 let shopId = urlParams.get('shop_id') || localStorage.getItem('shopId');

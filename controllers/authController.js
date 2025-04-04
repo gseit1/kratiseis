@@ -40,10 +40,15 @@ const signUp = async (req, res) => {
 const axios = require('axios');
 
 const login = async (req, res) => {
+  console.log('Login function called'); // Log for function entry
   const { email, password } = req.body;
+
+  console.log('Received email:', email); // Log the email received
+  console.log('Received password:', password ? 'Password provided' : 'No password provided'); // Avoid logging the actual password for security
 
   try {
     // Firebase REST API για login
+    console.log('Sending request to Firebase for login...');
     const response = await axios.post(
       `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyD6yfJs_ICEC_M0lJvl3Q5_nTIbF-1nLOc`,
       {
@@ -53,14 +58,22 @@ const login = async (req, res) => {
       }
     );
 
+    console.log('Firebase login successful:', response.data); // Log the response from Firebase
+
     const idToken = response.data.idToken;
     const firebaseUid = response.data.localId; // Παίρνουμε το UID από το Firebase
 
+    console.log('Firebase UID:', firebaseUid); // Log the Firebase UID
+
     // Εύρεση χρήστη στη MongoDB
+    console.log('Searching for user in MongoDB with Firebase UID:', firebaseUid);
     const user = await User.findOne({ firebaseUid });
     if (!user) {
+      console.warn('User not found in MongoDB for Firebase UID:', firebaseUid); // Log warning if user not found
       return res.status(404).json({ message: 'User not found in MongoDB' });
     }
+
+    console.log('User found in MongoDB:', user); // Log the user found
 
     // Επιστροφή του token, του ρόλου και του shopId (αν υπάρχει)
     res.status(200).json({
@@ -68,16 +81,18 @@ const login = async (req, res) => {
       idToken,
       role: user.role,
       shopId: user.shopId || null,
+      userId:user._id,
     });
+    console.log('Login response sent successfully'); // Log for successful response
   } catch (error) {
+    console.error('Error during login:', error.message); // Log the error message
+    console.error('Error details:', error.response?.data || error); // Log detailed error information
     res.status(500).json({
       message: 'Error logging in',
       error: error.response?.data || error.message,
     });
   }
 };
-
-
 // Αλλαγή ρόλου χρήστη από admin
 const changeUserRole = async (req, res) => {
   const { email, newRole } = req.body;

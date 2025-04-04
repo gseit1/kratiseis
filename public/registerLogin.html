@@ -85,27 +85,30 @@
 
       const result = await response.json();
       console.log('Login response:', result);
-
       if (response.ok) {
-        // Αποθήκευση του token στο localStorage
-        localStorage.setItem('jwtToken', result.idToken);
+  // Save data to localStorage
+  localStorage.setItem('jwtToken', result.idToken);
+  localStorage.setItem('userId', result.userId); // Save userId
+  localStorage.setItem('role', result.role);
+  localStorage.setItem('shopId', result.shopId || 'null'); // Save shopId or 'null'
 
-        // Αποθήκευση του ρόλου και του shopId στο localStorage
-        localStorage.setItem('role', result.role);
-        localStorage.setItem('shopId', result.shopId || 'null'); // Αν δεν υπάρχει shopId, αποθηκεύουμε 'null'
+  // Debugging: Log the saved values
+  console.log('jwtToken saved:', localStorage.getItem('jwtToken'));
+  console.log('userId saved:', localStorage.getItem('userId'));
+  console.log('role saved:', localStorage.getItem('role'));
+  console.log('shopId saved:', localStorage.getItem('shopId'));
 
-        // Ανακατεύθυνση ανάλογα με τον ρόλο
-        if (result.role === 'user') {
-          window.location.href = 'index.html'; // Αρχική σελίδα για χρήστες
-        } else if (result.role === 'shopOwner') {
-          // Ανακατεύθυνση στο dashboard ανεξαρτήτως shopId
-          window.location.href = 'shopOwnerDashboard.html';
-        } else if (result.role === 'admin') {
-          window.location.href = 'admin.html'; // Σελίδα διαχειριστή
-        } else {
-          alert('Unknown role!');
-        }
-      } else {
+  // Redirect based on role
+  if (result.role === 'user') {
+    window.location.href = 'index.html'; // Redirect to profile page
+  } else if (result.role === 'shopOwner') {
+    window.location.href = 'shopOwnerDashboard.html';
+  } else if (result.role === 'admin') {
+    window.location.href = 'admin.html';
+  } else {
+    alert('Unknown role!');
+  }
+} else {
         alert('Login failed: ' + result.message);
       }
     } catch (error) {

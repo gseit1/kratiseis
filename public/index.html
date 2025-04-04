@@ -606,6 +606,13 @@ footer .social-icons a:hover {
                     <li class="nav-item">
                         <a class="nav-link" href="registerLogin.html">Register/Login</a>
                     </li>
+                    <!-- Profile and Logout Options -->
+                <li class="nav-item d-none" id="profileNavItem">
+                    <a class="nav-link" href="profile.html">Profile</a>
+                </li>
+                <li class="nav-item d-none" id="logoutNavItem">
+                    <a class="nav-link" href="#" id="logoutBtn">Logout</a>
+                </li>
                 </ul>
             </div>
         </div>
@@ -740,6 +747,22 @@ footer .social-icons a:hover {
 
         document.addEventListener('DOMContentLoaded', () => {
     displayFeaturedShops();
+    const jwtToken = localStorage.getItem('jwtToken');
+        const profileNavItem = document.getElementById('profileNavItem');
+        const logoutNavItem = document.getElementById('logoutNavItem');
+
+        if (jwtToken) {
+            // Show Profile and Logout options if the user is logged in
+            profileNavItem.classList.remove('d-none');
+            logoutNavItem.classList.remove('d-none');
+        }
+
+        // Logout functionality
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            localStorage.clear(); // Clear all localStorage data
+            alert('You have been logged out.');
+            window.location.href = 'registerLogin.html'; // Redirect to login page
+        });
 });
 
 async function fetchShopById(id) {
