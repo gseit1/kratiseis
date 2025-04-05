@@ -6,6 +6,79 @@
     <link rel="stylesheet" href="../styles/customer.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create Shop</title>
+    <style>
+        body {
+            background: linear-gradient(to right, #6a11cb, #2575fc); /* Gradient background */
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Arial', sans-serif;
+            padding: 20px;
+        }
+        .container {
+            background: #fff;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+            max-width: 800px;
+            width: 100%;
+        }
+        h1 {
+            text-align: center;
+            color: #007bff;
+            margin-bottom: 20px;
+        }
+        label {
+            font-weight: bold;
+            color: #495057;
+        }
+        input, textarea, select, button {
+            width: 50%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        input:focus, textarea:focus, select:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+            transition: background 0.3s ease;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .instructions {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #6c757d;
+        }
+        .section-title {
+            font-size: 1.5rem;
+            color: #343a40;
+            margin-bottom: 10px;
+        }
+        .opening-hours {
+            margin-top: 20px;
+        }
+        .opening-hours label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .opening-hours input {
+            display: inline-block;
+            width: calc(50% - 10px);
+            margin-right: 10px;
+        }
+    </style>
 </head>
 <body>
     <div class="container mt-5">
