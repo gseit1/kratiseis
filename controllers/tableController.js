@@ -135,6 +135,24 @@ const getTable = async (req, res) => {
 };
 
 
+const getTableAvailabilityForDate = async (req, res) => {
+  const { tableId } = req.params;
+  const { date } = req.query;
+
+  try {
+    const table = await Table.findById(tableId);
+    if (!table) {
+      return res.status(404).json({ message: "Table not found" });
+    }
+
+    const availability = table.availability[date] || [];
+    res.status(200).json(availability);
+  } catch (error) {
+    console.error("Error fetching table availability:", error);
+    res.status(500).json({ message: "Failed to fetch table availability" });
+  }
+};
+
 
 module.exports = {
   addTable,
@@ -144,4 +162,5 @@ module.exports = {
   deleteTable,
   checkTableAvailability,
   getTable,
+  getTableAvailabilityForDate,
 };

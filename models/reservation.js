@@ -16,10 +16,16 @@ const reservationSchema = mongoose.Schema(
             type: String, // Όνομα καταστήματος
             required: true,
         },
-        userName: {
+        name: {
             type: String, // Όνομα χρήστη
             required: true,
         },
+
+        surname:{
+            type:String,
+            required:true,
+        },
+
         shopId: {
             type: mongoose.Schema.Types.ObjectId, // Αναφορά στο κατάστημα
             ref: 'Shop',

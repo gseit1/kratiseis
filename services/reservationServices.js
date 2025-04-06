@@ -2,15 +2,24 @@ const Reservation = require('../models/reservation');
 const { updateTableAvailability, updateWhenReservationDelete } = require('../services/tableServices');
 
 // Δημιουργία νέας κράτησης
-const addReservationService = async (reservationData) => {
-  const { shopId, userId, tableId, reservationDate, reservationTime, estimatedReservationTime, commentFromUser, userName, shopName,seats } = reservationData;
+const Shop = require('../models/shop'); // Import the Shop model
 
-  // Ensure that required fields userName and shopName are present
-  if (!userName || !shopName) {
-    throw new Error("userName and shopName are required fields.");
+const addReservationService = async (reservationData) => {
+  const { shopId, userId, tableId, reservationDate, reservationTime, estimatedReservationTime, commentFromUser, name, surname, seats } = reservationData;
+
+  // Ensure that required fields are present
+  if (!shopId || !name || !surname || !reservationDate || !reservationTime || !seats) {
+    throw new Error("Missing required fields for reservation.");
   }
 
-  // Δημιουργία της νέας κράτησης
+  // Fetch the shopName using shopId
+  const shop = await Shop.findById(shopId);
+  if (!shop) {
+    throw new Error("Shop not found.");
+  }
+  const shopName = shop.shopName;
+
+  // Create the new reservation
   const newReservation = new Reservation({
     shopId,
     userId,
@@ -19,12 +28,13 @@ const addReservationService = async (reservationData) => {
     reservationTime,
     estimatedReservationTime,
     commentFromUser,
-    userName,  // Add userName
-    shopName, 
-    seats, 
+    name,
+    surname, // Combine name and surname for backward compatibility
+    shopName, // Dynamically fetched shopName
+    seats,
   });
 
-  // Αποθήκευση της κράτησης στη βάση δεδομένων
+  // Save the reservation to the database
   await newReservation.save();
 
   return newReservation;
