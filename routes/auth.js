@@ -5,7 +5,7 @@ const { signUp, login, changeUserRole, deleteUser ,getUserRole,getUserDetails,ge
 const authRouter = express.Router();
 
 // Route για εγγραφή χρήστη
-authRouter.post('/api/signup',verifyToken [
+authRouter.post('/api/signup', [
   check('name').isLength({ min: 1 }).trim().escape(),
   check('surname').isLength({ min: 1 }).trim().escape(),
   check('email').isEmail().normalizeEmail(),

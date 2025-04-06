@@ -304,6 +304,24 @@ document.addEventListener('DOMContentLoaded', function () {
   const formData = new FormData(createShopForm);
   const shopData = Object.fromEntries(formData.entries());
 
+  // Δημιουργία της δομής για τα openingHours
+  const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+  shopData.openingHours = {};
+
+  days.forEach(day => {
+    const isOpen = document.getElementById(`${day}IsOpen`).checked;
+    const open = parseInt(document.getElementById(`${day}Open`).value) || null;
+    const close = parseInt(document.getElementById(`${day}Close`).value) || null;
+    const bookingStart = parseInt(document.getElementById(`${day}BookingStart`).value) || null;
+    const bookingEnd = parseInt(document.getElementById(`${day}BookingEnd`).value) || null;
+
+    shopData.openingHours[day] = {
+      isOpen,
+      ...(isOpen && open !== null && close !== null ? { open, close } : {}),
+      ...(isOpen && bookingStart !== null && bookingEnd !== null ? { bookingStart, bookingEnd } : {})
+    };
+  });
+
   // Parse the location field
   if (shopData.location) {
     const [longitude, latitude] = shopData.location.split(',').map(coord => parseFloat(coord.trim()));

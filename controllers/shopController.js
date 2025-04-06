@@ -24,8 +24,7 @@ const addShop = async (req, res) => {
 //! Function για patch booking hours για συγκεκριμένη ημέρα
 const patchBookingHoursForDay = async (req, res) => {
     const { shopId } = req.params;
-    const { day, newBookingStart, newBookingEnd } = req.body;
-  
+    const { day, bookingStart: newBookingStart, bookingEnd: newBookingEnd } = req.body;  
     try {
       // Βρίσκουμε το κατάστημα
       const shop = await shopService.getShopByIdService(shopId);

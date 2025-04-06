@@ -152,22 +152,33 @@
   </div>
 </section>
 
- <!-- Section A: General Shop Details Form -->
 <section id="generalShopDetails">
   <div class="container mt-5">
     <h2>General Shop Details</h2>
     <form id="generalShopForm">
       <div class="mb-3">
         <label class="form-label">Shop Name</label>
-        <input type="text" id="shopName" class="form-control" disabled>
+        <div class="d-flex align-items-center">
+          <input type="text" id="shopName" class="form-control me-2" disabled>
+          <button type="button" id="editNameBtn" class="btn btn-warning btn-sm">Edit</button>
+          <button type="button" id="saveNameBtn" class="btn btn-success btn-sm" style="display:none;">Save</button>
+        </div>
       </div>
       <div class="mb-3">
         <label class="form-label">Description</label>
-        <textarea id="shopDescription" class="form-control" rows="3" disabled></textarea>
+        <div class="d-flex align-items-center">
+          <textarea id="shopDescription" class="form-control me-2" rows="3" disabled></textarea>
+          <button type="button" id="editDescriptionBtn" class="btn btn-warning btn-sm">Edit</button>
+          <button type="button" id="saveDescriptionBtn" class="btn btn-success btn-sm" style="display:none;">Save</button>
+        </div>
       </div>
       <div class="mb-3">
         <label class="form-label">Phone</label>
-        <input type="text" id="shopPhone" class="form-control" disabled>
+        <div class="d-flex align-items-center">
+          <input type="text" id="shopPhone" class="form-control me-2" disabled>
+          <button type="button" id="editPhoneBtn" class="btn btn-warning btn-sm">Edit</button>
+          <button type="button" id="savePhoneBtn" class="btn btn-success btn-sm" style="display:none;">Save</button>
+        </div>
       </div>
       <div class="mb-3">
         <label class="form-label">City</label>
@@ -185,8 +196,6 @@
         <label class="form-label">Opening Hours</label>
         <div id="shopOpeningHours" class="border p-3 rounded bg-light text-dark"></div>
       </div>
-      <button type="button" id="editGeneralBtn" class="btn btn-warning">Edit General Details</button>
-      <button type="button" id="saveGeneralBtn" class="btn btn-success" style="display:none;">Save General Details</button>
     </form>
   </div>
 </section>
@@ -237,47 +246,203 @@
 
 
 
-  <!-- Section B: Booking Hours Form -->
-  <section id="bookingHours">
-    <div class="container mt-5">
-      <h2>Booking Hours</h2>
-      <div id="bookingHoursSection"></div>
-      <button type="button" id="editBookingBtn" class="btn btn-warning">Edit Booking Hours</button>
-      <button type="button" id="saveBookingBtn" class="btn btn-success" style="display:none;">Save Booking Hours</button>
-    </div>
-  </section>
+<section id="bookingHours">
+  <div class="container mt-5">
+    <h2>Booking Hours</h2>
+    <form id="bookingHoursForm">
+      <!-- Monday -->
+      <div class="card mb-3">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          Monday
+          <div>
+            <button type="button" id="edit_monday" class="btn btn-warning btn-sm">Edit</button>
+            <button type="button" id="save_monday" class="btn btn-success btn-sm" style="display: none;">Save</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col">
+              <label class="form-label">Booking Start</label>
+              <input type="number" id="bookingStart_monday" class="form-control" value="9" disabled>
+            </div>
+            <div class="col">
+              <label class="form-label">Booking End</label>
+              <input type="number" id="bookingEnd_monday" class="form-control" value="17" disabled>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Tuesday -->
+      <div class="card mb-3">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          Tuesday
+          <div>
+            <button type="button" id="edit_tuesday" class="btn btn-warning btn-sm">Edit</button>
+            <button type="button" id="save_tuesday" class="btn btn-success btn-sm" style="display: none;">Save</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col">
+              <label class="form-label">Booking Start</label>
+              <input type="number" id="bookingStart_tuesday" class="form-control" value="9" disabled>
+            </div>
+            <div class="col">
+              <label class="form-label">Booking End</label>
+              <input type="number" id="bookingEnd_tuesday" class="form-control" value="17" disabled>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Wednesday -->
+      <div class="card mb-3">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          Wednesday
+          <div>
+            <button type="button" id="edit_wednesday" class="btn btn-warning btn-sm">Edit</button>
+            <button type="button" id="save_wednesday" class="btn btn-success btn-sm" style="display: none;">Save</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col">
+              <label class="form-label">Booking Start</label>
+              <input type="number" id="bookingStart_wednesday" class="form-control" value="9" disabled>
+            </div>
+            <div class="col">
+              <label class="form-label">Booking End</label>
+              <input type="number" id="bookingEnd_wednesday" class="form-control" value="17" disabled>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Thursday -->
+      <div class="card mb-3">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          Thursday
+          <div>
+            <button type="button" id="edit_thursday" class="btn btn-warning btn-sm">Edit</button>
+            <button type="button" id="save_thursday" class="btn btn-success btn-sm" style="display: none;">Save</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col">
+              <label class="form-label">Booking Start</label>
+              <input type="number" id="bookingStart_thursday" class="form-control" value="9" disabled>
+            </div>
+            <div class="col">
+              <label class="form-label">Booking End</label>
+              <input type="number" id="bookingEnd_thursday" class="form-control" value="17" disabled>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Friday -->
+      <div class="card mb-3">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          Friday
+          <div>
+            <button type="button" id="edit_friday" class="btn btn-warning btn-sm">Edit</button>
+            <button type="button" id="save_friday" class="btn btn-success btn-sm" style="display: none;">Save</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col">
+              <label class="form-label">Booking Start</label>
+              <input type="number" id="bookingStart_friday" class="form-control" value="9" disabled>
+            </div>
+            <div class="col">
+              <label class="form-label">Booking End</label>
+              <input type="number" id="bookingEnd_friday" class="form-control" value="17" disabled>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Saturday -->
+      <div class="card mb-3">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          Saturday
+          <div>
+            <button type="button" id="edit_saturday" class="btn btn-warning btn-sm">Edit</button>
+            <button type="button" id="save_saturday" class="btn btn-success btn-sm" style="display: none;">Save</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col">
+              <label class="form-label">Booking Start</label>
+              <input type="number" id="bookingStart_saturday" class="form-control" value="9" disabled>
+            </div>
+            <div class="col">
+              <label class="form-label">Booking End</label>
+              <input type="number" id="bookingEnd_saturday" class="form-control" value="17" disabled>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Sunday -->
+      <div class="card mb-3">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          Sunday
+          <div>
+            <button type="button" id="edit_sunday" class="btn btn-warning btn-sm">Edit</button>
+            <button type="button" id="save_sunday" class="btn btn-success btn-sm" style="display: none;">Save</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col">
+              <label class="form-label">Booking Start</label>
+              <input type="number" id="bookingStart_sunday" class="form-control" value="9" disabled>
+            </div>
+            <div class="col">
+              <label class="form-label">Booking End</label>
+              <input type="number" id="bookingEnd_sunday" class="form-control" value="17" disabled>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</section>
 
-  <!-- Updated Reservations Section -->
-  <section id="reservations">
-    <div class="container mt-5">
-      <h2>Reservations</h2>
-      <!-- Scrollable list of days -->
-      <div id="reservationsDaysList" class="list-group mb-3" style="max-height: 300px; overflow-y: auto;"></div>
-      <!-- Container for reservations for the selected day -->
-      <div id="reservationsList" class="row gy-3"></div>
-    </div>
-  </section>
 
-  <!-- New Section: Availability with calendar -->
-  <section id="availability">
-    <div class="container mt-5">
-      <h2>Availability</h2>
-      <form id="availabilityForm" class="row">
-        <div class="col-md-4 mb-3">
-           <label for="dateString" class="form-label">Date</label>
-           <input type="date" id="dateString" class="form-control">
-        </div>
-        <div class="col-md-4 mb-3">
-           <label for="seatsRequired" class="form-label">Seats Required</label>
-           <input type="number" id="seatsRequired" class="form-control" min="1">
-        </div>
-        <div class="col-md-4 mb-3 d-flex align-items-end">
-           <button type="button" id="checkAvailabilityBtn" class="btn btn-primary">Check Availability</button>
-        </div>
-      </form>
-      <div id="availabilitySection" class="mt-3"></div>
-    </div>
-  </section>
+
+<!-- Updated Reservations Section -->
+<section id="reservations">
+  <div class="container mt-5">
+    <h2>Reservations</h2>
+    <!-- Scrollable list of days -->
+    <div id="reservationsDaysList" class="list-group mb-3" style="max-height: 300px; overflow-y: auto;"></div>
+    <!-- Container for reservations for the selected day -->
+    <div id="reservationsList" class="row gy-3"></div>
+  </div>
+</section>
+
+<!-- New Section: Availability with calendar -->
+<section id="availability">
+  <div class="container mt-5">
+    <h2>Availability</h2>
+    <form id="availabilityForm" class="row">
+      <div class="col-md-4 mb-3">
+         <label for="dateString" class="form-label">Date</label>
+         <input type="date" id="dateString" class="form-control">
+      </div>
+      <div class="col-md-4 mb-3">
+         <label for="seatsRequired" class="form-label">Seats Required</label>
+         <input type="number" id="seatsRequired" class="form-control" min="1">
+      </div>
+      <div class="col-md-4 mb-3 d-flex align-items-end">
+         <button type="button" id="checkAvailabilityBtn" class="btn btn-primary">Check Availability</button>
+      </div>
+    </form>
+    <div id="availabilitySection" class="mt-3"></div>
+  </div>
+</section>
+
+
 
   <!-- New Section: Reservations Chart -->
   <section id="charts">
@@ -367,7 +532,12 @@ if (!shopId || shopId === 'null' || shopId === 'undefined') {
     // ------------------------------
     // Section A: General Shop Details
     // ------------------------------
-    async function fetchGeneralDetails() {
+    // ------------------------------
+// Section A: General Shop Details
+// ------------------------------
+
+// Fetch and populate General Shop Details
+async function fetchGeneralDetails() {
   try {
     const response = await fetch(`/api/shop/${shopId}`);
     if (!response.ok) throw new Error("Failed to fetch shop details");
@@ -395,49 +565,70 @@ if (!shopId || shopId === 'null' || shopId === 'undefined') {
     console.error("Error fetching general shop details:", error);
   }
 }
-    fetchGeneralDetails();
 
+// Helper function to toggle edit/save buttons and enable/disable inputs
+function toggleEditSaveGeneral(editBtnId, saveBtnId, inputId, isEditing) {
+  document.getElementById(editBtnId).style.display = isEditing ? "none" : "inline-block";
+  document.getElementById(saveBtnId).style.display = isEditing ? "inline-block" : "none";
+  document.getElementById(inputId).disabled = !isEditing;
+}
 
-
-
-    
-    document.getElementById("editGeneralBtn").addEventListener("click", () => {
-      ["shopName","shopDescription","shopPhone","shopCity","shopRegion","shopCategory"].forEach(id => {
-        document.getElementById(id).disabled = false;
-      });
-      document.getElementById("saveGeneralBtn").style.display = "inline-block";
-      document.getElementById("editGeneralBtn").style.display = "none";
+// Function to send PATCH request for General Shop Details
+async function updateShopField(field, value) {
+  try {
+    const response = await fetch(`/api/shop/${shopId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ [field]: value }),
     });
-    document.getElementById("saveGeneralBtn").addEventListener("click", async () => {
-      const updatedGeneral = {
-        shopName: document.getElementById("shopName").value,
-        shopDescription: document.getElementById("shopDescription").value,
-        phone: document.getElementById("shopPhone").value,
-        city: document.getElementById("shopCity").value,
-        region: document.getElementById("shopRegion").value,
-        category: document.getElementById("shopCategory").value,
-      };
-      try {
-        const response = await fetch(`/api/shop/${shopId}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(updatedGeneral)
-        });
-        if (!response.ok) {
-          const err = await response.json();
-          alert("Error updating shop: " + err.message);
-          return;
-        }
-        alert("General shop details updated successfully!");
-        ["shopName","shopDescription","shopPhone","shopCity","shopRegion","shopCategory"].forEach(id => {
-          document.getElementById(id).disabled = true;
-        });
-        document.getElementById("saveGeneralBtn").style.display = "none";
-        document.getElementById("editGeneralBtn").style.display = "inline-block";
-      } catch (error) {
-        console.error("Error updating general shop details:", error);
-      }
-    });
+    if (!response.ok) {
+      const error = await response.json();
+      alert(`Error updating ${field}: ${error.message}`);
+      return false;
+    }
+    alert(`${field} updated successfully!`);
+    return true;
+  } catch (error) {
+    console.error(`Error updating ${field}:`, error);
+    return false;
+  }
+}
+
+// Event listeners for Shop Name
+document.getElementById("editNameBtn").addEventListener("click", () => {
+  toggleEditSaveGeneral("editNameBtn", "saveNameBtn", "shopName", true);
+});
+document.getElementById("saveNameBtn").addEventListener("click", async () => {
+  const newName = document.getElementById("shopName").value;
+  if (await updateShopField("shopName", newName)) {
+    toggleEditSaveGeneral("editNameBtn", "saveNameBtn", "shopName", false);
+  }
+});
+
+// Event listeners for Shop Description
+document.getElementById("editDescriptionBtn").addEventListener("click", () => {
+  toggleEditSaveGeneral("editDescriptionBtn", "saveDescriptionBtn", "shopDescription", true);
+});
+document.getElementById("saveDescriptionBtn").addEventListener("click", async () => {
+  const newDescription = document.getElementById("shopDescription").value;
+  if (await updateShopField("shopDescription", newDescription)) {
+    toggleEditSaveGeneral("editDescriptionBtn", "saveDescriptionBtn", "shopDescription", false);
+  }
+});
+
+// Event listeners for Shop Phone
+document.getElementById("editPhoneBtn").addEventListener("click", () => {
+  toggleEditSaveGeneral("editPhoneBtn", "savePhoneBtn", "shopPhone", true);
+});
+document.getElementById("savePhoneBtn").addEventListener("click", async () => {
+  const newPhone = document.getElementById("shopPhone").value;
+  if (await updateShopField("phone", newPhone)) {
+    toggleEditSaveGeneral("editPhoneBtn", "savePhoneBtn", "shopPhone", false);
+  }
+});
+
+// Fetch General Shop Details on page load
+fetchGeneralDetails();
 
 
 
@@ -553,7 +744,72 @@ fetchPhotos();
 
 
 
+async function fetchUserProfile() {
+  try {
+    const jwtToken = localStorage.getItem('jwtToken');
+    const userId = localStorage.getItem('userId');
 
+    // Log για να δεις τι δεδομένα υπάρχουν στο localStorage
+    console.log("Fetching user profile with:", { jwtToken, userId });
+
+    if (!jwtToken) {
+      console.error("JWT Token is missing.");
+      alert('You are not logged in. Please log in again.');
+      window.location.href = 'login.html';
+      return;
+    }
+
+    if (!userId) {
+      console.error("User ID is missing.");
+      alert('User ID is missing. Please log in again.');
+      window.location.href = 'login.html';
+      return;
+    }
+
+    // Log το endpoint και τα headers πριν το fetch
+    console.log("Sending request to /api/users/details/:userId with headers:", {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${jwtToken}`,
+    });
+
+    const response = await fetch(`/api/users/details/${userId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${jwtToken}`,
+      },
+    });
+
+    // Log την κατάσταση της απόκρισης
+    console.log("Response status:", response.status);
+
+    if (!response.ok) {
+      const errorResponse = await response.json();
+      console.error("Error fetching user profile:", errorResponse);
+      alert('Error fetching user profile: ' + errorResponse.message);
+      return;
+    }
+
+    const user = await response.json();
+
+    // Log τα δεδομένα του χρήστη που επιστρέφονται
+    console.log('User Profile:', user);
+
+    // Ενημέρωση των πεδίων της φόρμας
+    document.getElementById('userName').value = user.name || 'N/A';
+    document.getElementById('userSurname').value = user.surname || 'N/A';
+    document.getElementById('userEmail').value = user.email || 'N/A';
+    document.getElementById('userRole').value = user.role || 'N/A';
+    document.getElementById('userShopId').value = user.shopId || 'N/A';
+
+    console.log("User profile fields updated successfully.");
+  } catch (error) {
+    console.error('Error fetching user profile:', error);
+    alert('An error occurred while fetching your profile. Check the console for details.');
+  }
+}
+console.log("Calling fetchUserProfile...");
+fetchUserProfile();
 
 
 
@@ -563,79 +819,89 @@ fetchPhotos();
     // ------------------------------
     // Section B: Booking Hours
     // ------------------------------
-    async function fetchBookingHours() {
-      try {
-        const response = await fetch(`/api/shop/${shopId}`);
-        if (!response.ok) throw new Error("Failed to fetch shop details");
-        const shop = await response.json();
-        const bookingSection = document.getElementById("bookingHoursSection");
-        bookingSection.innerHTML = "";
-        days.forEach(day => {
-          const dayData = shop.openingHours && shop.openingHours[day] ? shop.openingHours[day] : { bookingStart: 0, bookingEnd: 0 };
-          bookingSection.innerHTML += `
-            <div class="card mb-3">
-              <div class="card-header text-capitalize">${day}</div>
-              <div class="card-body">
-                <div class="row">
-                  <div class="col">
-                    <label class="form-label">Booking Start</label>
-                    <input type="number" id="bookingStart_${day}" class="form-control" value="${dayData.bookingStart}" disabled>
-                  </div>
-                  <div class="col">
-                    <label class="form-label">Booking End</label>
-                    <input type="number" id="bookingEnd_${day}" class="form-control" value="${dayData.bookingEnd}" disabled>
-                  </div>
-                </div>
-              </div>
-            </div>
-          `;
-        });
-      } catch (error) {
-        console.error("Error fetching booking hours:", error);
-      }
-    }
-    fetchBookingHours();
+    // ------------------------------
+// Section B: Booking Hours
+// ------------------------------
 
-    document.getElementById("editBookingBtn").addEventListener("click", () => {
-      days.forEach(day => {
-        const startInput = document.getElementById(`bookingStart_${day}`);
-        const endInput = document.getElementById(`bookingEnd_${day}`);
-        if(startInput) startInput.disabled = false;
-        if(endInput) endInput.disabled = false;
-      });
-      document.getElementById("saveBookingBtn").style.display = "inline-block";
-      document.getElementById("editBookingBtn").style.display = "none";
+
+// Fetch και ενημέρωση των Booking Hours
+async function fetchBookingHours() {
+  try {
+    const response = await fetch(`/api/shop/${shopId}`);
+    if (!response.ok) throw new Error("Failed to fetch shop details");
+    const shop = await response.json();
+
+    // Ενημέρωση των πεδίων για κάθε ημέρα
+    days.forEach(day => {
+      const dayData = shop.openingHours && shop.openingHours[day] ? shop.openingHours[day] : { bookingStart: 0, bookingEnd: 0 };
+      document.getElementById(`bookingStart_${day}`).value = dayData.bookingStart;
+      document.getElementById(`bookingEnd_${day}`).value = dayData.bookingEnd;
     });
-    document.getElementById("saveBookingBtn").addEventListener("click", async () => {
-      for (const day of days) {
-        const newBookingStart = parseFloat(document.getElementById(`bookingStart_${day}`).value) || 0;
-        const newBookingEnd = parseFloat(document.getElementById(`bookingEnd_${day}`).value) || 0;
-        const bookingBody = { day, newBookingStart, newBookingEnd };
-        try {
-          const bkResponse = await fetch(`/api/shop/${shopId}/booking-hours`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(bookingBody)
-          });
-          if (!bkResponse.ok) {
-            const bkErr = await bkResponse.json();
-            alert(`Error updating booking hours for ${day}: ${bkErr.message}`);
-          }
-        } catch (error) {
-          console.error(`Error updating booking hours for ${day}:`, error);
-        }
-      }
-      alert("Booking hours updated successfully!");
-      days.forEach(day => {
-        const startInput = document.getElementById(`bookingStart_${day}`);
-        const endInput = document.getElementById(`bookingEnd_${day}`);
-        if(startInput) startInput.disabled = true;
-        if(endInput) endInput.disabled = true;
-      });
-      document.getElementById("saveBookingBtn").style.display = "none";
-      document.getElementById("editBookingBtn").style.display = "inline-block";
-      fetchBookingHours();
+  } catch (error) {
+    console.error("Error fetching booking hours:", error);
+    alert("Failed to fetch booking hours. Please try again later.");
+  }
+}
+
+// Helper function για εναλλαγή κουμπιών και ενεργοποίηση/απενεργοποίηση πεδίων
+function toggleEditSave(editBtnId, saveBtnId, startInputId, endInputId, isEditing) {
+  document.getElementById(editBtnId).style.display = isEditing ? "none" : "inline-block";
+  document.getElementById(saveBtnId).style.display = isEditing ? "inline-block" : "none";
+  document.getElementById(startInputId).disabled = !isEditing;
+  document.getElementById(endInputId).disabled = !isEditing;
+}
+
+// Προσθήκη event listeners για τα κουμπιά Edit και Save
+days.forEach(day => {
+  const editBtn = document.getElementById(`edit_${day}`);
+  const saveBtn = document.getElementById(`save_${day}`);
+  const startInput = document.getElementById(`bookingStart_${day}`);
+  const endInput = document.getElementById(`bookingEnd_${day}`);
+
+  // Event listener για το κουμπί Edit
+  editBtn.addEventListener("click", () => {
+    toggleEditSave(`edit_${day}`, `save_${day}`, `bookingStart_${day}`, `bookingEnd_${day}`, true);
+  });
+
+  // Event listener για το κουμπί Save
+  saveBtn.addEventListener("click", async () => {
+  const newBookingStart = parseFloat(startInput.value) || 0;
+  const newBookingEnd = parseFloat(endInput.value) || 0;
+
+  const bookingBody = { 
+    day: day.toLowerCase(), 
+    bookingStart: newBookingStart, 
+    bookingEnd: newBookingEnd 
+  };
+
+  // Log για να δεις τι δεδομένα στέλνονται στο backend
+  console.log("Sending bookingBody to backend:", bookingBody);
+
+  try {
+    const response = await fetch(`/api/shop/${shopId}/booking-hours`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(bookingBody),
     });
+
+    if (!response.ok) {
+      const error = await response.json();
+      console.error("Error response from backend:", error); // Log το σφάλμα από το backend
+      alert(`Error updating booking hours for ${day}: ${error.message}`);
+    } else {
+      console.log(`Booking hours for ${day} updated successfully!`); // Log επιτυχία
+      alert(`Booking hours for ${day} updated successfully!`);
+      toggleEditSave(`edit_${day}`, `save_${day}`, `bookingStart_${day}`, `bookingEnd_${day}`, false);
+    }
+  } catch (error) {
+    console.error(`Error updating booking hours for ${day}:`, error);
+    alert(`An error occurred while updating booking hours for ${day}.`);
+  }
+});
+});
+
+// Fetch booking hours on page load
+fetchBookingHours();
 
     // ------------------------------
     // Group reservations by ISO date (YYYY-MM-DD)
@@ -741,31 +1007,21 @@ fetchPhotos();
 
     // Modify your existing fetchReservations function to use the grouped display
     async function fetchReservations() {
-      try {
-        const response = await fetch(`/api/shop/reservationList/${shopId}`);
-        if (!response.ok) throw new Error("Failed to fetch reservations");
-        const reservationsData = await response.json();
-        displayGroupedReservations(reservationsData);
-        
-        // Process data for chart (if needed) remains unchanged:
-        let reservationsArray = [];
-        if (reservationsData && reservationsData.reservationList && typeof reservationsData.reservationList === 'object') {
-          for (const date in reservationsData.reservationList) {
-            if (reservationsData.reservationList[date] && Array.isArray(reservationsData.reservationList[date].reservations)) {
-              reservationsArray = reservationsArray.concat(reservationsData.reservationList[date].reservations);
-            }
-          }
-        } else if (reservationsData && reservationsData.reservations && Array.isArray(reservationsData.reservations)) {
-          reservationsArray = reservationsData.reservations;
-        } else if (Array.isArray(reservationsData)) {
-          reservationsArray = reservationsData;
-        }
-        const chartData = processReservationData(reservationsArray);
-        renderReservationChart(chartData);
-      } catch (error) {
-        console.error("Error fetching reservations:", error);
-      }
+  try {
+    const response = await fetch(`/api/shop/reservationList/${shopId}`);
+    if (!response.ok) throw new Error("Failed to fetch reservations");
+    const reservationsData = await response.json();
+    if (!reservationsData || reservationsData.length === 0) {
+      console.log("No reservations found.");
+      return;
     }
+    displayGroupedReservations(reservationsData);
+  } catch (error) {
+    console.error("Error fetching reservations:", error);
+  }
+}
+
+
     fetchReservations();
 
     // ------------------------------
@@ -874,53 +1130,10 @@ fetchPhotos();
   }
 }
 
-async function fetchUserProfile() {
-  try {
-    const jwtToken = localStorage.getItem('jwtToken');
-    const userId = localStorage.getItem('userId'); // Retrieve userId from localStorage
 
-    if (!jwtToken) {
-      alert('You are not logged in. Please log in again.');
-      window.location.href = 'login.html';
-      return;
-    }
 
-    if (!userId) {
-      alert('User ID is missing. Please log in again.');
-      window.location.href = 'login.html';
-      return;
-    }
 
-    // Fetch user details using the userId
-    const response = await fetch(`/api/users/details/${userId}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${jwtToken}`,
-      },
-    });
 
-    if (!response.ok) {
-      const errorResponse = await response.json();
-      alert('Error fetching user profile: ' + errorResponse.message);
-      return;
-    }
-
-    const user = await response.json();
-    console.log('User Profile:', user);
-
-    // Update the form fields in the My Profile section
-    document.getElementById('userName').value = user.name || 'N/A';
-    document.getElementById('userSurname').value = user.surname || 'N/A';
-    document.getElementById('userEmail').value = user.email || 'N/A';
-    document.getElementById('userRole').value = user.role || 'N/A';
-    document.getElementById('userShopId').value = user.shopId || 'N/A';
-  } catch (error) {
-    console.error('Error fetching user profile:', error);
-    alert('An error occurred while fetching your profile. Check the console for details.');
-  }
-}
-fetchUserProfile();
 
   </script>
 </body>
