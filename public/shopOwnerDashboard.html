@@ -863,71 +863,38 @@ fetchPhotos();
 
 
 
+// Fetch user profile
+// Fetch user profile
 async function fetchUserProfile() {
   try {
-    const jwtToken = localStorage.getItem('jwtToken');
-    const userId = localStorage.getItem('userId');
-
-    // Log για να δεις τι δεδομένα υπάρχουν στο localStorage
-    console.log("Fetching user profile with:", { jwtToken, userId });
-
-    if (!jwtToken) {
-      console.error("JWT Token is missing.");
-      alert('You are not logged in. Please log in again.');
-      window.location.href = 'login.html';
-      return;
-    }
-
-    if (!userId) {
-      console.error("User ID is missing.");
-      alert('User ID is missing. Please log in again.');
-      window.location.href = 'login.html';
-      return;
-    }
-
-    // Log το endpoint και τα headers πριν το fetch
-    console.log("Sending request to /api/users/details/:userId with headers:", {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${jwtToken}`,
-    });
-
-    const response = await fetch(`/api/users/details/${userId}`, {
+    const response = await fetch('/api/users/details', {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${jwtToken}`,
-      },
+      credentials: 'include', // Include cookies in the request
     });
 
-    // Log την κατάσταση της απόκρισης
-    console.log("Response status:", response.status);
+    if (response.ok) {
+      const userProfile = await response.json();
+      console.log('User Profile:', userProfile);
 
-    if (!response.ok) {
-      const errorResponse = await response.json();
-      console.error("Error fetching user profile:", errorResponse);
-      alert('Error fetching user profile: ' + errorResponse.message);
-      return;
+      // Update the UI with user profile data
+      document.getElementById('userName').value = userProfile.name || 'N/A';
+      document.getElementById('userSurname').value = userProfile.surname || 'N/A';
+      document.getElementById('userEmail').value = userProfile.email || 'N/A';
+      document.getElementById('userRole').value = userProfile.role || 'N/A';
+      document.getElementById('userShopId').value = userProfile.shopId || 'N/A';
+    } else {
+      console.error('Failed to fetch user profile:', response.status, response.statusText);
+      alert(`Failed to fetch user profile: ${response.statusText}. Please log in again.`);
     }
-
-    const user = await response.json();
-
-    // Log τα δεδομένα του χρήστη που επιστρέφονται
-    console.log('User Profile:', user);
-
-    // Ενημέρωση των πεδίων της φόρμας
-    document.getElementById('userName').value = user.name || 'N/A';
-    document.getElementById('userSurname').value = user.surname || 'N/A';
-    document.getElementById('userEmail').value = user.email || 'N/A';
-    document.getElementById('userRole').value = user.role || 'N/A';
-    document.getElementById('userShopId').value = user.shopId || 'N/A';
-
-    console.log("User profile fields updated successfully.");
   } catch (error) {
     console.error('Error fetching user profile:', error);
-    alert('An error occurred while fetching your profile. Check the console for details.');
+    alert('An error occurred while fetching the user profile. Please try again later.');
   }
 }
-console.log("Calling fetchUserProfile...");
+
+// Call the function to fetch the user prof
+
+// Call the function to fetch the user profile
 fetchUserProfile();
 
 

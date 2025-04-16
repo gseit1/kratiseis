@@ -14,8 +14,8 @@ const searchShopsRouter = require('./routes/searchShops');
 const cityRouter = require('./routes/city');
 const regionRouter = require('./routes/region');
 const applicationRouter = require('./routes/applications');
-
 const uploadRouter = require('./routes/upload');
+const cookieParser = require('cookie-parser');
 
 const PORT = 300; // Define port number server will listen
 const app = express(); // Create an instance of express application
@@ -35,6 +35,9 @@ app.use(limiter);
 
 //middleware to register routes or to mount routes
 app.use(express.json());
+app.use(cookieParser());
+
+
 app.use(authRouter);
 app.use(shopRouter);
 app.use(tableRouter);
@@ -50,8 +53,13 @@ app.use(applicationRouter);
 app.use(uploadRouter);
 
 
+
+
+
 // Εξυπηρέτηση του φακέλου public
 app.use(express.static(path.join(__dirname, 'public')));
+
+
 
 
 app.use((req, res, next) => {

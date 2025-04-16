@@ -43,8 +43,7 @@ authRouter.delete('/api/delete-user', deleteUser);
 authRouter.get('/api/get-role',  getUserRole);
 
 // Route για επιστροφή των δεδομένων του χρήστη
-authRouter.get('/api/users/details/:id',  getUserDetails);
-
+authRouter.get('/api/users/details', verifyToken, getUserDetails);
 // Route για ενημέρωση του shopId του χρήστη
 authRouter.patch('/api/user/shopId',verifyToken,  setUserShopId);
 //

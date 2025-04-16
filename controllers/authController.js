@@ -39,6 +39,8 @@ const signUp = async (req, res) => {
 // Σύνδεση χρήστη
 const axios = require('axios');
 
+
+
 const login = async (req, res) => {
   console.log('Login function called'); // Log for function entry
   const { email, password } = req.body;
@@ -47,10 +49,10 @@ const login = async (req, res) => {
   console.log('Received password:', password ? 'Password provided' : 'No password provided'); // Avoid logging the actual password for security
 
   try {
-    // Firebase REST API για login
+    // Firebase REST API for login
     console.log('Sending request to Firebase for login...');
     const response = await axios.post(
-      `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyD6yfJs_ICEC_M0lJvl3Q5_nTIbF-1nLOc`,
+      `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${process.env.FIREBASE_API_KEY}`,
       {
         email,
         password,
@@ -61,11 +63,11 @@ const login = async (req, res) => {
     console.log('Firebase login successful:', response.data); // Log the response from Firebase
 
     const idToken = response.data.idToken;
-    const firebaseUid = response.data.localId; // Παίρνουμε το UID από το Firebase
+    const firebaseUid = response.data.localId; // Get the UID from Firebase
 
     console.log('Firebase UID:', firebaseUid); // Log the Firebase UID
 
-    // Εύρεση χρήστη στη MongoDB
+    // Find the user in MongoDB
     console.log('Searching for user in MongoDB with Firebase UID:', firebaseUid);
     const user = await User.findOne({ firebaseUid });
     if (!user) {
@@ -75,14 +77,24 @@ const login = async (req, res) => {
 
     console.log('User found in MongoDB:', user); // Log the user found
 
-    // Επιστροφή του token, του ρόλου και του shopId (αν υπάρχει)
+    // Set HTTP-only cookie with the token
+    res.cookie('jwt', idToken, {
+      httpOnly: true,
+      secure: false, // Use HTTPS in production
+      sameSite: 'Lax',
+      maxAge: 1000 * 60 * 60, // 1 hour
+    });
+
+    console.log('JWT set in cookies successfully.');
+
+    // Return minimal, non-sensitive data to the client
     res.status(200).json({
       message: 'Login successful',
-      idToken,
-      role: user.role,
-      shopId: user.shopId || null,
-      userId:user._id,
+      role: user.role, // Include role for client-side redirection
+      shopId: user.shopId || null, // Include shopId if applicable
+      userId: user._id, // Include userId for client-side use
     });
+
     console.log('Login response sent successfully'); // Log for successful response
   } catch (error) {
     console.error('Error during login:', error.message); // Log the error message
@@ -93,6 +105,7 @@ const login = async (req, res) => {
     });
   }
 };
+
 // Αλλαγή ρόλου χρήστη από admin
 const changeUserRole = async (req, res) => {
   const { email, newRole } = req.body;
@@ -174,22 +187,53 @@ const getAllUsers = async (req, res) => {
 
 
    
-    const getUserDetails = async (req, res) => {
-      try {
-        const { id } = req.params;
-          // Παίρνουμε το firebaseUid από το token που επαληθεύτηκε στο middleware
+const mongoose = require('mongoose');
 
-          const user = await User.findById(id).select('-password'); // Χρησιμοποιούμε το _id για αναζήτηση
-          console.log(user);
-          if (!user) {
-          return res.status(404).json({ message: 'User not found' });
-        }
-        res.status(200).json(user);
-      } catch (error) {
-        console.error('Error fetching user details:', error.message);
-        res.status(500).json({ message: 'Error fetching user details', error: error.message });
-      }
-    };
+const getUserDetails = async (req, res) => {
+  console.log('getUserDetails called'); // Log function entry
+
+  try {
+    // Ensure req.user is populated
+    if (!req.user || !req.user.id) {
+      console.error('Unauthorized: Missing user information in request');
+      return res.status(401).json({ message: 'Unauthorized: Missing user information' });
+    }
+
+    const userId = req.user.id;
+    console.log('Authenticated user ID from middleware:', userId);
+
+    // Validate userId
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      console.error('Invalid user ID:', userId);
+      return res.status(400).json({ message: 'Invalid user ID' });
+    }
+
+    console.log('Fetching user details from MongoDB for user ID:', userId);
+
+    // Fetch user details and select only necessary fields
+    const user = await User.findById(userId).select('name surname email role shopId phone address city region');
+    console.log('User details retrieved from MongoDB:', user);
+
+    if (!user) {
+      console.error('User not found for ID:', userId);
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    console.log('User details successfully fetched:', user);
+
+    // Return only necessary user details
+    res.status(200).json({
+      name: user.name,
+      surname: user.surname,
+      email: user.email,
+      role: user.role,
+      shopId: user.shopId,
+        });
+  } catch (error) {
+    console.error('Error fetching user details:', error.message);
+    res.status(500).json({ message: 'An unexpected error occurred. Please try again later.' });
+  }
+};
 
     const setUserShopId = async (req, res) => {
       const { shopId } = req.body;

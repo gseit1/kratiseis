@@ -2,28 +2,25 @@ const admin = require('../firebase_auth/firebaseAdmin');
 const User = require('../models/user');
 
 // ... υπόλοιπος κώδικας ...
+
 const verifyToken = async (req, res, next) => {
-  const token = req.headers.authorization?.split('Bearer ')[1];
-  console.log('Authorization header:', req.headers.authorization);
+  const token = req.cookies?.jwt;
   if (!token) {
-    return res.status(401).json({ message: 'Unauthorized' });
+    console.error('No token found in cookies');
+    return res.status(401).json({ message: 'Unauthorized: No token provided' });
   }
 
   try {
     const decodedToken = await admin.auth().verifyIdToken(token);
-    req.user = decodedToken;
-
-    // Εύρεση του χρήστη στη MongoDB
-    const user = await User.findOne({ firebaseUid: decodedToken.uid });
+    const user = await User.findOne({ firebaseUid: decodedToken.uid }); // ή decodedToken.sub
     if (!user) {
-      return res.status(401).json({ message: 'Unauthorized' });
+      return res.status(404).json({ message: 'User not found' });
     }
-
-    req.user.role = user.role;
-    req.user.shopId=user.shopId;
+    req.user = user;
     next();
   } catch (error) {
-    res.status(401).json({ message: 'Unauthorized', error: error.message });
+    console.error('Invalid Firebase token:', error.message);
+    return res.status(401).json({ message: 'Unauthorized: Invalid token' });
   }
 };
 
