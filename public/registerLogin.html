@@ -198,7 +198,7 @@ document.cookie = `jwt=${result.token}; path=/; ${isLocal ? '' : 'secure;'} Same
             if (result.role === 'user') {
                 window.location.href = 'profile.html';
             } else if (result.role === 'shopOwner') {
-                window.location.href = 'shopOwnerDashboard.html';
+                window.location.href = 'shopOwner/index.html';
             } else if (result.role === 'admin') {
                 window.location.href = 'admin.html';
             } else {

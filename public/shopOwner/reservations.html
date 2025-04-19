@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reservations</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        #menu {
+        height: 100vh;
+        position: sticky;
+        top: 0;
+        background-color: #f8f9fa;
+        padding-top: 20px;
+    }
+    #menu h4 {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #333;
+    }
+    #menu .nav-link {
+        color: #000;
+        padding: 10px 15px;
+        border-radius: 5px;
+        transition: background-color 0.3s, color 0.3s;
+    }
+    #menu .nav-link:hover {
+        background-color: #e9ecef;
+        color: #007bff;
+    }
+    #menu .nav-link.active {
+        background-color: #007bff;
+        color: #fff;
+    }
+    #menu .nav-link i {
+        font-size: 1.2rem;
+    }
+        #content {
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Left Menu -->
+            <nav id="menu" class="col-md-3 bg-light border-end">
+                <h4 class="text-center py-3 border-bottom">Dashboard Menu</h4>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a href="index.html" class="nav-link  d-flex align-items-center">
+                            <i class="bi bi-table me-2"></i> Table Options
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="generalShopDetails.html" class="nav-link d-flex align-items-center">
+                            <i class="bi bi-shop me-2"></i> General Shop Details
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="bookingHours.html" class="nav-link d-flex align-items-center">
+                            <i class="bi bi-clock me-2"></i> Booking Hours
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="reservations.html" class="nav-link active d-flex align-items-center">
+                            <i class="bi bi-calendar-check me-2"></i> Reservations
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="availability.html" class="nav-link d-flex align-items-center">
+                            <i class="bi bi-calendar-range me-2"></i> Availability
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="charts.html" class="nav-link d-flex align-items-center">
+                            <i class="bi bi-bar-chart me-2"></i> Reservations Chart
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="photoManagement.html" class="nav-link d-flex align-items-center">
+                            <i class="bi bi-images me-2"></i> Photo Management
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="../registerLogin.html" class="nav-link d-flex align-items-center text-danger" id="logoutBtn">
+                            <i class="bi bi-box-arrow-right me-2"></i> Logout
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <!-- Right Content -->
+            <div id="content" class="col-md-9">
+                <section id="reservations" class="mt-5">
+                    <div class="container">
+                        <h2>Reservations</h2>
+                        <!-- Scrollable list of days -->
+                        <div id="reservationsDaysList" class="list-group mb-3" style="max-height: 300px; overflow-y: auto;"></div>
+                        <!-- Container for reservations for the selected day -->
+                        <div id="reservationsList" class="row gy-3"></div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Helper functions
+        function groupReservationsByDate(reservationsArray) {
+            const grouped = {};
+            reservationsArray.forEach(reservation => {
+                if (reservation.reservationDate) {
+                    const dateKey = new Date(reservation.reservationDate).toISOString().split('T')[0];
+                    if (!grouped[dateKey]) {
+                        grouped[dateKey] = [];
+                    }
+                    grouped[dateKey].push(reservation);
+                }
+            });
+            return grouped;
+        }
+
+        function formatDate_dd_mm_yy(isoDateStr) {
+            const dateObj = new Date(isoDateStr);
+            const dd = String(dateObj.getDate()).padStart(2, '0');
+            const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const yy = String(dateObj.getFullYear()).slice(-2);
+            return `${dd}-${mm}-${yy}`;
+        }
+
+        function getDayOfWeek(isoDateStr) {
+            const dateObj = new Date(isoDateStr);
+            const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+            return days[dateObj.getDay()];
+        }
+
+        // Render the scrollable list of reservation days
+        function renderDaysList(groupedReservations) {
+            const daysListDiv = document.getElementById("reservationsDaysList");
+            daysListDiv.innerHTML = "";
+            const sortedDates = Object.keys(groupedReservations).sort();
+            sortedDates.forEach(dateKey => {
+                const formattedDate = formatDate_dd_mm_yy(dateKey);
+                const dayOfWeek = getDayOfWeek(dateKey);
+                const btn = document.createElement("button");
+                btn.className = "list-group-item list-group-item-action";
+                btn.textContent = `${formattedDate} - ${dayOfWeek}`;
+                btn.onclick = function() {
+                    renderReservationsForDay(groupedReservations[dateKey]);
+                };
+                daysListDiv.appendChild(btn);
+            });
+        }
+
+        // Render reservations for a specific day
+        async function renderReservationsForDay(reservationsArray) {
+            const reservationsListDiv = document.getElementById("reservationsList");
+            reservationsListDiv.innerHTML = "";
+
+            if (reservationsArray.length === 0) {
+                reservationsListDiv.innerHTML = "<p class='text-center'>No reservations for this day.</p>";
+                return;
+            }
+
+            for (const reservation of reservationsArray) {
+                let tableNumber = "N/A";
+                if (reservation.tableId) {
+                    try {
+                        const response = await fetch(`/api/table/${reservation.tableId}`);
+                        if (response.ok) {
+                            const table = await response.json();
+                            tableNumber = table.tableNumber || "N/A";
+                        }
+                    } catch (error) {
+                        console.error("Error fetching table details:", error);
+                    }
+                }
+
+                const hours = Math.floor(reservation.reservationTime);
+                const minutes = Math.round((reservation.reservationTime % 1) * 60);
+                const formattedTime = `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
+
+                reservationsListDiv.innerHTML += `
+                    <div class="col-md-4">
+                        <div class="card mb-3">
+                            <div class="card-header">Reservation #${reservation._id}</div>
+                            <div class="card-body">
+                                <p><strong>Name:</strong> ${reservation.name || "N/A"}</p>
+                                <p><strong>Surname:</strong> ${reservation.surname || "N/A"}</p>
+                                <p><strong>Table Number:</strong> ${tableNumber}</p>
+                                <p><strong>Date:</strong> ${reservation.reservationDate ? new Date(reservation.reservationDate).toLocaleDateString() : "N/A"}</p>
+                                <p><strong>Hour:</strong> ${formattedTime}</p>
+                                <p><strong>Seats:</strong> ${reservation.seats || "N/A"}</p>
+                                <p><strong>Comment:</strong> ${reservation.commentFromUser || "N/A"}</p>
+                                <button class="btn btn-danger btn-sm" onclick="deleteReservation('${reservation._id}')">Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // Display grouped reservations
+        function displayGroupedReservations(data) {
+            const reservationsArray = Array.isArray(data) ? data : [];
+            const grouped = groupReservationsByDate(reservationsArray);
+            renderDaysList(grouped);
+
+            const sortedDates = Object.keys(grouped).sort();
+            if (sortedDates.length > 0) {
+                renderReservationsForDay(grouped[sortedDates[0]]);
+            } else {
+                document.getElementById("reservationsList").innerHTML = "<p class='text-center'>No reservations found.</p>";
+            }
+        }
+
+        // Fetch reservations
+        async function fetchReservations() {
+            try {
+                const response = await fetch('/api/shop/reservationList');
+                if (!response.ok) throw new Error('Failed to fetch reservations');
+                const data = await response.json();
+                displayGroupedReservations(data);
+            } catch (error) {
+                console.error('Error fetching reservations:', error);
+            }
+        }
+
+        // Delete reservation
+        async function deleteReservation(reservationId) {
+            try {
+                const response = await fetch(`/api/shop/reservations/${reservationId}`, {
+                    method: 'DELETE',
+                    credentials: 'include',
+                });
+                if (!response.ok) throw new Error('Failed to delete reservation');
+                alert('Reservation deleted successfully!');
+                fetchReservations();
+            } catch (error) {
+                console.error('Error deleting reservation:', error);
+                alert('Failed to delete reservation. Please try again later.');
+            }
+        }
+
+        // Fetch reservations on page load
+        fetchReservations();
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Availability</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        #menu {
+        height: 100vh;
+        position: sticky;
+        top: 0;
+        background-color: #f8f9fa;
+        padding-top: 20px;
+    }
+    #menu h4 {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #333;
+    }
+    #menu .nav-link {
+        color: #000;
+        padding: 10px 15px;
+        border-radius: 5px;
+        transition: background-color 0.3s, color 0.3s;
+    }
+    #menu .nav-link:hover {
+        background-color: #e9ecef;
+        color: #007bff;
+    }
+    #menu .nav-link.active {
+        background-color: #007bff;
+        color: #fff;
+    }
+    #menu .nav-link i {
+        font-size: 1.2rem;
+    }
+        #content {
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Left Menu -->
+            <nav id="menu" class="col-md-3 bg-light border-end">
+                <h4 class="text-center py-3 border-bottom">Dashboard Menu</h4>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a href="index.html" class="nav-link  d-flex align-items-center">
+                            <i class="bi bi-table me-2"></i> Table Options
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="generalShopDetails.html" class="nav-link d-flex align-items-center">
+                            <i class="bi bi-shop me-2"></i> General Shop Details
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="bookingHours.html" class="nav-link d-flex align-items-center">
+                            <i class="bi bi-clock me-2"></i> Booking Hours
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="reservations.html" class="nav-link d-flex align-items-center">
+                            <i class="bi bi-calendar-check me-2"></i> Reservations
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="availability.html" class="nav-link active d-flex align-items-center">
+                            <i class="bi bi-calendar-range me-2"></i> Availability
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="charts.html" class="nav-link d-flex align-items-center">
+                            <i class="bi bi-bar-chart me-2"></i> Reservations Chart
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="photoManagement.html" class="nav-link d-flex align-items-center">
+                            <i class="bi bi-images me-2"></i> Photo Management
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="../registerLogin.html" class="nav-link d-flex align-items-center text-danger" id="logoutBtn">
+                            <i class="bi bi-box-arrow-right me-2"></i> Logout
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <!-- Right Content -->
+            <div id="content" class="col-md-9">
+                <section id="availability" class="mt-5">
+                    <div class="container">
+                        <h2>Availability</h2>
+                        <form id="availabilityForm" class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="dateString" class="form-label">Date</label>
+                                <input type="date" id="dateString" class="form-control">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="seatsRequired" class="form-label">Seats Required</label>
+                                <input type="number" id="seatsRequired" class="form-control" min="1">
+                            </div>
+                            <div class="col-md-4 mb-3 d-flex align-items-end">
+                                <button type="button" id="checkAvailabilityBtn" class="btn btn-primary">Check Availability</button>
+                            </div>
+                        </form>
+                        <div id="availabilitySection" class="mt-3"></div>
+                        <div id="reservationFormContainer" class="mt-4" style="display: none;">
+                            <h3>Make a Reservation</h3>
+                            <form id="reservationForm">
+                                <div class="mb-3">
+                                    <label for="reservationName" class="form-label">Name</label>
+                                    <input type="text" id="reservationName" class="form-control" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="reservationSurname" class="form-label">Surname</label>
+                                    <input type="text" id="reservationSurname" class="form-control" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="reservationDateTime" class="form-label">Date & Time</label>
+                                    <input type="text" id="reservationDateTime" class="form-control" disabled>
+                                </div>
+                                <button type="button" id="submitReservationBtn" class="btn btn-success">Submit Reservation</button>
+                            </form>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let shopId = null; // Global shopId variable
+
+        // Fetch availability
+        async function fetchAvailability() {
+            const dateString = document.getElementById('dateString').value;
+            const seats = document.getElementById('seatsRequired').value;
+
+            if (!shopId) {
+                alert("Shop ID is missing. Please refresh the page.");
+                return;
+            }
+
+            if (!dateString || !seats) {
+                document.getElementById('availabilitySection').innerHTML = `<p class="text-danger">Please provide all required inputs (date and seats).</p>`;
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/availability?shopId=${shopId}&dateString=${dateString}&seats=${seats}`);
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || 'Failed to fetch availability');
+                }
+                const data = await response.json();
+                displayAvailability(data);
+            } catch (error) {
+                console.error("Error fetching availability:", error);
+                document.getElementById('availabilitySection').innerHTML = `<p class="text-danger">Error fetching availability: ${error.message}</p>`;
+            }
+        }
+
+        // Display availability
+        function displayAvailability(data) {
+            const availabilitySection = document.getElementById('availabilitySection');
+            if (data && data.availability && Array.isArray(data.availability) && data.availability.length > 0) {
+                let html = `<ul class="list-group">`;
+                data.availability.forEach(hour => {
+                    html += `<li class="list-group-item available-hour" style="cursor: pointer;" data-hour="${hour}">${hour}</li>`;
+                });
+                html += `</ul>`;
+                availabilitySection.innerHTML = html;
+
+                // Add click event listeners to available hours
+                document.querySelectorAll('.available-hour').forEach(item => {
+                    item.addEventListener('click', (event) => {
+                        const selectedHour = event.target.getAttribute('data-hour');
+                        showReservationForm(selectedHour);
+                    });
+                });
+            } else {
+                availabilitySection.innerHTML = `<p class="text-warning">No availability found for the selected date and seats.</p>`;
+            }
+        }
+
+        // Show reservation form
+        function showReservationForm(selectedHour) {
+            const dateString = document.getElementById('dateString').value;
+            document.getElementById('reservationDateTime').value = `${dateString} ${selectedHour}`;
+            document.getElementById('reservationFormContainer').style.display = 'block';
+        }
+
+        // Submit reservation
+        document.getElementById('submitReservationBtn').addEventListener('click', async () => {
+            const name = document.getElementById('reservationName').value.trim();
+            const surname = document.getElementById('reservationSurname').value.trim();
+            const dateTime = document.getElementById('reservationDateTime').value.trim();
+            const seats = document.getElementById('seatsRequired').value.trim();
+
+            if (!name || !surname || !dateTime || !seats) {
+                alert("Please fill in all required fields.");
+                return;
+            }
+
+            const [reservationDate, reservationTime] = dateTime.split(' ');
+
+            if (!shopId) {
+                alert("Shop ID is missing. Please refresh the page.");
+                return;
+            }
+
+            const reservationData = {
+                shopId,
+                name,
+                surname,
+                reservationDate,
+                reservationTime,
+                seats,
+            };
+
+            try {
+                const response = await fetch('/api/reservation', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(reservationData),
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    alert("Error submitting reservation: " + error.message);
+                    return;
+                }
+
+                alert("Reservation submitted successfully!");
+                document.getElementById('reservationFormContainer').style.display = 'none';
+            } catch (error) {
+                console.error("Error submitting reservation:", error);
+                alert("An error occurred while submitting the reservation.");
+            }
+        });
+
+        // Fetch shop ID on page load
+        async function fetchShopId() {
+            try {
+                const response = await fetch('/api/users/details', {
+                    method: 'GET',
+                    credentials: 'include',
+                });
+
+                if (!response.ok) throw new Error("Failed to fetch user details");
+                const user = await response.json();
+                shopId = user.shopId;
+
+                if (!shopId) {
+                    alert("Shop ID is missing. Redirecting to create shop page.");
+                    window.location.href = 'createShop.html';
+                }
+            } catch (error) {
+                console.error("Error fetching shop ID:", error);
+                alert("Failed to fetch shop details. Please try again later.");
+            }
+        }
+
+        // Initialize page
+        fetchShopId();
+        document.getElementById('checkAvailabilityBtn').addEventListener('click', fetchAvailability);
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

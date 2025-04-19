@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking Hours</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        #menu {
+        height: 100vh;
+        position: sticky;
+        top: 0;
+        background-color: #f8f9fa;
+        padding-top: 20px;
+    }
+    #menu h4 {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #333;
+    }
+    #menu .nav-link {
+        color: #000;
+        padding: 10px 15px;
+        border-radius: 5px;
+        transition: background-color 0.3s, color 0.3s;
+    }
+    #menu .nav-link:hover {
+        background-color: #e9ecef;
+        color: #007bff;
+    }
+    #menu .nav-link.active {
+        background-color: #007bff;
+        color: #fff;
+    }
+    #menu .nav-link i {
+        font-size: 1.2rem;
+    }
+        #content {
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Left Menu -->
+            <nav id="menu" class="col-md-3 bg-light border-end">
+                <h4 class="text-center py-3 border-bottom">Dashboard Menu</h4>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a href="index.html" class="nav-link  d-flex align-items-center">
+                            <i class="bi bi-table me-2"></i> Table Options
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="generalShopDetails.html" class="nav-link d-flex align-items-center">
+                            <i class="bi bi-shop me-2"></i> General Shop Details
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="bookingHours.html" class="nav-link active d-flex align-items-center">
+                            <i class="bi bi-clock me-2"></i> Booking Hours
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="reservations.html" class="nav-link d-flex align-items-center">
+                            <i class="bi bi-calendar-check me-2"></i> Reservations
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="availability.html" class="nav-link d-flex align-items-center">
+                            <i class="bi bi-calendar-range me-2"></i> Availability
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="charts.html" class="nav-link d-flex align-items-center">
+                            <i class="bi bi-bar-chart me-2"></i> Reservations Chart
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="photoManagement.html" class="nav-link d-flex align-items-center">
+                            <i class="bi bi-images me-2"></i> Photo Management
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="../registerLogin.html" class="nav-link d-flex align-items-center text-danger" id="logoutBtn">
+                            <i class="bi bi-box-arrow-right me-2"></i> Logout
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <!-- Right Content -->
+            <div id="content" class="col-md-9">
+                <section id="bookingHours" class="mt-5">
+                    <div class="container">
+                        <h2>Booking Hours</h2>
+                        <form id="bookingHoursForm">
+                            <!-- Days of the Week -->
+                            <div id="daysContainer"></div>
+                        </form>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+        let shopId = null;
+
+        // Fetch booking hours
+        async function fetchBookingHours() {
+            try {
+                const response = await fetch(`/api/shop/generalDetails`, {
+                    method: 'GET',
+                    credentials: 'include',
+                });
+
+                if (!response.ok) throw new Error("Failed to fetch shop details");
+                const shop = await response.json();
+
+                // Populate booking hours for each day
+                const daysContainer = document.getElementById("daysContainer");
+                daysContainer.innerHTML = days.map(day => {
+                    const dayData = shop.openingHours && shop.openingHours[day] ? shop.openingHours[day] : { bookingStart: 0, bookingEnd: 0 };
+                    return `
+                        <div class="card mb-3">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                ${day.charAt(0).toUpperCase() + day.slice(1)}
+                                <div>
+                                    <button type="button" id="edit_${day}" class="btn btn-warning btn-sm">Edit</button>
+                                    <button type="button" id="save_${day}" class="btn btn-success btn-sm" style="display: none;">Save</button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col">
+                                        <label class="form-label">Booking Start</label>
+                                        <input type="number" id="bookingStart_${day}" class="form-control" value="${dayData.bookingStart}" disabled>
+                                    </div>
+                                    <div class="col">
+                                        <label class="form-label">Booking End</label>
+                                        <input type="number" id="bookingEnd_${day}" class="form-control" value="${dayData.bookingEnd}" disabled>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error("Error fetching booking hours:", error);
+                alert("Failed to fetch booking hours. Please try again later.");
+            }
+        }
+
+        // Toggle edit/save buttons and enable/disable inputs
+        function toggleEditSave(editBtnId, saveBtnId, startInputId, endInputId, isEditing) {
+            document.getElementById(editBtnId).style.display = isEditing ? "none" : "inline-block";
+            document.getElementById(saveBtnId).style.display = isEditing ? "inline-block" : "none";
+            document.getElementById(startInputId).disabled = !isEditing;
+            document.getElementById(endInputId).disabled = !isEditing;
+        }
+
+        // Add event listeners for edit and save buttons
+        function addEventListeners() {
+            days.forEach(day => {
+                const editBtn = document.getElementById(`edit_${day}`);
+                const saveBtn = document.getElementById(`save_${day}`);
+                const startInput = document.getElementById(`bookingStart_${day}`);
+                const endInput = document.getElementById(`bookingEnd_${day}`);
+
+                // Edit button
+                editBtn.addEventListener("click", () => {
+                    toggleEditSave(`edit_${day}`, `save_${day}`, `bookingStart_${day}`, `bookingEnd_${day}`, true);
+                });
+
+                // Save button
+                saveBtn.addEventListener("click", async () => {
+                    const newBookingStart = parseFloat(startInput.value) || 0;
+                    const newBookingEnd = parseFloat(endInput.value) || 0;
+
+                    if (newBookingStart >= newBookingEnd) {
+                        alert("Booking start time must be less than booking end time.");
+                        return;
+                    }
+
+                    const bookingBody = {
+                        day,
+                        bookingStart: newBookingStart,
+                        bookingEnd: newBookingEnd,
+                    };
+
+                    try {
+                        const response = await fetch(`/api/shop/booking-hours`, {
+                            method: "PATCH",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(bookingBody),
+                            credentials: 'include',
+                        });
+
+                        if (!response.ok) {
+                            const error = await response.json();
+                            alert(`Error updating booking hours for ${day}: ${error.message}`);
+                        } else {
+                            alert(`Booking hours for ${day} updated successfully!`);
+                            toggleEditSave(`edit_${day}`, `save_${day}`, `bookingStart_${day}`, `bookingEnd_${day}`, false);
+                        }
+                    } catch (error) {
+                        console.error(`Error updating booking hours for ${day}:`, error);
+                        alert(`An error occurred while updating booking hours for ${day}.`);
+                    }
+                });
+            });
+        }
+
+        // Fetch booking hours and add event listeners on page load
+        fetchBookingHours().then(addEventListeners);
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
