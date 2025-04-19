@@ -6,12 +6,19 @@ const Shop = require('../models/shop');
 
 // Middleware για την επεξεργασία των booking hours
 const handleBookingHoursUpdate = async (req, res, next) => {
-  const { shopId } = req.params;
+  // Get shopId from the authenticated user instead of params
+  const shopId = req.user.shopId;
+  
+  if (!shopId) {
+    return res.status(400).json({ message: 'Shop ID not found in user profile' });
+  }
+  
   const { day, bookingStart: newBookingStart, bookingEnd: newBookingEnd } = req.body;
+  
   try {
     console.log("Received req.body:", req.body);
-    console.log("Middleware triggered for shopId:", shopId); // Log το shopId
-    console.log("Request body:", { day, newBookingStart, newBookingEnd }); // Log τα δεδομένα του αιτήματος
+    console.log("Using shopId from user:", shopId);
+    console.log("Request body:", { day, newBookingStart, newBookingEnd });
 
     const shop = await Shop.findById(shopId);
     if (!shop) {

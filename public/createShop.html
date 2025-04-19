@@ -295,12 +295,6 @@ document.addEventListener('DOMContentLoaded', function () {
         createShopForm.addEventListener('submit', async function (event) {
   event.preventDefault();
 
-  const jwtToken = localStorage.getItem('jwtToken');
-  if (!jwtToken) {
-    alert('You are not logged in. Please log in again.');
-    return;
-  }
-
   const formData = new FormData(createShopForm);
   const shopData = Object.fromEntries(formData.entries());
 
@@ -336,31 +330,40 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   try {
-    // Create shop
+    // Create shop - remove the Authorization header since the cookie will be sent automatically
     const shopResponse = await fetch('/api/shop', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${jwtToken}`,
       },
       body: JSON.stringify(shopData),
+      // Add this to ensure cookies are sent with the request
+      credentials: 'include'
     });
 
-    if (!shopResponse.ok) throw new Error('Failed to create shop');
+    if (!shopResponse.ok) {
+      const errorData = await shopResponse.json();
+      throw new Error(errorData.message || 'Failed to create shop');
+    }
+    
     const shopResult = await shopResponse.json();
     console.log('Shop created successfully:', shopResult);
 
-    // Update user's shopId
+    // Update user's shopId - also with credentials
     const shopIdResponse = await fetch('/api/user/shopId', {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${jwtToken}`,
       },
       body: JSON.stringify({ shopId: shopResult.shop._id }),
+      credentials: 'include'
     });
 
-    if (!shopIdResponse.ok) throw new Error('Failed to update shop ID');
+    if (!shopIdResponse.ok) {
+      const errorData = await shopIdResponse.json();
+      throw new Error(errorData.message || 'Failed to update shop ID');
+    }
+    
     const shopIdResult = await shopIdResponse.json();
     console.log('Shop ID updated successfully:', shopIdResult);
 
@@ -372,7 +375,7 @@ document.addEventListener('DOMContentLoaded', function () {
     window.location.href = 'shopOwnerDashboard.html';
   } catch (error) {
     console.error('Error during shop creation or linking:', error);
-    alert('An error occurred. Check the console for details.');
+    alert('Error: ' + error.message);
   }
 });
     </script>

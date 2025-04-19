@@ -12,11 +12,14 @@ const verifyToken = async (req, res, next) => {
 
   try {
     const decodedToken = await admin.auth().verifyIdToken(token);
-    const user = await User.findOne({ firebaseUid: decodedToken.uid }); // ή decodedToken.sub
+    const user = await User.findOne({ firebaseUid: decodedToken.uid });
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
+    
+    // Make both user record and Firebase claims available to the request
     req.user = user;
+    req.firebaseClaims = decodedToken;
     next();
   } catch (error) {
     console.error('Invalid Firebase token:', error.message);
@@ -32,21 +35,17 @@ const isUser = (req, res, next) => {
 };
 
 const isShopOwner = (req, res, next) => {
+  // Check role from MongoDB user record
   if (req.user.role !== 'shopOwner') {
     return res.status(403).json({ message: 'Forbidden: Access is allowed only for shop owners' });
   }
 
-  // Ελέγχουμε το shopId στο query, params ή body
-  const reqShopId = req.query.shopId || req.params.shopId || req.body.shopId;
-  if (!reqShopId) {
-    return res.status(400).json({ message: 'Missing shopId parameter' }); // Εδώ εμφανίζεται το μήνυμα
+  // Check if user has a shopId
+  if (!req.user.shopId) {
+    return res.status(400).json({ message: 'User does not have a shop assigned' });
   }
-
-  // Ελέγχουμε αν το shopId του χρήστη ταιριάζει
-  if (!req.user.shopId || req.user.shopId.toString() !== reqShopId.toString()) {
-    console.log("users shopID:",req.user.shopId);
-    return res.status(403).json({ message: 'Forbidden: You are not the owner of this shop' });
-  }
+  
+  // If we reach here, user is a shop owner with a valid shopId
   next();
 };
 

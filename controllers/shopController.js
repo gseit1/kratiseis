@@ -21,30 +21,7 @@ const addShop = async (req, res) => {
     }
 };
 
-//! Function για patch booking hours για συγκεκριμένη ημέρα
-const patchBookingHoursForDay = async (req, res) => {
-    const { shopId } = req.params;
-    const { day, bookingStart: newBookingStart, bookingEnd: newBookingEnd } = req.body;  
-    try {
-      // Βρίσκουμε το κατάστημα
-      const shop = await shopService.getShopByIdService(shopId);
-      if (!shop) {
-        return res.status(404).json({ message: 'Shop not found' });
-      }
-  
-      // Ενημερώνουμε τις νέες τιμές για την ημέρα
-      shop.openingHours[day].bookingStart = newBookingStart;
-      shop.openingHours[day].bookingEnd = newBookingEnd;
-      await shop.save();
-  
-      res.status(200).json({ message: 'Booking hours updated successfully' });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Server error' });
-    }
-};
-
-//! function για επιστροφη ολων των καταστηματων
+//! Function για επιστροφη ολων των καταστηματων
 const getAllShops = async (req, res) => {
     try {
         const shops = await shopService.getAllShopsService();
@@ -60,23 +37,50 @@ const getAllShops = async (req, res) => {
 
 //! Function για επιστροφη συγκεκριμενου καταστηματος
 const getShopById = async (req, res) => {
-    try {
-        const shopId = req.params.shopId;
-        const shop = await shopService.getShopByIdService(shopId);
-        if (!shop) {
-            return res.status(404).json({ message: 'Shop not found' });
-        }
-        res.status(200).json(shop);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error' });
-    }
+  try {
+      // Try to get shopId from user claims first
+      let shopId = req.user?.shopId;
+      
+      // If not found in user claims, try from params (for public access)
+      if (!shopId) {
+          shopId = req.params.shopId;
+      }
+      
+      if (!shopId) {
+          return res.status(400).json({ message: 'Shop ID not provided' });
+      }
+      
+      try {
+          const shop = await shopService.getShopByIdService(shopId);
+          if (!shop) {
+              return res.status(404).json({ message: 'Shop not found' });
+          }
+          res.status(200).json(shop);
+      } catch (error) {
+          console.error(`Shop with ID ${shopId} not found:`, error.message);
+          return res.status(404).json({ message: 'Shop not found', details: error.message });
+      }
+  } catch (error) {
+      console.error('Error in getShopById:', error);
+      res.status(500).json({ message: 'Server error' });
+  }
 };
 
 //! Function για edit shop
 const editShop = async (req, res) => {
     try {
-        const shopId = req.params.id;
+        // Try to get shopId from user claims first
+        let shopId = req.user?.shopId;
+        
+        // If not found in user claims, try from params
+        if (!shopId) {
+            shopId = req.params.id;
+        }
+        
+        if (!shopId) {
+            return res.status(400).json({ message: 'Shop ID not provided' });
+        }
+        
         const updatedData = req.body;
         const updatedShop = await shopService.editShop(shopId, updatedData);
         res.status(200).json(updatedShop);
@@ -87,22 +91,45 @@ const editShop = async (req, res) => {
 };
 
 const getShopReservationList = async (req, res) => {
-    try {
-        const { shopId } = req.params;
+  try {
+      // Get shopId from user claims instead of params
+      const shopId = req.user.shopId;
 
-        // Χρήση της υπηρεσίας για την επιστροφή της λίστας κρατήσεων
-        const reservationList = await shopService.getShopReservationList(shopId);
+      if (!shopId) {
+          return res.status(400).json({ 
+              message: 'Shop ID not found in user profile',
+              action: 'Please create a shop first'
+          });
+      }
 
-        res.status(200).json({ reservationList });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error' });
-    }
+      try {
+          // Χρήση της υπηρεσίας για την επιστροφή της λίστας κρατήσεων
+          const reservationList = await shopService.getShopReservationList(shopId);
+          res.status(200).json({ reservationList });
+      } catch (error) {
+          if (error.message === 'Shop not found') {
+              return res.status(404).json({ 
+                  message: 'Your shop was not found in the system',
+                  shopId: shopId,
+                  action: 'You may need to create a shop first' 
+              });
+          }
+          throw error; // Re-throw other errors
+      }
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Server error' });
+  }
 };
 
 //! Function για επιστροφή των τραπεζιών ενός καταστήματος
 const getShopTables = async (req, res) => {
-  const { shopId } = req.params;
+  // Get shopId from user claims
+  const shopId = req.user.shopId;
+
+  if (!shopId) {
+    return res.status(400).json({ message: 'Shop ID not found in user profile' });
+  }
 
   try {
     const tables = await tableService.getTablesByShopId(shopId);
@@ -113,11 +140,21 @@ const getShopTables = async (req, res) => {
   }
 };
 
-
 //! Function για επιστροφή των κριτικών ενός καταστήματος
-
 const getReviewsForShop = async (req, res) => {
-  const { shopId } = req.params;
+  let shopId;
+  
+  // If user is authenticated and has shopId in profile, use that
+  if (req.user && req.user.shopId) {
+    shopId = req.user.shopId;
+  } else {
+    // Otherwise, still allow using the parameter for public access
+    shopId = req.params.shopId;
+  }
+  
+  if (!shopId) {
+    return res.status(400).json({ message: 'Shop ID not provided' });
+  }
 
   try {
     const reviews = await shopService.getShopReviews(shopId);
@@ -127,84 +164,134 @@ const getReviewsForShop = async (req, res) => {
   }
 };
 
-//!
-async function getGeneralDetails() {
-    try {
-      const response = await fetch(`/api/shop/${shopId}`);
-      if (!response.ok) throw new Error("Failed to fetch shop details");
-      const shop = await response.json();
-  
-      // Update the fields with the populated data
-      document.getElementById("shopName").value = shop.shopName || 'N/A';
-      document.getElementById("shopDescription").value = shop.shopDescription || 'N/A';
-      document.getElementById("shopPhone").value = shop.phone || 'N/A';
-      document.getElementById("shopCity").value = shop.city?.name || 'N/A'; // Use the populated city name
-      document.getElementById("shopRegion").value = shop.region?.name || 'N/A'; // Use the populated region name
-      document.getElementById("shopCategory").value = shop.category?.name || 'N/A'; // Use the populated category name
-  
-      // Display opening hours
-      const openingHoursDiv = document.getElementById("shopOpeningHours");
-      openingHoursDiv.innerHTML = Object.entries(shop.openingHours || {})
-        .map(([day, hours]) => `
-          <p>
-            <strong>${day.charAt(0).toUpperCase() + day.slice(1)}:</strong> 
-            ${hours.isOpen ? `${hours.open}:00 - ${hours.close}:00` : 'Closed'}
-          </p>
-        `)
-        .join('');
-    } catch (error) {
-      console.error("Error fetching general shop details:", error);
+//! Function to fetch general details for a shop
+//! Function to fetch general details for a shop
+const getGeneralDetails = async (req, res) => {
+  try {
+    // Get shopId from user claims
+    const shopId = req.user.shopId;
+    
+    if (!shopId) {
+      return res.status(400).json({ 
+        message: 'Shop ID not found in user profile',
+        action: 'Please create a shop or contact support' 
+      });
     }
+    
+    try {
+      const shop = await shopService.getShopByIdService(shopId);
+      res.status(200).json(shop);
+    } catch (error) {
+      // Special handling for shop not found
+      if (error.message === 'Shop not found') {
+        return res.status(404).json({ 
+          message: 'Your shop was not found in the system',
+          shopId: shopId,
+          action: 'You may need to create a shop first' 
+        });
+      }
+      throw error; // Re-throw other errors
+    }
+  } catch (error) {
+    console.error("Error fetching general shop details:", error);
+    res.status(500).json({ message: 'Error fetching shop details', error: error.message });
   }
+};
 
+const getPhotos = async (req, res) => {
+  try {
+    // Get shopId from user claims
+    const shopId = req.user.shopId;
+    
+    if (!shopId) {
+      return res.status(400).json({ message: 'Shop ID not found in user profile' });
+    }
+    
+    const shop = await Shop.findById(shopId);
+    if (!shop) return res.status(404).json({ message: 'Shop not found' });
+    res.status(200).json(shop.images || []); // Use `images` instead of `photos`
+  } catch (error) {
+    console.error('Error fetching images:', error.message);
+    res.status(500).json({ message: 'Error fetching images' });
+  }
+};
 
-  const getPhotos = async (req, res) => {
-    try {
-      const { shopId } = req.params;
-      const shop = await Shop.findById(shopId);
-      if (!shop) return res.status(404).json({ message: 'Shop not found' });
-      res.status(200).json(shop.images || []); // Use `images` instead of `photos`
-    } catch (error) {
-      console.error('Error fetching images:', error.message);
-      res.status(500).json({ message: 'Error fetching images' });
+const addPhoto = async (req, res) => {
+  try {
+    // Get shopId from user claims
+    const shopId = req.user.shopId;
+    
+    if (!shopId) {
+      return res.status(400).json({ message: 'Shop ID not found in user profile' });
     }
-  };
-  
-  const addPhoto = async (req, res) => {
-    try {
-      const { shopId } = req.params;
-      const shop = await Shop.findById(shopId);
-      if (!shop) return res.status(404).json({ message: 'Shop not found' });
-  
-      const photoPath = `/uploads/shops/${req.file.filename}`;
-      shop.images = shop.images || []; // Use `images` instead of `photos`
-      shop.images.push(photoPath);
-      await shop.save();
-  
-      res.status(201).json({ message: 'Image added successfully', url: photoPath });
-    } catch (error) {
-      console.error('Error adding image:', error.message);
-      res.status(500).json({ message: 'Error adding image' });
-    }
-  };
-  
-  const deletePhoto = async (req, res) => {
-    try {
-      const { shopId } = req.params;
-      const { photo } = req.body;
-      const shop = await Shop.findById(shopId);
-      if (!shop) return res.status(404).json({ message: 'Shop not found' });
-  
-      shop.images = shop.images.filter((p) => p !== photo); // Use `images` instead of `photos`
-      await shop.save();
-  
-      res.status(200).json({ message: 'Image deleted successfully' });
-    } catch (error) {
-      console.error('Error deleting image:', error.message);
-      res.status(500).json({ message: 'Error deleting image' });
-    }
-  };
+    
+    const shop = await Shop.findById(shopId);
+    if (!shop) return res.status(404).json({ message: 'Shop not found' });
 
+    const photoPath = `/uploads/shops/${req.file.filename}`;
+    shop.images = shop.images || []; // Use `images` instead of `photos`
+    shop.images.push(photoPath);
+    await shop.save();
+
+    res.status(201).json({ message: 'Image added successfully', url: photoPath });
+  } catch (error) {
+    console.error('Error adding image:', error.message);
+    res.status(500).json({ message: 'Error adding image' });
+  }
+};
+
+const deletePhoto = async (req, res) => {
+  try {
+    // Get shopId from user claims
+    const shopId = req.user.shopId;
+    
+    if (!shopId) {
+      return res.status(400).json({ message: 'Shop ID not found in user profile' });
+    }
+    
+    const { photo } = req.body;
+    const shop = await Shop.findById(shopId);
+    if (!shop) return res.status(404).json({ message: 'Shop not found' });
+
+    shop.images = shop.images.filter((p) => p !== photo); // Use `images` instead of `photos`
+    await shop.save();
+
+    res.status(200).json({ message: 'Image deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting image:', error.message);
+    res.status(500).json({ message: 'Error deleting image' });
+  }
+};
+
+//! Function for updating booking hours for a day
+const patchBookingHoursForDay = async (req, res) => {
+  const { day, bookingStart: newBookingStart, bookingEnd: newBookingEnd } = req.body;
+  
+  // Get shopId from user claims
+  const shopId = req.user.shopId;
+  
+  if (!shopId) {
+    return res.status(400).json({ message: 'Shop ID not found in user profile' });
+  }
+  
+  try {
+    // Βρίσκουμε το κατάστημα
+    const shop = await shopService.getShopByIdService(shopId);
+    if (!shop) {
+      return res.status(404).json({ message: 'Shop not found' });
+    }
+
+    // Ενημερώνουμε τις νέες τιμές για την ημέρα
+    shop.openingHours[day].bookingStart = newBookingStart;
+    shop.openingHours[day].bookingEnd = newBookingEnd;
+    await shop.save();
+
+    res.status(200).json({ message: 'Booking hours updated successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
 
 module.exports = { 
     addShop,
@@ -219,5 +306,4 @@ module.exports = {
     getPhotos,
     addPhoto,
     deletePhoto,
- 
 };

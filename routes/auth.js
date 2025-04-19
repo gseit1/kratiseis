@@ -30,8 +30,14 @@ authRouter.post('/api/login', [
   next();
 }, login);
 
-
-
+// New route to check if user is authenticated
+authRouter.get('/api/check-auth', verifyToken, (req, res) => {
+  res.status(200).json({ 
+    isAuthenticated: true, 
+    userId: req.userId,
+    role: req.userRole
+  });
+});
 
 // Route για αλλαγή ρόλου χρήστη από admin
 authRouter.patch('/api/change-role', changeUserRole);

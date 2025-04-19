@@ -62,38 +62,32 @@ const login = async (req, res) => {
 
     console.log('Firebase login successful:', response.data); // Log the response from Firebase
 
-    const idToken = response.data.idToken;
-    const firebaseUid = response.data.localId; // Get the UID from Firebase
+   // In your login function, after getting the Firebase token:
+const idToken = response.data.idToken;
+const firebaseUid = response.data.localId;
 
-    console.log('Firebase UID:', firebaseUid); // Log the Firebase UID
+// Find the user in MongoDB
+const user = await User.findOne({ firebaseUid });
 
-    // Find the user in MongoDB
-    console.log('Searching for user in MongoDB with Firebase UID:', firebaseUid);
-    const user = await User.findOne({ firebaseUid });
-    if (!user) {
-      console.warn('User not found in MongoDB for Firebase UID:', firebaseUid); // Log warning if user not found
-      return res.status(404).json({ message: 'User not found in MongoDB' });
-    }
+// Set HTTP-only cookie with the token
+res.cookie('jwt', idToken, {
+  httpOnly: true,
+  secure: false, // Use HTTPS in production
+  sameSite: 'Lax',
+  maxAge: 1000 * 60 * 60, // 1 hour
+});
 
-    console.log('User found in MongoDB:', user); // Log the user found
+// Fetch the current custom claims to include in the response
+const userRecord = await admin.auth().getUser(firebaseUid);
+const customClaims = userRecord.customClaims || {};
 
-    // Set HTTP-only cookie with the token
-    res.cookie('jwt', idToken, {
-      httpOnly: true,
-      secure: false, // Use HTTPS in production
-      sameSite: 'Lax',
-      maxAge: 1000 * 60 * 60, // 1 hour
-    });
-
-    console.log('JWT set in cookies successfully.');
-
-    // Return minimal, non-sensitive data to the client
-    res.status(200).json({
-      message: 'Login successful',
-      role: user.role, // Include role for client-side redirection
-      shopId: user.shopId || null, // Include shopId if applicable
-      userId: user._id, // Include userId for client-side use
-    });
+// Return data to client including claims
+res.status(200).json({
+  message: 'Login successful',
+  role: user.role,
+  shopId: user.shopId || customClaims.shopId || null,
+  userId: user._id
+});
 
     console.log('Login response sent successfully'); // Log for successful response
   } catch (error) {
@@ -235,38 +229,68 @@ const getUserDetails = async (req, res) => {
   }
 };
 
-    const setUserShopId = async (req, res) => {
-      const { shopId } = req.body;
-      console.log('setUserShopId called');
-      console.log('Received shopId:', shopId);
-    
-      if (!req.user || !req.user.uid) {
-        console.error('Missing or invalid user in request');
-        return res.status(401).json({ message: 'Unauthorized: Missing user information' });
-      }
-    
+const setUserShopId = async (req, res) => {
+  const { shopId } = req.body;
+  console.log('setUserShopId called');
+  console.log('Received shopId:', shopId);
+
+  if (!req.user || !req.user.id) {
+    console.error('Missing or invalid user in request');
+    return res.status(401).json({ message: 'Unauthorized: Missing user information' });
+  }
+
+  try {
+    console.log('Fetching user with id:', req.user.id);
+
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      console.error('User not found for id:', req.user.id);
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    console.log('User found:', user);
+
+    // Update shopId in MongoDB
+    user.shopId = shopId;
+    user.role = 'shopOwner'; // Ensure the role is set to shopOwner
+    console.log('Updating user shopId to:', shopId);
+    await user.save();
+
+    // Set Firebase custom claims
+    if (user.firebaseUid) {
       try {
-        console.log('Fetching user with firebaseUid:', req.user.uid);
-    
-        const user = await User.findOne({ firebaseUid: req.user.uid });
-        if (!user) {
-          console.error('User not found for firebaseUid:', req.user.uid);
-          return res.status(404).json({ message: 'User not found' });
-        }
-    
-        console.log('User found:', user);
-    
-        user.shopId = shopId;
-        console.log('Updating user shopId to:', shopId);
-        await user.save();
-    
-        console.log('Shop ID updated successfully for user:', user);
-        res.status(200).json({ message: 'Shop ID set successfully', shopId: user.shopId });
-      } catch (error) {
-        console.error('Error setting shop ID:', error.message);
-        res.status(500).json({ message: 'Error setting shop ID', error: error.message });
+        // Get current custom claims
+        const userRecord = await admin.auth().getUser(user.firebaseUid);
+        const currentClaims = userRecord.customClaims || {};
+        
+        // Update with new claims
+        await admin.auth().setCustomUserClaims(user.firebaseUid, { 
+          ...currentClaims,
+          shopId: shopId.toString(),
+          role: 'shopOwner'
+        });
+        console.log('Firebase custom claims set for user:', user.firebaseUid);
+      } catch (firebaseError) {
+        console.error('Error setting Firebase custom claims:', firebaseError);
+        // Continue with the process even if Firebase update fails
       }
-    };
+    }
+
+    console.log('Shop ID updated successfully for user:', user);
+    res.status(200).json({ message: 'Shop ID set successfully', shopId: user.shopId });
+  } catch (error) {
+    console.error('Error setting shop ID:', error.message);
+    res.status(500).json({ message: 'Error setting shop ID', error: error.message });
+  }
+};
+
+
+
+
+
+
+
+
 const filterByRole = async (req, res) => {
   const { role } = req.query; // Παίρνουμε το role από το body
 

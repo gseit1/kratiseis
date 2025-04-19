@@ -472,24 +472,107 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-     // Logout functionality
-     document.getElementById('logoutBtn').addEventListener('click', () => {
-            localStorage.clear(); // Clear all localStorage data
-            alert('You have been logged out.');
-            window.location.href = 'registerLogin.html'; // Redirect to login page
-        });
-   // Get shopId from URL parameters or localStorage
-const urlParams = new URLSearchParams(window.location.search);
-let shopId = urlParams.get('shop_id') || localStorage.getItem('shopId');
 
-// Έλεγχος αν το shopId είναι null ή undefined
-if (!shopId || shopId === 'null' || shopId === 'undefined') {
-  alert("Shop ID is missing. Redirecting to create shop page.");
-  window.location.href = 'createShop.html';
-} else {
-  // Αποθήκευση του shopId στο localStorage για μελλοντική χρήση
-  localStorage.setItem('shopId', shopId);
+
+
+
+     // Logout functionality
+document.getElementById('logoutBtn').addEventListener('click', async () => {
+    try {
+        // Call a logout endpoint to clear the cookie
+        await fetch('/api/logout', {
+            method: 'POST',
+            credentials: 'include',
+        });
+        
+        // Clear any client-side storage
+        localStorage.clear();
+        sessionStorage.clear();
+        
+        alert('You have been logged out.');
+        window.location.href = 'registerLogin.html'; // Redirect to login page
+    } catch (error) {
+        console.error('Error during logout:', error);
+        // If the fetch fails, still clear storage and redirect
+        localStorage.clear();
+        sessionStorage.clear();
+        window.location.href = 'registerLogin.html';
+    }
+});
+
+
+
+
+//User Details fetch
+
+// Global shopId variable
+let shopId = null;
+
+// User Details fetch
+async function fetchUserProfile() {
+  try {
+    const response = await fetch('/api/users/details', {
+      method: 'GET',
+      credentials: 'include', // Include cookies in the request
+    });
+
+    if (response.ok) {
+      const userProfile = await response.json();
+      console.log('User Profile:', userProfile);
+
+      // Update the UI with user profile data
+      document.getElementById('userName').value = userProfile.name || 'N/A';
+      document.getElementById('userSurname').value = userProfile.surname || 'N/A';
+      document.getElementById('userEmail').value = userProfile.email || 'N/A';
+      document.getElementById('userRole').value = userProfile.role || 'N/A';
+      document.getElementById('userShopId').value = userProfile.shopId || 'N/A';
+      
+      // Set the global shopId variable
+      shopId = userProfile.shopId;
+      
+      // Update shop ID display in the UI
+      document.getElementById('shopIdDisplay').textContent = `Shop ID: ${shopId}`;
+      
+      // Check if shopId is valid
+      if (!shopId) {
+        alert("Shop ID is missing. Redirecting to create shop page.");
+        window.location.href = 'createShop.html';
+      } else {
+        // Initialize data fetching
+        fetchTables();
+        fetchGeneralDetails();
+        fetchBookingHours();
+        fetchPhotos();
+        fetchReservations();
+      }
+    } else {
+      console.error('Failed to fetch user profile:', response.status, response.statusText);
+      alert(`Failed to fetch user profile: ${response.statusText}. Please log in again.`);
+      window.location.href = 'registerLogin.html';
+    }
+  } catch (error) {
+    console.error('Error fetching user profile:', error);
+    alert('An error occurred while fetching the user profile. Please try again later.');
+  }
 }
+
+// Call the function to fetch the user profile
+fetchUserProfile();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
      
     const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
 
@@ -498,12 +581,29 @@ if (!shopId || shopId === 'null' || shopId === 'undefined') {
     // ------------------------------
     async function fetchTables() {
       try {
-        const response = await fetch(`/api/shop/${shopId}/tables`);
+        const response = await fetch('/api/shop/tables', {
+          method: "GET",
+          credentials: 'include',  // Include credentials (cookies) in the request
+          headers: {
+            "Content-Type": "application/json"
+          }
+        });
+        
+        if (response.status === 401 || response.status === 403) {
+          alert("You are not authorized to access this resource. Redirecting to login page.");
+          window.location.href = 'registerLogin.html';
+          return;
+        }
+        
         if (!response.ok) throw new Error("Failed to fetch tables");
         const tables = await response.json();
         displayTables(tables);
       } catch (error) {
         console.error("Error fetching tables:", error);
+        document.getElementById("tableList").innerHTML = `
+          <div class="alert alert-danger">
+            Error loading tables: ${error.message}
+          </div>`;
       }
     }
 
@@ -658,7 +758,7 @@ function hideTableAvailability(tableId) {
 // Fetch and populate General Shop Details
 async function fetchGeneralDetails() {
   try {
-    const response = await fetch(`/api/shop/${shopId}`);
+    const response = await fetch('/api/shop/generalDetails');
     if (!response.ok) throw new Error("Failed to fetch shop details");
     const shop = await response.json();
 
@@ -762,7 +862,7 @@ let currentPhotoIndex = 0;
 
 async function fetchPhotos() {
   try {
-    const response = await fetch(`/api/shop/${shopId}/photos`);
+    const response = await fetch('/api/shop/photos');
     if (!response.ok) throw new Error('Failed to fetch images');
     photos = await response.json(); // `photos` now contains the `images` array
     displayPhotos();
@@ -811,10 +911,11 @@ document.getElementById('prevPhotoBtn').addEventListener('click', () => {
 document.getElementById('deletePhotoBtn').addEventListener('click', async () => {
   const photoToDelete = photos[currentPhotoIndex];
   try {
-    const response = await fetch(`/api/shop/${shopId}/photos`, {
+    const response = await fetch(`/api/shop/photos`, {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ photo: photoToDelete }),
+      credentials: 'include'
     });
     if (!response.ok) throw new Error('Failed to delete photo');
     alert('Photo deleted successfully!');
@@ -840,9 +941,10 @@ document.getElementById('addPhotoBtn').addEventListener('click', async () => {
     formData.append('photo', file);
 
     try {
-      const response = await fetch(`/api/shop/${shopId}/photos`, {
+      const response = await fetch(`/api/shop/photos`, {
         method: 'POST',
         body: formData,
+        credentials: 'include'
       });
       if (!response.ok) throw new Error('Failed to upload photo');
       const newPhoto = await response.json();
@@ -865,37 +967,7 @@ fetchPhotos();
 
 // Fetch user profile
 // Fetch user profile
-async function fetchUserProfile() {
-  try {
-    const response = await fetch('/api/users/details', {
-      method: 'GET',
-      credentials: 'include', // Include cookies in the request
-    });
 
-    if (response.ok) {
-      const userProfile = await response.json();
-      console.log('User Profile:', userProfile);
-
-      // Update the UI with user profile data
-      document.getElementById('userName').value = userProfile.name || 'N/A';
-      document.getElementById('userSurname').value = userProfile.surname || 'N/A';
-      document.getElementById('userEmail').value = userProfile.email || 'N/A';
-      document.getElementById('userRole').value = userProfile.role || 'N/A';
-      document.getElementById('userShopId').value = userProfile.shopId || 'N/A';
-    } else {
-      console.error('Failed to fetch user profile:', response.status, response.statusText);
-      alert(`Failed to fetch user profile: ${response.statusText}. Please log in again.`);
-    }
-  } catch (error) {
-    console.error('Error fetching user profile:', error);
-    alert('An error occurred while fetching the user profile. Please try again later.');
-  }
-}
-
-// Call the function to fetch the user prof
-
-// Call the function to fetch the user profile
-fetchUserProfile();
 
 
 
@@ -913,7 +985,7 @@ fetchUserProfile();
 // Fetch και ενημέρωση των Booking Hours
 async function fetchBookingHours() {
   try {
-    const response = await fetch(`/api/shop/${shopId}`);
+    const response = await fetch('/api/shop/generalDetails');
     if (!response.ok) throw new Error("Failed to fetch shop details");
     const shop = await response.json();
 
@@ -954,28 +1026,33 @@ days.forEach(day => {
   const newBookingStart = parseFloat(startInput.value) || 0;
   const newBookingEnd = parseFloat(endInput.value) || 0;
 
+  // Ensure start time is less than end time
+  if (newBookingStart >= newBookingEnd) {
+    alert("Booking start time must be less than booking end time.");
+    return;
+  }
+
   const bookingBody = { 
-    day: day.toLowerCase(), 
+    day, 
     bookingStart: newBookingStart, 
     bookingEnd: newBookingEnd 
   };
 
-  // Log για να δεις τι δεδομένα στέλνονται στο backend
-  console.log("Sending bookingBody to backend:", bookingBody);
-
   try {
-    const response = await fetch(`/api/shop/${shopId}/booking-hours`, {
+    // Updated URL - no shopId in the path, will use from cookie
+    const response = await fetch(`/api/shop/booking-hours`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json"
+      },
       body: JSON.stringify(bookingBody),
+      credentials: 'include' // Include cookies for authentication
     });
 
     if (!response.ok) {
       const error = await response.json();
-      console.error("Error response from backend:", error); // Log το σφάλμα από το backend
       alert(`Error updating booking hours for ${day}: ${error.message}`);
     } else {
-      console.log(`Booking hours for ${day} updated successfully!`); // Log επιτυχία
       alert(`Booking hours for ${day} updated successfully!`);
       toggleEditSave(`edit_${day}`, `save_${day}`, `bookingStart_${day}`, `bookingEnd_${day}`, false);
     }
@@ -1119,16 +1196,12 @@ function renderReservationsForDay(reservationsArray) {
     // Modify your existing fetchReservations function to use the grouped display
     async function fetchReservations() {
   try {
-    const response = await fetch(`/api/shop/reservationList/${shopId}`);
-    if (!response.ok) throw new Error("Failed to fetch reservations");
-    const reservationsData = await response.json();
-    if (!reservationsData || reservationsData.length === 0) {
-      console.log("No reservations found.");
-      return;
-    }
-    displayGroupedReservations(reservationsData);
+    const response = await fetch('/api/shop/reservationList');
+    if (!response.ok) throw new Error('Failed to fetch reservations');
+    const data = await response.json();
+    displayGroupedReservations(data);
   } catch (error) {
-    console.error("Error fetching reservations:", error);
+    console.error('Error fetching reservations:', error);
   }
 }
 
@@ -1138,43 +1211,57 @@ function renderReservationsForDay(reservationsArray) {
     // ------------------------------
     // Availability Section
     // ------------------------------
-    async function fetchAvailability() {
-    const dateString = document.getElementById('dateString').value;
-    const seats = document.getElementById('seatsRequired').value;
-    const shopId = new URLSearchParams(window.location.search).get('shop_id');
-    try {
-      console.log("Fetching availability for:", { shopId, dateString, seats });
-      const response = await fetch(`/api/availability?shopId=${shopId}&dateString=${dateString}&seats=${seats}`);
-      if (!response.ok) throw new Error('Failed to fetch availability');
-      const data = await response.json();
-      displayAvailability(data);
-    } catch (error) {
-      console.error("Error fetching availability:", error);
-      document.getElementById('availabilitySection').innerHTML = `<p class="text-center">Error fetching availability: ${error.message}</p>`;
-    }
+async function fetchAvailability() {
+  const dateString = document.getElementById('dateString').value;
+  const seats = document.getElementById('seatsRequired').value;
+
+  // Use the global `shopId` variable set during user profile fetch
+  if (!shopId) {
+    alert("Shop ID is missing. Please refresh the page.");
+    return;
   }
 
-  function displayAvailability(data) {
-    const availabilitySection = document.getElementById('availabilitySection');
-    if (data && data.availability && Array.isArray(data.availability) && data.availability.length > 0) {
-      let html = `<ul class="list-group">`;
-      data.availability.forEach(hour => {
-        html += `<li class="list-group-item available-hour" style="cursor: pointer;" data-hour="${hour}">${hour}</li>`;
-      });
-      html += `</ul>`;
-      availabilitySection.innerHTML = html;
-
-      // Add click event listeners to available hours
-      document.querySelectorAll('.available-hour').forEach(item => {
-        item.addEventListener('click', (event) => {
-          const selectedHour = event.target.getAttribute('data-hour');
-          showReservationForm(selectedHour);
-        });
-      });
-    } else {
-      availabilitySection.innerHTML = `<p class="text-center">No availability found for selected date and seats.</p>`;
-    }
+  if (!dateString || !seats) {
+    document.getElementById('availabilitySection').innerHTML = `<p class="text-danger">Please provide all required inputs (date and seats).</p>`;
+    return;
   }
+
+  try {
+    console.log("Fetching availability for:", { shopId, dateString, seats });
+    const response = await fetch(`/api/availability?shopId=${shopId}&dateString=${dateString}&seats=${seats}`);
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to fetch availability');
+    }
+    const data = await response.json();
+    displayAvailability(data);
+  } catch (error) {
+    console.error("Error fetching availability:", error);
+    document.getElementById('availabilitySection').innerHTML = `<p class="text-danger">Error fetching availability: ${error.message}</p>`;
+  }
+}
+
+function displayAvailability(data) {
+  const availabilitySection = document.getElementById('availabilitySection');
+  if (data && data.availability && Array.isArray(data.availability) && data.availability.length > 0) {
+    let html = `<ul class="list-group">`;
+    data.availability.forEach(hour => {
+      html += `<li class="list-group-item available-hour" style="cursor: pointer;" data-hour="${hour}">${hour}</li>`;
+    });
+    html += `</ul>`;
+    availabilitySection.innerHTML = html;
+
+    // Add click event listeners to available hours
+    document.querySelectorAll('.available-hour').forEach(item => {
+      item.addEventListener('click', (event) => {
+        const selectedHour = event.target.getAttribute('data-hour');
+        showReservationForm(selectedHour);
+      });
+    });
+  } else {
+    availabilitySection.innerHTML = `<p class="text-warning">No availability found for the selected date and seats.</p>`;
+  }
+}
 
   function showReservationForm(selectedHour) {
     const dateString = document.getElementById('dateString').value;
@@ -1188,52 +1275,56 @@ function renderReservationsForDay(reservationsArray) {
   document.getElementById('checkAvailabilityBtn').addEventListener('click', fetchAvailability);
 
   document.getElementById('submitReservationBtn').addEventListener('click', async () => {
-    const name = document.getElementById('reservationName').value;
-    const surname = document.getElementById('reservationSurname').value;
-    const dateTime = document.getElementById('reservationDateTime').value;
-    const shopId = new URLSearchParams(window.location.search).get('shop_id');
-    const seats = document.getElementById('seatsRequired').value.trim(); // Get the seats value
+  const name = document.getElementById('reservationName').value.trim();
+  const surname = document.getElementById('reservationSurname').value.trim();
+  const dateTime = document.getElementById('reservationDateTime').value.trim();
+  const seats = document.getElementById('seatsRequired').value.trim();
 
-    
+  if (!name || !surname || !dateTime || !seats) {
+    alert("Please fill in all required fields.");
+    return;
+  }
 
-    if (!name || !surname || !dateTime) {
-      alert("Please fill in all required fields.");
+  const [reservationDate, reservationTime] = dateTime.split(' ');
+
+  // Ensure the global shopId is set
+  if (!shopId) {
+    alert("Shop ID is missing. Please refresh the page.");
+    return;
+  }
+
+  const reservationData = {
+    shopId, // Use the global shopId variable
+    name,
+    surname,
+    reservationDate,
+    reservationTime,
+    seats,
+  };
+
+  try {
+    console.log("Submitting reservation:", reservationData);
+    const response = await fetch('/api/reservation', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(reservationData),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      console.error("Error submitting reservation:", error);
+      alert("Error submitting reservation: " + error.message);
       return;
     }
 
-    const [reservationDate, reservationTime] = dateTime.split(' ');
-
-    const reservationData = {
-      shopId,
-      name,
-      surname,
-      reservationDate,
-      reservationTime,
-      seats,
-    };
-
-    try {
-      console.log("Submitting reservation:", reservationData);
-      const response = await fetch('/api/reservation', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(reservationData),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        console.error("Error submitting reservation:", error);
-        alert("Error submitting reservation: " + error.message);
-        return;
-      }
-
-      alert("Reservation submitted successfully!");
-      document.getElementById('reservationFormContainer').style.display = 'none';
-    } catch (error) {
-      console.error("Error submitting reservation:", error);
-      alert("An error occurred while submitting the reservation.");
-    }
-  });
+    alert("Reservation submitted successfully!");
+    document.getElementById('reservationFormContainer').style.display = 'none';
+    fetchReservations(); // Refresh the reservations list
+  } catch (error) {
+    console.error("Error submitting reservation:", error);
+    alert("An error occurred while submitting the reservation.");
+  }
+});
 
 
 
@@ -1244,21 +1335,19 @@ function renderReservationsForDay(reservationsArray) {
   async function deleteReservation(reservationId) {
   if (confirm("Are you sure you want to delete this reservation?")) {
     try {
-      const jwtToken = localStorage.getItem("jwtToken");
-      const shopId = localStorage.getItem("shopId"); // Παίρνουμε το shopId από το localStorage
-      console.log("id",shopId);
+      console.log("Using shop ID:", shopId);
 
-      if (!jwtToken || !shopId) {
-        alert("You are not logged in. Please log in again.");
+      if (!shopId) {
+        alert("Shop ID is missing. Please refresh the page.");
         return;
       }
 
-      const response = await fetch(`/api/reservation/${reservationId}?shopId=${shopId}`, { 
+      const response = await fetch(`/api/reservation/${reservationId}`, { 
         method: "DELETE",
         headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${jwtToken}`
-        }
+          "Content-Type": "application/json"
+        },
+        credentials: 'include' // Add this to use cookie-based authentication
       });
 
       if (!response.ok) {
@@ -1268,7 +1357,7 @@ function renderReservationsForDay(reservationsArray) {
       }
 
       alert("Reservation deleted successfully!");
-      fetchReservations(); // Ανανεώνουμε τη λίστα κρατήσεων
+      fetchReservations(); // Refresh the reservation list
     } catch (error) {
       console.error("Error deleting reservation:", error);
       alert("Error deleting reservation. Check console for details.");
