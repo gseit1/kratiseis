@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" href="../styles/customer.css">
+    <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" />
+    <link href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.css" rel="stylesheet" />
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+    <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.min.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create Shop</title>
     <style>
@@ -78,6 +82,23 @@
             width: calc(50% - 10px);
             margin-right: 10px;
         }
+        #map {
+            height: 400px;
+            margin-bottom: 20px;
+        }
+
+        .mapboxgl-ctrl-geocoder {
+            margin: 10px auto;
+            max-width: 600px;
+            width: 100%;
+            z-index: 1;
+        }
+
+        .geocoder-container {
+            position: relative;
+            z-index: 10;
+            margin-bottom: -50px; /* Το search bar πάνω από τον χάρτη */
+        }
     </style>
 </head>
 <body>
@@ -117,6 +138,12 @@
             <div class="mb-3">
                 <label for="location" class="form-label">Location (longitude, latitude):</label>
                 <input type="text" class="form-control" id="location" name="location" required>
+            </div>
+            <div class="mb-3">
+                <label for="map" class="form-label">Select Location:</label>
+                <div id="map"></div>
+                <input type="hidden" id="longitude" name="longitude">
+                <input type="hidden" id="latitude" name="latitude">
             </div>
             <div class="mb-3">
                 <label for="phone" class="form-label">Phone:</label>
@@ -293,91 +320,176 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         createShopForm.addEventListener('submit', async function (event) {
-  event.preventDefault();
+            event.preventDefault();
 
-  const formData = new FormData(createShopForm);
-  const shopData = Object.fromEntries(formData.entries());
+            const formData = new FormData(createShopForm);
+            const shopData = Object.fromEntries(formData.entries());
 
-  // Δημιουργία της δομής για τα openingHours
-  const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-  shopData.openingHours = {};
+            // Ενημέρωση τοποθεσίας
+            const latitude = parseFloat(document.getElementById('latitude').value);
+            const longitude = parseFloat(document.getElementById('longitude').value);
 
-  days.forEach(day => {
-    const isOpen = document.getElementById(`${day}IsOpen`).checked;
-    const open = parseInt(document.getElementById(`${day}Open`).value) || null;
-    const close = parseInt(document.getElementById(`${day}Close`).value) || null;
-    const bookingStart = parseInt(document.getElementById(`${day}BookingStart`).value) || null;
-    const bookingEnd = parseInt(document.getElementById(`${day}BookingEnd`).value) || null;
+            if (!latitude || !longitude) {
+                alert('Please select a location on the map.');
+                return;
+            }
 
-    shopData.openingHours[day] = {
-      isOpen,
-      ...(isOpen && open !== null && close !== null ? { open, close } : {}),
-      ...(isOpen && bookingStart !== null && bookingEnd !== null ? { bookingStart, bookingEnd } : {})
-    };
-  });
+            shopData.location = {
+                type: 'Point',
+                coordinates: [longitude, latitude],
+            };
 
-  // Parse the location field
-  if (shopData.location) {
-    const [longitude, latitude] = shopData.location.split(',').map(coord => parseFloat(coord.trim()));
-    if (!longitude || !latitude) {
-      alert('Invalid location format. Please provide longitude and latitude separated by a comma.');
-      return;
-    }
-    shopData.location = {
-      type: 'Point',
-      coordinates: [longitude, latitude]
-    };
-  }
+            // Δημιουργία της δομής για τα openingHours
+            const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+            shopData.openingHours = {};
 
-  try {
-    // Create shop - remove the Authorization header since the cookie will be sent automatically
-    const shopResponse = await fetch('/api/shop', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(shopData),
-      // Add this to ensure cookies are sent with the request
-      credentials: 'include'
+            days.forEach(day => {
+                const isOpen = document.getElementById(`${day}IsOpen`).checked;
+                const open = parseInt(document.getElementById(`${day}Open`).value) || null;
+                const close = parseInt(document.getElementById(`${day}Close`).value) || null;
+                const bookingStart = parseInt(document.getElementById(`${day}BookingStart`).value) || null;
+                const bookingEnd = parseInt(document.getElementById(`${day}BookingEnd`).value) || null;
+
+                shopData.openingHours[day] = {
+                    isOpen,
+                    ...(isOpen && open !== null && close !== null ? { open, close } : {}),
+                    ...(isOpen && bookingStart !== null && bookingEnd !== null ? { bookingStart, bookingEnd } : {})
+                };
+            });
+
+            try {
+                // Create shop - remove the Authorization header since the cookie will be sent automatically
+                const shopResponse = await fetch('/api/shop', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(shopData),
+                    // Add this to ensure cookies are sent with the request
+                    credentials: 'include'
+                });
+
+                if (!shopResponse.ok) {
+                    const errorData = await shopResponse.json();
+                    throw new Error(errorData.message || 'Failed to create shop');
+                }
+                
+                const shopResult = await shopResponse.json();
+                console.log('Shop created successfully:', shopResult);
+
+                // Update user's shopId - also with credentials
+                const shopIdResponse = await fetch('/api/user/shopId', {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ shopId: shopResult.shop._id }),
+                    credentials: 'include'
+                });
+
+                if (!shopIdResponse.ok) {
+                    const errorData = await shopIdResponse.json();
+                    throw new Error(errorData.message || 'Failed to update shop ID');
+                }
+                
+                const shopIdResult = await shopIdResponse.json();
+                console.log('Shop ID updated successfully:', shopIdResult);
+
+                // Save shopId to localStorage for future use
+                localStorage.setItem('shopId', shopResult.shop._id);
+
+                // Redirect to the dashboard
+                alert('Shop created and linked successfully! Redirecting to dashboard...');
+                window.location.href = 'shopOwnerDashboard.html';
+            } catch (error) {
+                console.error('Error during shop creation or linking:', error);
+                alert('Error: ' + error.message);
+            }
+        });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // Mapbox API Key
+        mapboxgl.accessToken = 'pk.eyJ1IjoicGFub3UyMSIsImEiOiJjbTlzcW9uYmkwM2k4MmpzYjc5dTF6M2ZtIn0.YBe_KPam5O4bdPh2xCpMdw';
+
+        // Αρχικοποίηση του χάρτη με καθαρό στυλ δρόμων
+        const map = new mapboxgl.Map({
+            container: 'map', // Το div ID για τον χάρτη
+            style: 'mapbox://styles/mapbox/streets-v12', // Καθαρό στυλ δρόμων
+            center: [23.7275, 37.9838], // Default: Αθήνα (longitude, latitude)
+            zoom: 13,
+        });
+
+        // Προσθήκη ελέγχου zoom και περιστροφής
+        map.addControl(new mapboxgl.NavigationControl());
+
+        // Προσθήκη autocomplete (Mapbox Geocoder)
+        const geocoder = new MapboxGeocoder({
+            accessToken: mapboxgl.accessToken,
+            mapboxgl: mapboxgl,
+            placeholder: 'Search for a location', // Placeholder για το πεδίο αναζήτησης
+            countries: 'GR', // Περιορισμός στην Ελλάδα
+            marker: false, // Δεν θέλουμε αυτόματο marker
+        });
+
+        // Προσθήκη του geocoder πάνω από τον χάρτη
+        const geocoderContainer = document.createElement('div');
+        geocoderContainer.className = 'geocoder-container';
+        document.body.appendChild(geocoderContainer); // Τοποθέτηση στο τέλος του body
+        geocoderContainer.appendChild(geocoder.onAdd(map));
+
+        // Marker για την επιλογή τοποθεσίας
+        let marker;
+
+        // Event listener για click στον χάρτη
+        map.on('click', function (e) {
+            const lng = e.lngLat.lng;
+            const lat = e.lngLat.lat;
+
+            // Ενημέρωση ή δημιουργία marker
+            if (marker) {
+                marker.setLngLat([lng, lat]);
+            } else {
+                marker = new mapboxgl.Marker({ draggable: true })
+                    .setLngLat([lng, lat])
+                    .addTo(map);
+            }
+
+            // Ενημέρωση των πεδίων φόρμας
+            document.getElementById('latitude').value = lat;
+            document.getElementById('longitude').value = lng;
+        });
+
+        // Event listener για μετακίνηση του marker
+        if (marker) {
+            marker.on('dragend', function () {
+                const lngLat = marker.getLngLat();
+                document.getElementById('latitude').value = lngLat.lat;
+                document.getElementById('longitude').value = lngLat.lng;
+            });
+        }
+
+        // Event listener για επιλογή τοποθεσίας από το geocoder
+        geocoder.on('result', function (e) {
+            const lng = e.result.center[0];
+            const lat = e.result.center[1];
+
+            // Ενημέρωση ή δημιουργία marker
+            if (marker) {
+                marker.setLngLat([lng, lat]);
+            } else {
+                marker = new mapboxgl.Marker({ draggable: true })
+                    .setLngLat([lng, lat])
+                    .addTo(map);
+            }
+
+            // Ενημέρωση των πεδίων φόρμας
+            document.getElementById('latitude').value = lat;
+            document.getElementById('longitude').value = lng;
+
+            // Εστίαση στον χάρτη
+            map.flyTo({ center: [lng, lat], zoom: 15 });
+        });
     });
-
-    if (!shopResponse.ok) {
-      const errorData = await shopResponse.json();
-      throw new Error(errorData.message || 'Failed to create shop');
-    }
-    
-    const shopResult = await shopResponse.json();
-    console.log('Shop created successfully:', shopResult);
-
-    // Update user's shopId - also with credentials
-    const shopIdResponse = await fetch('/api/user/shopId', {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ shopId: shopResult.shop._id }),
-      credentials: 'include'
-    });
-
-    if (!shopIdResponse.ok) {
-      const errorData = await shopIdResponse.json();
-      throw new Error(errorData.message || 'Failed to update shop ID');
-    }
-    
-    const shopIdResult = await shopIdResponse.json();
-    console.log('Shop ID updated successfully:', shopIdResult);
-
-    // Save shopId to localStorage for future use
-    localStorage.setItem('shopId', shopResult.shop._id);
-
-    // Redirect to the dashboard
-    alert('Shop created and linked successfully! Redirecting to dashboard...');
-    window.location.href = 'shopOwnerDashboard.html';
-  } catch (error) {
-    console.error('Error during shop creation or linking:', error);
-    alert('Error: ' + error.message);
-  }
-});
     </script>
 </body>
 </html>

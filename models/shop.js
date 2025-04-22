@@ -43,6 +43,12 @@ const shopSchema = mongoose.Schema({
     required: [true, 'Region is required'],
   },
 
+
+  
+
+
+
+
   location: {
     type: { type: String, enum: ['Point'], required: true },
     coordinates: {

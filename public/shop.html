@@ -10,6 +10,8 @@
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
   <!-- Custom Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Lora:ital@0;1&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <!-- Mapbox CSS -->
+  <link href="https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.css" rel="stylesheet">
   <!-- Additional Custom Style -->
   <style>
     body {
@@ -21,8 +23,9 @@
    .container {
   background: #fff;
   border-radius: 10px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
   padding: 40px 30px;
+  min-height: 600px; /* Καθορίστε ελάχιστο ύψος */
 }
 
 .shop-img {
@@ -31,6 +34,7 @@
     object-fit: cover;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    aspect-ratio: 16 / 9; /* Προσθήκη αναλογίας διαστάσεων */
   }
 
   p {
@@ -79,6 +83,7 @@
     }
     #availableTimes {
       margin-top: 20px;
+      min-height: 50px; /* Καθορίστε ελάχιστο ύψος */
     }
     .btn-primary {
       background-color: #5a67d8;
@@ -89,6 +94,14 @@
       border-color: #434190;
     }
     
+    #map {
+      height: 400px;
+      width: 100%;
+      margin-bottom: 20px;
+    }
+    #shopDetails {
+      min-height: 100px; /* Καθορίστε ελάχιστο ύψος */
+    }
   </style>
 </head>
 <body>
@@ -128,6 +141,15 @@
       <p><i class="bi bi-map-fill text-success"></i> <strong>Region:</strong> <span id="shopRegion">N/A</span></p>
       <p><i class="bi bi-tags-fill text-warning"></i> <strong>Category:</strong> <span id="shopCategory">N/A</span></p>
       <p><i class="bi bi-currency-dollar text-info"></i> <strong>Price Range:</strong> <span id="shopPriceRange">N/A</span></p>
+      <p>
+        <i class="bi bi-geo-alt-fill text-success"></i> 
+        <strong>Location:</strong> 
+        <span id="shopLocation">N/A</span>
+      </p>
+      <a id="openInMaps" href="#" target="_blank" class="btn btn-outline-primary btn-sm">
+        Open in Google Maps
+      </a>
+      <div id="map" style="height: 200px; margin-bottom: 20px;"></div>
     </div>
 
     <!-- Right Side: Opening Hours + Reservation -->
@@ -177,54 +199,68 @@
   <!-- Bootstrap Bundle with Popper -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
           integrity="sha384-ENjdO4Dr2bkBIFxQpeoA6VZB+6Kk6Dv9ZZD8+ZOJZp6YbN8ZynyP+9I2Qv0P5rPp" crossorigin="anonymous"></script>
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.js"></script>
   <script>
-    // Fetch shop details using shopId from URL parameters.
+    // Προσθήκη Mapbox
+    mapboxgl.accessToken = 'pk.eyJ1IjoicGFub3UyMSIsImEiOiJjbTlzcW9uYmkwM2k4MmpzYjc5dTF6M2ZtIn0.YBe_KPam5O4bdPh2xCpMdw';
+
     async function fetchShopDetails() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const shopId = urlParams.get('id');
+        const urlParams = new URLSearchParams(window.location.search);
+        const shopId = urlParams.get('id');
 
-      try {
-        const response = await fetch(`/api/shop/${shopId}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch shop details');
+        try {
+            const response = await fetch(`/api/shop/${shopId}`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch shop details');
+            }
+            const shop = await response.json();
+
+            // Ενημέρωση πληροφοριών καταστήματος
+            document.getElementById('shopName').textContent = shop.shopName;
+            document.getElementById('shopImage').src = `${shop.images[0]}`;
+            document.getElementById('shopDescription').textContent = shop.shopDescription;
+            document.getElementById('shopPhone').textContent = shop.phone || 'N/A';
+            document.getElementById('shopCity').textContent = shop.city?.name || 'N/A';
+            document.getElementById('shopRegion').textContent = shop.region?.name || 'N/A';
+            document.getElementById('shopCategory').textContent = shop.category?.name || 'N/A';
+            document.getElementById('shopPriceRange').textContent = shop.priceRange || 'N/A';
+
+            // Ενημέρωση τοποθεσίας
+            const latitude = shop.location?.coordinates[1]; // Latitude
+            const longitude = shop.location?.coordinates[0]; // Longitude
+
+            if (!latitude || !longitude || latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+                console.error('Invalid coordinates:', latitude, longitude);
+                alert('Invalid location data for this shop.');
+                return;
+            }
+
+            console.log('Latitude:', latitude, 'Longitude:', longitude);
+
+            document.getElementById('shopLocation').textContent = `${latitude}, ${longitude}`;
+
+            // Δημιουργία συνδέσμου για Google Maps
+            const googleMapsLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
+            document.getElementById('openInMaps').href = googleMapsLink;
+
+            // Εμφάνιση χάρτη
+            const map = new mapboxgl.Map({
+                container: 'map',
+                style: 'mapbox://styles/mapbox/streets-v12',
+                center: [longitude, latitude],
+                zoom: 14,
+                interactive: true,
+            });
+
+            new mapboxgl.Marker()
+                .setLngLat([longitude, latitude])
+                .addTo(map);
+
+            console.log('Marker added at:', longitude, latitude);
+        } catch (error) {
+            console.error('Error fetching shop details:', error);
+            alert('Error fetching shop details');
         }
-        const shop = await response.json();
-
-        document.getElementById('shopName').textContent = shop.shopName;
-        document.getElementById('shopImage').src = `${shop.images[0]}`;
-        document.getElementById('shopDescription').textContent = shop.shopDescription;
-        
-        // Populate additional details
-    document.getElementById('shopPhone').textContent = shop.phone || 'N/A';
-    document.getElementById('shopCity').textContent = shop.city?.name || 'N/A';
-    document.getElementById('shopRegion').textContent = shop.region?.name || 'N/A';
-    document.getElementById('shopCategory').textContent = shop.category?.name || 'N/A';
-    document.getElementById('shopPriceRange').textContent = shop.priceRange || 'N/A';
-
-        const shopDetails = document.getElementById('shopDetails');
-        shopDetails.innerHTML = `
-  <h4 class="text-center mb-3">Opening Hours</h4>
-  <table class="table table-bordered text-center">
-    <thead class="table-light">
-      <tr>
-        <th>Day</th>
-        <th>Hours</th>
-      </tr>
-    </thead>
-    <tbody>
-      ${Object.entries(shop.openingHours).map(([day, hours]) => `
-        <tr>
-          <td><strong>${day.charAt(0).toUpperCase() + day.slice(1)}</strong></td>
-          <td>${hours.isOpen ? `${hours.open} - ${hours.close}` : '<span class="text-danger">Closed</span>'}</td>
-        </tr>
-      `).join('')}
-    </tbody>
-  </table>
-`;
-      } catch (error) {
-        console.error('Error fetching shop details:', error);
-        alert('Error fetching shop details');
-      }
     }
 
     // Format time number into HH:MM format.
