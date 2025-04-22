@@ -141,7 +141,14 @@
             </div>
             <div class="mb-3">
                 <label for="map" class="form-label">Select Location:</label>
-                <div id="map"></div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div id="geocoder" style="flex: 1;"></div> <!-- Το search bar -->
+                    <select id="mapStyle" class="form-select" style="width: auto;">
+                        <option value="mapbox://styles/mapbox/streets-v12">Streets</option>
+                        <option value="mapbox://styles/mapbox/satellite-v9">Satellite</option>
+                    </select>
+                </div>
+                <div id="map" style="margin-top: 10px;"></div>
                 <input type="hidden" id="longitude" name="longitude">
                 <input type="hidden" id="latitude" name="latitude">
             </div>
@@ -411,10 +418,10 @@ document.addEventListener('DOMContentLoaded', function () {
         // Mapbox API Key
         mapboxgl.accessToken = 'pk.eyJ1IjoicGFub3UyMSIsImEiOiJjbTlzcW9uYmkwM2k4MmpzYjc5dTF6M2ZtIn0.YBe_KPam5O4bdPh2xCpMdw';
 
-        // Αρχικοποίηση του χάρτη με καθαρό στυλ δρόμων
+        // Αρχικοποίηση του χάρτη με default στυλ
         const map = new mapboxgl.Map({
             container: 'map', // Το div ID για τον χάρτη
-            style: 'mapbox://styles/mapbox/streets-v12', // Καθαρό στυλ δρόμων
+            style: 'mapbox://styles/mapbox/streets-v12', // Default: Streets
             center: [23.7275, 37.9838], // Default: Αθήνα (longitude, latitude)
             zoom: 13,
         });
@@ -431,11 +438,8 @@ document.addEventListener('DOMContentLoaded', function () {
             marker: false, // Δεν θέλουμε αυτόματο marker
         });
 
-        // Προσθήκη του geocoder πάνω από τον χάρτη
-        const geocoderContainer = document.createElement('div');
-        geocoderContainer.className = 'geocoder-container';
-        document.body.appendChild(geocoderContainer); // Τοποθέτηση στο τέλος του body
-        geocoderContainer.appendChild(geocoder.onAdd(map));
+        // Προσθήκη του geocoder στο div "geocoder"
+        document.getElementById('geocoder').appendChild(geocoder.onAdd(map));
 
         // Marker για την επιλογή τοποθεσίας
         let marker;
@@ -488,6 +492,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Εστίαση στον χάρτη
             map.flyTo({ center: [lng, lat], zoom: 15 });
+        });
+
+        // Αλλαγή στυλ χάρτη
+        const mapStyleSelect = document.getElementById('mapStyle');
+        mapStyleSelect.addEventListener('change', function () {
+            map.setStyle(this.value);
         });
     });
     </script>
