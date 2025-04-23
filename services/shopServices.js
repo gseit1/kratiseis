@@ -66,6 +66,17 @@ const getShopReservationList = async (shopId) => {
 };
 
 
+const getUndefinedReservationList = async (shopId) => {
+    const shop = await Shop.findById(shopId).populate('undefinedReservationList');
+    if (!shop) {
+        throw new Error('Shop not found');
+    }
+
+    return shop.undefinedReservationList;
+};
+
+
+
 const addToReservationList = async (shopId, date, reservationId) => {
     try {
         console.log(`🔍 addToReservationList | shopId: ${shopId}, date: ${date}, reservationId: ${reservationId}`);
@@ -233,6 +244,7 @@ module.exports = {
     getAllShopsService,
     getShopByIdService,
     getShopReservationList,
+    getUndefinedReservationList,
     addReservationToUndefinedList, 
     addToReservationList,
     deleteToReservationList,

@@ -52,7 +52,7 @@
                 <h4 class="text-center py-3 border-bottom">Dashboard Menu</h4>
                 <ul class="nav flex-column">
                     <li class="nav-item">
-                        <a href="index.html" class="nav-link  d-flex align-items-center">
+                        <a href="index.html" class="nav-link d-flex align-items-center">
                             <i class="bi bi-table me-2"></i> Table Options
                         </a>
                     </li>
@@ -67,8 +67,13 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="reservations.html" class="nav-link active d-flex align-items-center">
+                        <a href="reservations.html" class="nav-link d-flex align-items-center">
                             <i class="bi bi-calendar-check me-2"></i> Reservations
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="undefinedReservations.html" class="nav-link d-flex align-items-center">
+                            <i class="bi bi-exclamation-circle me-2"></i> Undefined Reservations
                         </a>
                     </li>
                     <li class="nav-item">
@@ -143,18 +148,29 @@
         function renderDaysList(groupedReservations) {
             const daysListDiv = document.getElementById("reservationsDaysList");
             daysListDiv.innerHTML = "";
+
             const sortedDates = Object.keys(groupedReservations).sort();
+
             sortedDates.forEach(dateKey => {
-                const formattedDate = formatDate_dd_mm_yy(dateKey);
-                const dayOfWeek = getDayOfWeek(dateKey);
-                const btn = document.createElement("button");
-                btn.className = "list-group-item list-group-item-action";
-                btn.textContent = `${formattedDate} - ${dayOfWeek}`;
-                btn.onclick = function() {
-                    renderReservationsForDay(groupedReservations[dateKey]);
-                };
-                daysListDiv.appendChild(btn);
+                // Ελέγχουμε αν η ημερομηνία έχει κρατήσεις
+                if (groupedReservations[dateKey].length > 0) {
+                    const formattedDate = formatDate_dd_mm_yy(dateKey);
+                    const dayOfWeek = getDayOfWeek(dateKey);
+                    const btn = document.createElement("button");
+                    btn.className = "list-group-item list-group-item-action";
+                    btn.textContent = `${formattedDate} - ${dayOfWeek}`;
+                    btn.onclick = function () {
+                        renderReservationsForDay(groupedReservations[dateKey]);
+                    };
+                    daysListDiv.appendChild(btn);
+                }
             });
+
+            // Αν δεν υπάρχουν ημερομηνίες με κρατήσεις, εμφανίζουμε μήνυμα
+            if (daysListDiv.innerHTML === "") {
+                daysListDiv.innerHTML = "<p class='text-center'>No reservations available.</p>";
+                document.getElementById("reservationsList").innerHTML = "";
+            }
         }
 
         // Render reservations for a specific day
@@ -205,10 +221,27 @@
             }
         }
 
+        // Fetch reservations
+        async function fetchReservations() {
+            try {
+                const response = await fetch('/api/shop/reservationList');
+                if (!response.ok) throw new Error('Failed to fetch reservations');
+                const data = await response.json();
+                displayGroupedReservations(data.reservationList); // Χρησιμοποιούμε το `reservationList` από το response
+            } catch (error) {
+                console.error('Error fetching reservations:', error);
+            }
+        }
+
         // Display grouped reservations
         function displayGroupedReservations(data) {
-            const reservationsArray = Array.isArray(data) ? data : [];
-            const grouped = groupReservationsByDate(reservationsArray);
+            const grouped = {};
+
+            // Μετατροπή του response σε μορφή που περιμένει ο κώδικας
+            Object.keys(data).forEach(dateKey => {
+                grouped[dateKey] = data[dateKey].reservations;
+            });
+
             renderDaysList(grouped);
 
             const sortedDates = Object.keys(grouped).sort();
@@ -219,31 +252,27 @@
             }
         }
 
-        // Fetch reservations
-        async function fetchReservations() {
-            try {
-                const response = await fetch('/api/shop/reservationList');
-                if (!response.ok) throw new Error('Failed to fetch reservations');
-                const data = await response.json();
-                displayGroupedReservations(data);
-            } catch (error) {
-                console.error('Error fetching reservations:', error);
-            }
-        }
-
         // Delete reservation
         async function deleteReservation(reservationId) {
-            try {
-                const response = await fetch(`/api/shop/reservations/${reservationId}`, {
-                    method: 'DELETE',
-                    credentials: 'include',
-                });
-                if (!response.ok) throw new Error('Failed to delete reservation');
-                alert('Reservation deleted successfully!');
-                fetchReservations();
-            } catch (error) {
-                console.error('Error deleting reservation:', error);
-                alert('Failed to delete reservation. Please try again later.');
+            if (confirm("Are you sure you want to delete this reservation?")) {
+                try {
+                    const response = await fetch(`/api/reservation/${reservationId}`, {
+                        method: 'DELETE',
+                        credentials: 'include', // Include cookies for authentication
+                    });
+
+                    if (!response.ok) {
+                        const error = await response.json();
+                        alert(`Error deleting reservation: ${error.message}`);
+                        return;
+                    }
+
+                    alert("Reservation deleted successfully!");
+                    fetchReservations(); // Ανανεώστε τη λίστα κρατήσεων
+                } catch (error) {
+                    console.error("Error deleting reservation:", error);
+                    alert("Failed to delete reservation. Please try again later.");
+                }
             }
         }
 

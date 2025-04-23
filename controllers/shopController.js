@@ -122,6 +122,31 @@ const getShopReservationList = async (req, res) => {
   }
 };
 
+
+
+//!Undefined reservationList get
+
+const getUndefinedReservationList = async (req, res) => {
+  try {
+      // Get shopId from user claims
+      const shopId = req.user.shopId;
+
+      if (!shopId) {
+          return res.status(400).json({ message: 'Shop ID not found in user profile' });
+      }
+
+      // Χρήση της υπηρεσίας για την επιστροφή της undefinedReservationList
+      const undefinedReservations = await shopService.getUndefinedReservationList(shopId);
+
+      res.status(200).json({ success: true, undefinedReservations });
+  } catch (error) {
+      console.error('Error fetching undefined reservations:', error.message);
+      res.status(500).json({ success: false, message: 'Error fetching undefined reservations', error: error.message });
+  }
+};
+
+
+
 //! Function για επιστροφή των τραπεζιών ενός καταστήματος
 const getShopTables = async (req, res) => {
   // Get shopId from user claims
@@ -299,6 +324,7 @@ module.exports = {
     getShopById,
     editShop,
     getShopReservationList,
+    getUndefinedReservationList,
     patchBookingHoursForDay,
     getShopTables,
     getReviewsForShop,

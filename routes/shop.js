@@ -4,7 +4,7 @@ const shopRouter = express.Router();
 const Shop = require('../models/shop'); 
 const { verifyToken, isShopOwner } = require('../middlewares/authMiddleware');
 
-const { addShop, getAllShops, getShopById, editShop, getShopReservationList, patchBookingHoursForDay, getShopTables, getReviewsForShop ,getGeneralDetails , addPhoto,deletePhoto,getPhotos } = require('../controllers/shopController');
+const { addShop, getAllShops, getShopById, editShop, getShopReservationList, patchBookingHoursForDay, getShopTables, getReviewsForShop ,getGeneralDetails , addPhoto,deletePhoto,getPhotos ,getUndefinedReservationList} = require('../controllers/shopController');
 const { handleBookingHoursUpdate } = require('../middlewares/editsMiddleware');
 const upload = require('../middlewares/multerMiddleware');
 
@@ -16,6 +16,9 @@ shopRouter.get('/api/shop', getAllShops);
 
 //! GET: Επιστροφή λίστας κρατήσεων για συγκεκριμένο κατάστημα
 shopRouter.get('/api/shop/reservationList', verifyToken, isShopOwner, getShopReservationList);
+
+//!GET: UNDEFINED RESERVATION LIST
+shopRouter.get('/api/shop/undefinedReservationList', verifyToken, isShopOwner, getUndefinedReservationList);
 
 //!GET : Επιστροφη κριτικων του καταστηματος
 shopRouter.get('/api/shop/reviews', verifyToken, isShopOwner, getReviewsForShop);
