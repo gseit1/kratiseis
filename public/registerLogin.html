@@ -196,7 +196,7 @@ document.cookie = `jwt=${result.token}; path=/; ${isLocal ? '' : 'secure;'} Same
 
             // Redirect based on role (if provided in the response)
             if (result.role === 'user') {
-                window.location.href = 'profile.html';
+                window.location.href = 'index.html';
             } else if (result.role === 'shopOwner') {
                 window.location.href = 'shopOwner/index.html';
             } else if (result.role === 'admin') {

@@ -16,70 +16,61 @@
             color: #333;
         }
     
-          /* Offcanvas Styling */
-    .offcanvas {
-        background-color: #ffffff;
-        border-right: 1px solid #e0e0e0;
-    }
+/* Fixed Left Menu */
+#filterMenu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 260px;
+    background-color: #ffffff;
+    border-right: 1px solid #e0e0e0;
+    padding-top: 20px;
+    overflow-y: auto;
+    z-index: 1030;
+}
 
-    .offcanvas .offcanvas-title {
-        font-size: 1.5rem;
-        font-weight: bold;
-        color: #007bff;
-    }
+#filterMenu h5 {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #007bff;
+    margin-bottom: 20px;
+}
 
-    .offcanvas .form-label {
-        font-size: 1rem;
-        font-weight: bold;
-        color: #495057;
-    }
+#filterMenu .form-label {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #495057;
+}
 
-    .offcanvas .form-select {
-        border-radius: 5px;
-        padding: 10px;
-        font-size: 1rem;
-    }
+#filterMenu .form-select {
+    border-radius: 5px;
+    padding: 10px;
+    font-size: 1rem;
+}
 
-    .offcanvas .btn-primary {
-        font-size: 1rem;
-        font-weight: bold;
-        padding: 10px;
-        border-radius: 5px;
-        transition: background-color 0.3s ease, transform 0.3s ease;
-    }
+#filterMenu .btn-primary {
+    font-size: 1rem;
+    font-weight: bold;
+    padding: 10px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
 
-    .offcanvas .btn-primary:hover {
-        background-color: #0056b3;
-        transform: scale(1.05);
-    }
+#filterMenu .btn-primary:hover {
+    background-color: #0056b3;
+    transform: scale(1.05);
+}
 
-    /* Responsive Design */
-    @media (min-width: 992px) {
-        .offcanvas {
-            position: static;
-            transform: none;
-            visibility: visible;
-            height: auto;
-            width: 100%;
-            max-width: 260px;
-            border-right: 1px solid #e0e0e0;
-        }
+/* Main Content */
+.col-md-9,
+.col-lg-10 {
+    margin-left: 260px; /* Adjust this value to match the width of the fixed menu */
+    padding: 30px;
+}
 
-        .offcanvas-body {
-            padding: 0;
-        }
-    }
-    @media (min-width: 992px) {
-    .offcanvas.offcanvas-start {
-        transform: none !important;
-        visibility: visible !important;
-        position: relative !important;
-        border-right: 1px solid #dee2e6;
-    }
-
-    .offcanvas-header.d-lg-none {
-        display: none !important;
-    }
+#shopsContainer {
+    margin-top: 20px;
 }
 
         /* Main Content */
@@ -252,7 +243,7 @@
                         <a class="nav-link active" href="index.html">Home</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="shops.html">Shops</a>
+                        <a class="nav-link" href="filteredShops.html">Shops</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="createShop.html">Create Shop</a>
@@ -264,22 +255,12 @@
             </div>
         </div>
     </nav>
-
-    <div class="container-fluid mt-4">
+    <div class="container-fluid">
         <div class="row">
-            <!-- Offcanvas Trigger Button -->
-            <div class="col-12 mb-3 d-lg-none">
-                <button class="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#filterOffcanvas" aria-controls="filterOffcanvas">
-                    <i class="bi bi-funnel"></i> Filters
-                </button>
-            </div>
-    
-            <div class="offcanvas offcanvas-start" tabindex="-1" id="filterOffcanvas" aria-labelledby="filterOffcanvasLabel">
-                <div class="offcanvas-header">
-                    <h5 class="offcanvas-title" id="filterOffcanvasLabel">Filter Shops</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-                </div>
-                <div class="offcanvas-body">
+            <!-- Fixed Left Menu -->
+            <nav id="filterMenu" class="col-md-3 col-lg-2 bg-light border-end">
+                <div class="p-3">
+                    <h5 class="text-primary">Filter Shops</h5>
                     <form id="filterForm">
                         <div class="mb-4">
                             <label for="cityFilter" class="form-label">City</label>
@@ -302,10 +283,11 @@
                         <button type="button" class="btn btn-primary w-100" id="applyFilters">Apply Filters</button>
                     </form>
                 </div>
-            </div>
-            <!-- Shops Container -->
-            <div class="col-lg-9 col-md-8">
-                <div id="shopsContainer" class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
+            </nav>
+    
+            <!-- Main Content -->
+            <div class="col-md-9 col-lg-10">
+                <div id="shopsContainer" class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3 mt-4">
                     <!-- Shop cards will be dynamically inserted here -->
                 </div>
             </div>

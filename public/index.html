@@ -12,8 +12,157 @@
    
 
     <style>
+        /* ========== Section Background & Title ========== */
+        .shop-categories {
+            background-color: #f9f9f9;
+            padding: 4rem 0;
+            border-top: 1px solid #eee;
+        }
         
-    </style>
+        .shop-categories h2 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 3rem;
+            color: #222;
+            letter-spacing: -0.5px;
+            text-shadow: 0 1px 1px rgba(0,0,0,0.04);
+        }
+        
+        /* ========== Category Rows ========== */
+        .category-row {
+            margin-bottom: 4rem;
+            padding: 2rem;
+            border-radius: 1rem;
+            background-color: #ffffff;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+            transition: box-shadow 0.3s ease;
+            position: relative;
+        }
+        
+        .category-row:hover {
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+        }
+        
+        .category-row h3 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #444;
+            border-left: 4px solid #007bff;
+            padding-left: 1rem;
+        }
+        
+        /* ========== Layout Container ========== */
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+        
+        /* ========== Scrollable Card Row ========== */
+        .scrollable-row {
+            display: flex;
+            gap: 0.75rem;
+            overflow-x: auto;
+            scroll-behavior: smooth;
+            padding-bottom: 8px;
+            padding-left: 4px;
+            scrollbar-width: thin;
+            scrollbar-color: #ccc #f1f1f1;
+            position: relative;
+        }
+        
+        .scrollable-row::before,
+        .scrollable-row::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 50px;
+            pointer-events: none;
+            z-index: 2;
+        }
+        
+        .scrollable-row::before {
+            left: 0;
+            background: linear-gradient(to right, white 0%, transparent 100%);
+        }
+        
+        .scrollable-row::after {
+            right: 0;
+            background: linear-gradient(to left, white 0%, transparent 100%);
+        }
+        
+        /* Scrollbar for WebKit */
+        .scrollable-row::-webkit-scrollbar {
+            height: 6px;
+            opacity: 0;
+        }
+        
+        .scrollable-row:hover::-webkit-scrollbar {
+            opacity: 1;
+        }
+        
+        .scrollable-row::-webkit-scrollbar-thumb {
+            background-color: #ccc;
+            border-radius: 4px;
+        }
+        
+        .scrollable-row::-webkit-scrollbar-track {
+            background-color: #f1f1f1;
+        }
+        
+        /* ========== Shop Cards ========== */
+        .scrollable-row .card {
+            display: inline-block;
+            min-width: 240px;
+            max-width: 240px;
+            border: none;
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            background-color: #fff;
+            flex-shrink: 0;
+        }
+        
+        .scrollable-row .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+        
+        .scrollable-row .card img {
+            height: 160px;
+            width: 100%;
+            object-fit: cover;
+            border-bottom: 1px solid #eee;
+        }
+        
+        /* ========== Card Content ========== */
+        .card-body {
+            padding: 0.9rem 1rem;
+        }
+        
+        .card-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+        
+        .card-text {
+            font-size: 0.875rem;
+            color: #666;
+            margin-bottom: 0.75rem;
+        }
+        
+        .card .btn {
+            font-size: 0.85rem;
+            padding: 0.4rem 0.8rem;
+            border-radius: 0.5rem;
+        }
+        </style>
+        
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
@@ -28,7 +177,7 @@
                         <a class="nav-link active" href="index.html">Home</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="shops.html">Shops</a>
+                        <a class="nav-link" href="filteredShops.html">Shops</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="application.html">Apply</a>
@@ -56,18 +205,34 @@
         </div>
     </nav>
 
-    <section class="hero-section">
-        <h1>Book Your Perfect Spot</h1>
-        <p>Explore the best restaurants, cafes, and local shops. Reserve in seconds, enjoy forever.</p>
-        <a href="#featuredShopsContainer" class="btn btn-light btn-lg">Explore Now</a>
+    <section class="hero-outbox" id="heroSection">
+        <div class="hero-glass">
+          <div class="hero-text">
+            <h1 class="glitch" data-text="Unlock Your City">Unlock Your City</h1>
+            <p class="typing-subtitle"><span id="typedSubtitle"></span></p>
 
-        <div class="features mt-5">
-            <div><i class="bi bi-shop"></i><p>Top-rated Shops</p></div>
-            <div><i class="bi bi-cup-straw"></i><p>Stylish Cafes</p></div>
-            <div><i class="bi bi-calendar-check"></i><p>Easy Reservations</p></div>
-            <div><i class="bi bi-geo-alt"></i><p>Near You</p></div>
+            <p>Curated local spots. Explore like a local, reserve like a pro.</p>
+            <a href="#featuredShopsContainer" class="cta-button">Start Exploring</a>
+      
+            <div class="rotating-badges">
+              <span><i class="bi bi-stars"></i> Handpicked</span>
+              <span><i class="bi bi-lightning-charge-fill"></i> Fast Booking</span>
+              <span><i class="bi bi-geo-alt"></i> Nearby</span>
+            </div>
+          </div>
         </div>
-    </section>
+      
+        <div class="hero-visuals">
+          <img src="/index/img2.jpg" alt="Explore the City" class="hero-img" />
+          <div class="blob blob1 floating"></div>
+          <div class="blob blob2 floating"></div>
+          <div class="wave-divider"></div>
+        </div>
+      </section>
+      
+            
+      
+      
 
     <section id="how-to" class="w-full bg-gray-100 py-20 px-4 md:px-12 lg:px-32">
         <div class="text-center mb-12" data-aos="fade-up">
@@ -94,11 +259,34 @@
       </section>
       
 
-    <section class="featured-shops text-center">
+
+
+    <section class="shop-categories py-5">
         <div class="container">
-            <h2 class="mb-5" data-aos="fade-up">Featured Places</h2>
-            <div id="featuredShopsContainer" class="row g-4">
-                <!-- JavaScript will populate -->
+            <h2 class="text-center mb-5" data-aos="fade-up">Explore Shops</h2>
+    
+            <!-- Category 1: Specific Shop IDs -->
+            <div class="category-row mb-4">
+                <h3 class="mb-3">Προτεινόμενα</h3>
+                <div id="selectedShopsContainer" class="scrollable-row d-flex overflow-auto">
+                    <!-- JavaScript will populate -->
+                </div>
+            </div>
+    
+            <!-- Category 2: Shops in Thessaloniki -->
+            <div class="category-row mb-4">
+                <h3 class="mb-3">Καταστήματα Ηράκλειο</h3>
+                <div id="thessalonikiShopsContainer" class="scrollable-row d-flex overflow-auto">
+                    <!-- JavaScript will populate -->
+                </div>
+            </div>
+    
+            <!-- Category 3: Shops in Athens -->
+            <div class="category-row mb-4">
+                <h3 class="mb-3">Καταστήματα Θεσσαλονίκη</h3>
+                <div id="athensShopsContainer" class="scrollable-row d-flex overflow-auto">
+                    <!-- JavaScript will populate -->
+                </div>
             </div>
         </div>
     </section>
@@ -217,32 +405,80 @@
             <a href="https://linkedin.com" target="_blank" aria-label="LinkedIn"><i class="bi bi-linkedin"></i></a>
         </div>
     </footer>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
     <script>
+
+const subtitlePhrases = ["Discover.", "Reserve.", "Enjoy."];
+let index = 0, charIndex = 0;
+const typingSpeed = 100;
+const eraseSpeed = 60;
+const delayBetween = 2000;
+const subtitleEl = document.getElementById("typedSubtitle");
+
+function typeLoop() {
+  if (charIndex < subtitlePhrases[index].length) {
+    subtitleEl.textContent += subtitlePhrases[index].charAt(charIndex++);
+    setTimeout(typeLoop, typingSpeed);
+  } else {
+    setTimeout(eraseLoop, delayBetween);
+  }
+}
+
+function eraseLoop() {
+  if (charIndex > 0) {
+    subtitleEl.textContent = subtitlePhrases[index].substring(0, --charIndex);
+    setTimeout(eraseLoop, eraseSpeed);
+  } else {
+    index = (index + 1) % subtitlePhrases.length;
+    setTimeout(typeLoop, 500);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", typeLoop);
+         // GSAP Scroll Animations
+  gsap.registerPlugin(ScrollTrigger);
+  gsap.from(".hero-text h1", {
+    y: 60,
+    opacity: 0,
+    duration: 1,
+    ease: "power4.out",
+    scrollTrigger: {
+      trigger: "#heroSection",
+      start: "top center"
+    }
+  });
+
+  gsap.from(".hero-text p, .cta-button", {
+    y: 30,
+    opacity: 0,
+    duration: 1,
+    delay: 0.3,
+    ease: "power3.out",
+    scrollTrigger: {
+      trigger: "#heroSection",
+      start: "top center"
+    }
+  });
+
+  // Cursor Interaction
+  document.addEventListener("mousemove", (e) => {
+    const { clientX: x, clientY: y } = e;
+    document.querySelectorAll(".floating").forEach((el, i) => {
+      const movement = 25 + i * 10;
+      const offsetX = (window.innerWidth / 2 - x) / movement;
+      const offsetY = (window.innerHeight / 2 - y) / movement;
+      el.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+    });
+  });
         AOS.init();
         
 
 
         document.addEventListener('DOMContentLoaded', () => {
-    displayFeaturedShops();
-    const jwtToken = localStorage.getItem('jwtToken');
-    const userRole = localStorage.getItem('role'); // Retrieve the user's role from localStorage
-    const dashboardNavItem = document.getElementById('dashboardNavItem');
-
-        const registerLoginNavItem = document.getElementById('registerLoginNavItem');
-        const profileDropdown = document.getElementById('profileDropdown');
-
-        if (jwtToken) {
-            // Hide "Register/Login" and show "Profile" dropdown
-            registerLoginNavItem.classList.add('d-none');
-            profileDropdown.classList.remove('d-none');
-
-             // Show "Dashboard" if the user is a shopOwner
-        if (userRole === 'shopOwner') {
-            dashboardNavItem.classList.remove('d-none');
-        }
-        }
+   
 
 
         
@@ -256,21 +492,10 @@
          displayCities();
     });
 
-async function fetchShopById(id) {
-    console.log('Fetching shop with ID:', id);
-    try {
-        const response = await fetch(`/api/shop/${id}`);
-        if (!response.ok) {
-            throw new Error(`Failed to fetch shop with ID ${id}: ${response.statusText}`);
-        }
-        return await response.json();
-    } catch (error) {
-        console.error('Error fetching shop:', error);
-        return null;
-    }
-}
+
 
 async function displayFeaturedShops() {
+
     console.log('displayFeaturedShops called');
     const shopIds = ['67efe14fedf186a67122365f', '67ef965333de41190988062d', '67ef97cda1abeef048a593f9'];
     const container = document.getElementById('featuredShopsContainer');
@@ -326,7 +551,79 @@ async function displayCities() {
             console.error('Error fetching cities:', error);
         }
     }
-       
+    async function fetchShopsByCity(cityId) {
+    try {
+        const response = await fetch(`/search/city/${cityId}`);
+        if (!response.ok) throw new Error(`Failed to fetch shops for city ID ${cityId}`);
+        return await response.json();
+    } catch (error) {
+        console.error(error);
+        return [];
+    }
+
+}
+    document.addEventListener('DOMContentLoaded', async () => {
+    const selectedShopIds = ['67f3a9c6a4cb7debf70023bd', '67f3ac7ba4cb7debf7002435', '67f3acaba4cb7debf700244a'];
+    const selectedShopsContainer = document.getElementById('selectedShopsContainer');
+    const thessalonikiShopsContainer = document.getElementById('thessalonikiShopsContainer');
+    const athensShopsContainer = document.getElementById('athensShopsContainer');
+
+    // Fetch and display shops by specific IDs
+    for (const id of selectedShopIds) {
+        const shop = await fetchShopById(id);
+        if (shop) {
+            selectedShopsContainer.innerHTML += createShopCard(shop);
+        }
+    }
+
+   // Fetch and display shops in Thessaloniki
+   const thessalonikiShops = await fetchShopsByCity('67ef5b1015e5f9c8a42e2e8b'); // Replace with the actual city ID for Thessaloniki
+    thessalonikiShops.forEach(shop => {
+        thessalonikiShopsContainer.innerHTML += createShopCard(shop);
+    });
+
+    // Fetch and display shops in Athens
+    const athensShops = await fetchShopsByCity('67ef5b2215e5f9c8a42e2e8e'); // Replace with the actual city ID for Athens
+    athensShops.forEach(shop => {
+        athensShopsContainer.innerHTML += createShopCard(shop);
+    });
+});
+
+// Helper function to fetch a shop by ID
+async function fetchShopById(id) {
+    try {
+        const response = await fetch(`/api/shop/${id}`);
+        if (!response.ok) throw new Error(`Failed to fetch shop with ID ${id}`);
+        return await response.json();
+    } catch (error) {
+        console.error(error);
+        return null;
+    }
+}
+
+// Helper function to fetch shops by city
+
+
+// Helper function to create a shop card
+function createShopCard(shop) {
+    const shopId = shop._id || shop.id; // Use `_id` if available, otherwise fallback to `id`
+
+    if (!shopId) {
+        console.error('Shop ID is missing:', shop);
+        return ''; // Skip rendering this shop
+    }
+
+    return `
+        <div class="card mb-3" style="min-width: 240px; max-width: 240px;">
+            <img src="${shop.images && shop.images[0] ? shop.images[0] : shop.image || 'images/default-placeholder.jpg'}" class="card-img-top" alt="${shop.shopName || 'Shop'}">
+            <div class="card-body">
+                <h5 class="card-title">${shop.shopName || 'Unnamed Shop'}</h5>
+                <p class="card-text">${shop.shopDescription || 'No description available.'}</p>
+                <a href="shop.html?id=${shopId}" class="btn btn-outline-primary">View Details</a>
+            </div>
+        </div>
+    `;
+}
     </script>
 </body>
 </html>
