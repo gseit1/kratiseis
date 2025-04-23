@@ -253,6 +253,21 @@
                 // Αν δεν υπάρχουν συντεταγμένες, απενεργοποιούμε το κουμπί
                 document.getElementById('openInMaps').style.display = 'none';
             }
+
+            // Display opening hours
+            const openingHoursDiv = document.getElementById('shopDetails');
+            if (shop.openingHours) {
+                openingHoursDiv.innerHTML = Object.entries(shop.openingHours)
+                    .map(([day, hours]) => `
+                        <p>
+                            <strong>${day.charAt(0).toUpperCase() + day.slice(1)}:</strong> 
+                            ${hours.isOpen ? `${hours.open}:00 - ${hours.close}:00` : 'Closed'}
+                        </p>
+                    `)
+                    .join('');
+            } else {
+                openingHoursDiv.innerHTML = '<p>No opening hours available.</p>';
+            }
         } catch (error) {
             console.error('Error fetching shop details:', error);
             alert('Error fetching shop details');
