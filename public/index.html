@@ -165,39 +165,59 @@
         
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top shadow-lg" id="navbar">
         <div class="container-fluid">
-            <a class="navbar-brand" href="index.html">MyShop</a>
+            <a class="navbar-brand" href="index.html">
+                <i class="bi bi-shop"></i> MyShop
+            </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link active" href="index.html">Home</a>
+                        <a class="nav-link active" href="index.html">
+                            <i class="bi bi-house-door"></i> Αρχική
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="filteredShops.html">Shops</a>
+                        <a class="nav-link" href="filteredShops.html">
+                            <i class="bi bi-shop-window"></i> Μαγαζιά
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="application.html">Apply</a>
+                        <a class="nav-link" href="application.html">
+                            <i class="bi bi-pencil-square"></i> Κάνε αίτηση
+                        </a>
                     </li>
                     <li class="nav-item" id="registerLoginNavItem">
-                        <a class="nav-link" href="registerLogin.html">Register/Login</a>
+                        <a class="nav-link" href="registerLogin.html">
+                            <i class="bi bi-person-plus"></i> Εγγραφή/Σύνδεση
+                        </a>
                     </li>
-                     <!-- Dashboard Link (Hidden by default) -->
-                <li class="nav-item d-none" id="dashboardNavItem">
-                    <a class="nav-link" href="shopOwnerDashboard.html">Dashboard</a>
-                </li>
-                    <!-- Profile Dropdown -->
+                    <li class="nav-item d-none" id="dashboardNavItem">
+                        <a class="nav-link" href="shopOwnerDashboard.html">
+                            <i class="bi bi-speedometer2"></i> Πίνακας Ελέγχου
+                        </a>
+                    </li>
                     <li class="nav-item dropdown d-none" id="profileDropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="profileDropdownMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-person-circle"></i> Profile
+                            <i class="bi bi-person-circle"></i> Ο λογαριασμός μου
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdownMenu">
-                            <li><a class="dropdown-item" href="profile.html">View Profile</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="#" id="logoutBtn">Logout</a></li>
+                            <li>
+                                <a class="dropdown-item" href="profile.html">
+                                    <i class="bi bi-person"></i> View Profile
+                                </a>
+                            </li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="#" id="logoutBtn">
+                                    <i class="bi bi-box-arrow-right"></i> Αποσύνδεση
+                                </a>
+                            </li>
                         </ul>
                     </li>
                 </ul>
@@ -208,26 +228,34 @@
     <section class="hero-outbox" id="heroSection">
         <div class="hero-glass">
           <div class="hero-text">
-            <h1 class="glitch" data-text="Unlock Your City">Unlock Your City</h1>
+            <h1 class="glitch" data-text="Unlock Your City">Ξεκλείδωσε την πόλη σου</h1>
             <p class="typing-subtitle"><span id="typedSubtitle"></span></p>
 
-            <p>Curated local spots. Explore like a local, reserve like a pro.</p>
-            <a href="#featuredShopsContainer" class="cta-button">Start Exploring</a>
-      
+            <p>Επιμελημένα τοπικά σημεία. Εξερέυνησε σαν ντόπιος, κάνε κράτηση σαν επαγγελματίας.</p>
+            <a href="#shops" class="cta-button">Ανακάλυψε τώρα</a>
+            
             <div class="rotating-badges">
-              <span><i class="bi bi-stars"></i> Handpicked</span>
-              <span><i class="bi bi-lightning-charge-fill"></i> Fast Booking</span>
-              <span><i class="bi bi-geo-alt"></i> Nearby</span>
-            </div>
+              <span><i class="bi bi-stars"></i> Επιλεγμένα</span>
+              <span><i class="bi bi-lightning-charge-fill"></i> Γρήγορη κράτηση</span>
+              <span><i class="bi bi-geo-alt"></i> Κοντινά</span>
+            </div>  
           </div>
         </div>
-      
+        
         <div class="hero-visuals">
-          <img src="/index/img2.jpg" alt="Explore the City" class="hero-img" />
-          <div class="blob blob1 floating"></div>
-          <div class="blob blob2 floating"></div>
-          <div class="wave-divider"></div>
+    <img src="/index/img2.jpg" alt="Explore the City" class="hero-img" />
+    <div class="blob blob1 floating"></div>
+    <div class="blob blob2 floating"></div>
+    <div class="wave-divider"></div>
+
+    <!-- Popular Cities Showcase -->
+    <div class="popular-cities" id="popularCitiesContainer">
+        <h3>Δημοφιλείς τοποθεσίες</h3>
+        <div class="cities-grid" id="heroCitiesContainer">
+            <!-- JavaScript will populate city cards here -->
         </div>
+    </div>
+</div>
       </section>
       
             
@@ -236,24 +264,31 @@
 
     <section id="how-to" class="w-full bg-gray-100 py-20 px-4 md:px-12 lg:px-32">
         <div class="text-center mb-12" data-aos="fade-up">
-          <h2 class="text-4xl font-bold text-gray-800 mb-4">How It Works</h2>
-          <p class="text-lg text-gray-600">Booking your favorite spot in just a few clicks</p>
+          <h2 class="text-4xl font-bold text-gray-800 mb-4">Πώς Λειτουργεί</h2>
+          <p class="text-lg text-gray-600">Κλείσε το αγαπημένο σου μέρος με λίγα μόνο κλικ
+
+          </p>
         </div>
         <div class="grid md:grid-cols-3 gap-8 text-center">
           <div data-aos="fade-up" data-aos-delay="100">
             <div class="text-5xl text-indigo-500 mb-4">🔍</div>
-            <h4 class="font-semibold text-lg text-gray-800 mb-2">Find a Place</h4>
-            <p class="text-gray-600">Browse top-rated cafés, restaurants, and more near you.</p>
+            <h4 class="font-semibold text-lg text-gray-800 mb-2">1.Βρες τον Χώρο</h4>
+            <p class="text-gray-600">Ανακάλυψε κορυφαία καφέ, εστιατόρια και άλλες επιλογές κοντά σου.
+
+            </p>
           </div>
           <div data-aos="fade-up" data-aos-delay="200">
             <div class="text-5xl text-indigo-500 mb-4">📅</div>
-            <h4 class="font-semibold text-lg text-gray-800 mb-2">Pick a Time</h4>
-            <p class="text-gray-600">Choose a date and time that fits your plans perfectly.</p>
+            <h4 class="font-semibold text-lg text-gray-800 mb-2">2.Διάλεξε Ώρα</h4>
+            <p class="text-gray-600">Επίλεξε την ημερομηνία και ώρα που σε εξυπηρετεί.
+
+            </p>
           </div>
           <div data-aos="fade-up" data-aos-delay="300">
             <div class="text-5xl text-indigo-500 mb-4">✅</div>
-            <h4 class="font-semibold text-lg text-gray-800 mb-2">Book Instantly</h4>
-            <p class="text-gray-600">Confirm your reservation and enjoy peace of mind.</p>
+            <h4 class="font-semibold text-lg text-gray-800 mb-2">3.Κλείσε Άμεσα
+            </h4>
+            <p class="text-gray-600">Επιβεβαίωσε τη κράτησή σου και απόλαυσε ξέγνοιαστα.</p>
           </div>
         </div>
       </section>
@@ -261,9 +296,9 @@
 
 
 
-    <section class="shop-categories py-5">
+    <section class="shop-categories py-5" id="shops">
         <div class="container">
-            <h2 class="text-center mb-5" data-aos="fade-up">Explore Shops</h2>
+            <h2 class="text-center mb-5" data-aos="fade-up">Εξερέυνησε ανάμεσα σε δεκάδες επιλογές</h2>
     
             <!-- Category 1: Specific Shop IDs -->
             <div class="category-row mb-4">
@@ -293,24 +328,24 @@
 
     <section class="testimonials text-center">
         <div class="container">
-            <h2 data-aos="fade-up">What Our Visitors Say</h2>
+            <h2 data-aos="fade-up">Η δική σου άποψη</h2>
             <div id="testimonialsCarousel" class="carousel slide mt-4" data-bs-ride="carousel">
                 <div class="carousel-inner">
                     <div class="carousel-item active">
                         <div class="card mx-auto" style="max-width: 600px;">
-                            <p>"Super easy to book and the place was amazing!"</p>
+                            <p>"Πανέυκολη χρήση και καταπληκτική εμπειρία!"</p>
                             <footer class="blockquote-footer">Alex R.</footer>
                         </div>
                     </div>
                     <div class="carousel-item">
                         <div class="card mx-auto" style="max-width: 600px;">
-                            <p>"I found my favorite cafe thanks to this site!"</p>
+                            <p>"Βρήκα την αγαπημένη μου καφετέρια εξαιτίας αυτής της πλατφόρμας!!"</p>
                             <footer class="blockquote-footer">Morgan S.</footer>
                         </div>
                     </div>
                     <div class="carousel-item">
                         <div class="card mx-auto" style="max-width: 600px;">
-                            <p>"Smooth experience from browsing to booking."</p>
+                            <p>"Ομαλή εμπειρία και με πολλές επιλογές."</p>
                             <footer class="blockquote-footer">Taylor L.</footer>
                         </div>
                     </div>
@@ -327,7 +362,7 @@
         </div>
     </section>
 
-    <section id="gallery" class="w-full bg-white py-20 px-4 md:px-12 lg:px-32">
+ <!--   <section id="gallery" class="w-full bg-white py-20 px-4 md:px-12 lg:px-32">
         <div class="text-center mb-12" data-aos="fade-up">
           <h2 class="text-4xl font-bold text-gray-800 mb-4">Gallery</h2>
           <p class="text-lg text-gray-600">Peek into the spaces you’ll love</p>
@@ -339,21 +374,26 @@
           <img src="index/outfit2.png" class="rounded-xl hover:scale-105 transition duration-300">
         </div>
       </section>
-      
+      -->
       <section class="cities-section py-5">
         <div class="container">
-            <h2 class="text-center mb-5" data-aos="fade-up">Explore Cities</h2>
-            <div class="row g-4" id="citiesContainer">
+            <h2 class="text-center mb-5" data-aos="fade-up">Εξερέυνησε τις πόλεις</h2>
+            <div class="cities-container" id="citiesContainer">
                 <!-- JavaScript will populate city cards here -->
             </div>
         </div>
     </section>
+    
+    
+    
 
       <section class="cta text-center py-5 bg-primary text-light position-relative overflow-hidden">
         <div class="container position-relative z-index-1">
-            <h2 class="cta-heading mb-4">Ready to Discover Your Next Favorite Spot?</h2>
-            <p class="cta-text mb-4">Sign up now and start exploring the best places near you!</p>
-            <a href="registerLogin.html" class="btn btn-light btn-lg px-5 py-3 shadow">Get Started</a>
+            <h2 class="cta-heading mb-4">Έτοιμος να Ανακαλύψεις το Επόμενο Αγαπημένο σου Σημείο;</h2>
+            <p class="cta-text mb-4">Κάνε εγγραφή τώρα και ξεκίνα την εξερεύνηση των καλύτερων τοποθεσιών κοντά σου!
+
+            </p>
+            <a href="registerLogin.html" class="btn btn-light btn-lg px-5 py-3 shadow">Ξεκίνα τώρα</a>
         </div>
         <div class="cta-overlay position-absolute top-0 start-0 w-100 h-100" style="background: rgba(0, 0, 0, 0.5);"></div>
         <div class="cta-background position-absolute top-0 start-0 w-100 h-100" style="background: url('index/cta-bg.jpg') no-repeat center center/cover;"></div>
@@ -361,14 +401,17 @@
 
     <section class="newsletter text-center">
         <div class="container">
-            <h2>Stay in the Loop</h2>
-            <p>Join our newsletter and never miss a great spot.</p>
+            <h2>Μείνε Ενημερωμένος
+            </h2>
+            <p>Γράψου στο newsletter μας και μην χάσεις ποτέ ένα υπέροχο μέρος.
+
+            </p>
             <form class="row g-3 justify-content-center">
                 <div class="col-md-4">
                     <input type="email" class="form-control" placeholder="Enter your email">
                 </div>
                 <div class="col-auto">
-                    <button class="btn btn-primary">Subscribe</button>
+                    <button class="btn btn-primary">Κάνε εγγραφή</button>
                 </div>
             </form>
         </div>
@@ -379,17 +422,19 @@
         <div class="container">
           <div class="row align-items-center">
             <div class="col-md-6 mb-4 mb-md-0">
-              <img src="images/register-your-shop.jpg" class="img-fluid rounded shadow" alt="Register Shop">
+              <img src="/index/partner.jpg" class="img-fluid rounded shadow" alt="Register Shop">
             </div>
             <div class="col-md-6">
-              <h2 class="mb-3">Do You Own a Shop?</h2>
-              <p class="lead">Join our platform and showcase your store to thousands of potential customers. Easy registration and great visibility for your business.</p>
+              <h2 class="mb-3">Έχεις Κατάστημα;</h2>
+              <p class="lead">Γίνε μέλος της πλατφόρμας μας και παρουσίασε την επιχείρησή σου σε χιλιάδες πιθανούς πελάτες. Εύκολη εγγραφή και εξαιρετική προβολή!
+
+              </p>
               <ul class="list-unstyled mb-4">
-                <li>✅ Get listed in your city & region</li>
-                <li>✅ Upload images, description, contact info</li>
-                <li>✅ Receive bookings & reviews</li>
+                <li>✅ Καταχώρισε το κατάστημά σου στην πόλη και την περιοχή σου</li>
+                <li>✅ Ανέβασε φωτογραφίες, περιγραφή και στοιχεία επικοινωνίας</li>
+                <li>✅ Δέξου κρατήσεις και αξιολογήσεις απευθείας από τους χρήστες</li>
               </ul>
-              <a href="application.html" class="btn btn-primary btn-lg">Apply Now</a>
+              <a href="application.html" class="btn btn-primary btn-lg">Κάνε αίτηση </a>
             </div>
           </div>
         </div>
@@ -405,13 +450,14 @@
             <a href="https://linkedin.com" target="_blank" aria-label="LinkedIn"><i class="bi bi-linkedin"></i></a>
         </div>
     </footer>
+    <div class="custom-cursor-light"></div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
     <script>
 
-const subtitlePhrases = ["Discover.", "Reserve.", "Enjoy."];
+const subtitlePhrases = ["Εξερέυνησε.", "Κάνε κράτηση.", "Απόλαυσε."];
 let index = 0, charIndex = 0;
 const typingSpeed = 100;
 const eraseSpeed = 60;
@@ -494,63 +540,44 @@ document.addEventListener("DOMContentLoaded", typeLoop);
 
 
 
-async function displayFeaturedShops() {
+    async function displayCities() {
+    console.log('displayCities called');
+    const citiesContainer = document.getElementById('citiesContainer');
+    const heroCitiesContainer = document.getElementById('heroCitiesContainer'); // For popular cities in hero section
 
-    console.log('displayFeaturedShops called');
-    const shopIds = ['67efe14fedf186a67122365f', '67ef965333de41190988062d', '67ef97cda1abeef048a593f9'];
-    const container = document.getElementById('featuredShopsContainer');
+    try {
+        // Fetch cities from the backend
+        const response = await fetch('/city');
+        if (!response.ok) throw new Error('Failed to fetch cities');
+        const cities = await response.json();
 
-    if (!container) {
-        console.error('featuredShopsContainer element not found');
-        return;
-    }
+        // Populate city cards dynamically
+        cities.forEach((city, index) => {
+            const cityCard = document.createElement('div');
+            cityCard.className = 'city-card';
+            cityCard.style.backgroundImage = `url('${city.image || '/images/default-city.jpg'}')`;
+            cityCard.innerHTML = `<span>${city.name}</span>`;
 
-    for (const id of shopIds) {
-        const shop = await fetchShopById(id);
-        console.log('Fetched shop:', shop);
-        if (shop) {
-            const div = document.createElement('div');
-            div.className = 'col-md-4';
-            div.innerHTML = `
-                <div class="card">
-                    <img src="${shop.images && shop.images[0] ? shop.images[0] : 'images/default-placeholder.jpg'}" class="card-img-top" alt="${shop.shopName || 'Shop'}">
-                    <div class="card-body">
-                        <h5 class="card-title">${shop.shopName || 'Unnamed Shop'}</h5>
-                        <p class="card-text">${shop.shopDescription || 'No description available.'}</p>
-                        <a href="shop.html?id=${shop._id}" class="btn btn-outline-primary">View Details</a>
-                    </div>
-                </div>
-            `;
-            container.appendChild(div);
-        }
+            // Add to the main cities section
+            citiesContainer.appendChild(cityCard);
+
+            // Add the first 4 cities to the hero section
+            if (index < 4) {
+                const heroCityCard = cityCard.cloneNode(true); // Clone the card for the hero section
+                heroCitiesContainer.appendChild(heroCityCard);
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching cities:', error);
+        citiesContainer.innerHTML = '<p class="text-danger">Failed to load cities. Please try again later.</p>';
     }
 }
 
-async function displayCities() {
-        console.log('displayCities called');
-        const citiesContainer = document.getElementById('citiesContainer');
+// Call the function on page load
 
-        try {
-            // Fetch cities from the backend
-            const response = await fetch('/city');
-            const cities = await response.json();
 
-            // Populate city cards
-            cities.forEach(city => {
-                const cityCard = document.createElement('div');
-                cityCard.className = 'col-md-4 col-lg-3';
-                cityCard.innerHTML = `
-                    <a href="shops.html?city=${city._id}" class="city-card">
-                        <img src="${city.image || 'images/default-city.jpg'}" alt="${city.name}" class="img-fluid">
-                        <div class="city-name">${city.name}</div>
-                    </a>
-                `;
-                citiesContainer.appendChild(cityCard);
-            });
-        } catch (error) {
-            console.error('Error fetching cities:', error);
-        }
-    }
+
+
     async function fetchShopsByCity(cityId) {
     try {
         const response = await fetch(`/search/city/${cityId}`);
@@ -619,11 +646,18 @@ function createShopCard(shop) {
             <div class="card-body">
                 <h5 class="card-title">${shop.shopName || 'Unnamed Shop'}</h5>
                 <p class="card-text">${shop.shopDescription || 'No description available.'}</p>
-                <a href="shop.html?id=${shopId}" class="btn btn-outline-primary">View Details</a>
+                <a href="shop.html?id=${shopId}" class="btn btn-outline-primary">Λεπτομέρειες</a>
             </div>
         </div>
     `;
 }
+const lightCursor = document.querySelector('.custom-cursor-light');
+document.addEventListener("mousemove", e => {
+  lightCursor.style.top = e.clientY + 'px';
+  lightCursor.style.left = e.clientX + 'px';
+});
     </script>
+    
+
 </body>
 </html>
