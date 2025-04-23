@@ -44,7 +44,10 @@ const shopSchema = mongoose.Schema({
   },
 
 
-  
+  address: {
+    type: String,
+    required: [true, 'Address is required'],
+  },
 
 
 

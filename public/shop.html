@@ -141,10 +141,11 @@
       <p><i class="bi bi-map-fill text-success"></i> <strong>Region:</strong> <span id="shopRegion">N/A</span></p>
       <p><i class="bi bi-tags-fill text-warning"></i> <strong>Category:</strong> <span id="shopCategory">N/A</span></p>
       <p><i class="bi bi-currency-dollar text-info"></i> <strong>Price Range:</strong> <span id="shopPriceRange">N/A</span></p>
+     
       <p>
         <i class="bi bi-geo-alt-fill text-success"></i> 
-        <strong>Location:</strong> 
-        <span id="shopLocation">N/A</span>
+        <strong>Address:</strong> 
+        <span id="shopAddress">N/A</span>
       </p>
       <a id="openInMaps" href="#" target="_blank" class="btn btn-outline-primary btn-sm">
         Open in Google Maps
@@ -225,38 +226,33 @@
             document.getElementById('shopCategory').textContent = shop.category?.name || 'N/A';
             document.getElementById('shopPriceRange').textContent = shop.priceRange || 'N/A';
 
-            // Ενημέρωση τοποθεσίας
+            // Ενημέρωση διεύθυνσης
+            document.getElementById('shopAddress').textContent = shop.address || 'N/A';
+
+            // Ενημέρωση χάρτη
             const latitude = shop.location?.coordinates[1]; // Latitude
             const longitude = shop.location?.coordinates[0]; // Longitude
 
-            if (!latitude || !longitude || latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
-                console.error('Invalid coordinates:', latitude, longitude);
-                alert('Invalid location data for this shop.');
-                return;
+            if (latitude && longitude) {
+                const map = new mapboxgl.Map({
+                    container: 'map',
+                    style: 'mapbox://styles/mapbox/streets-v12',
+                    center: [longitude, latitude],
+                    zoom: 14,
+                    interactive: true,
+                });
+
+                new mapboxgl.Marker()
+                    .setLngLat([longitude, latitude])
+                    .addTo(map);
+
+                // Ρύθμιση του συνδέσμου για το κουμπί "Open in Google Maps"
+                const googleMapsLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
+                document.getElementById('openInMaps').href = googleMapsLink;
+            } else {
+                // Αν δεν υπάρχουν συντεταγμένες, απενεργοποιούμε το κουμπί
+                document.getElementById('openInMaps').style.display = 'none';
             }
-
-            console.log('Latitude:', latitude, 'Longitude:', longitude);
-
-            document.getElementById('shopLocation').textContent = `${latitude}, ${longitude}`;
-
-            // Δημιουργία συνδέσμου για Google Maps
-            const googleMapsLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
-            document.getElementById('openInMaps').href = googleMapsLink;
-
-            // Εμφάνιση χάρτη
-            const map = new mapboxgl.Map({
-                container: 'map',
-                style: 'mapbox://styles/mapbox/streets-v12',
-                center: [longitude, latitude],
-                zoom: 14,
-                interactive: true,
-            });
-
-            new mapboxgl.Marker()
-                .setLngLat([longitude, latitude])
-                .addTo(map);
-
-            console.log('Marker added at:', longitude, latitude);
         } catch (error) {
             console.error('Error fetching shop details:', error);
             alert('Error fetching shop details');
