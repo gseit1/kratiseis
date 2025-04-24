@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <title>Shop Details</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="styles/customer.css">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" 
@@ -15,85 +16,298 @@
   <!-- Additional Custom Style -->
 
   <style>
-    body {
-      font-family: 'Poppins', sans-serif;
-      background-color: #f8f9fa;
-      color: #333;
-      padding-top: 4rem;
-    }
+/* General Body Styling */
+body {
+  font-family: 'Poppins', sans-serif;
+  background: #0f0f10; /* Dark background matching the hero section */
+  color: #ffffff;
+  padding-top: 4rem;
+}
 
-    .container {
-      max-width: 1200px;
-    }
+/* Navbar Styling */
+.navbar {
+  background-color: rgba(255, 255, 255, 0.05); /* Transparent navbar */
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
 
-    .left-content {
-      overflow-y: auto;
-      max-height: calc(100vh - 80px); /* Adjust for navbar height */
-      padding-right: 1rem;
-    }
+.navbar-brand {
+  font-weight: bold;
+  font-size: 1.5rem;
+  color: #ffffff !important;
+}
 
-    .fixed-booking {
-      position: sticky;
-      top: 80px; /* Adjust for navbar height */
-    }
+.navbar-nav .nav-link {
+  color: #ffffff !important;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
 
-    .shop-card {
-      background-color: #fff;
-      border-radius: 10px;
-      padding: 2rem;
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    }
+.navbar-nav .nav-link:hover {
+  color: #ff6ec4 !important; /* Vibrant hover color */
+}
 
-    .btn-primary {
-      background-color: #0d6efd;
-      border-color: #0d6efd;
-    }
+/* Shop Card Styling */
+.shop-card {
+  background: rgba(255, 255, 255, 0.05); /* Transparent card background */
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
 
-    .btn-primary:hover {
-      background-color: #0b5ed7;
-      border-color: #0b5ed7;
-    }
+.shop-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.3);
+}
 
-    .btn-success {
-      background-color: #198754;
-      border-color: #198754;
-    }
+/* Button Styling */
+.btn-primary {
+  background: linear-gradient(135deg, #ff6ec4, #7873f5); /* Vibrant gradient */
+  border: none;
+  border-radius: 12px;
+  padding: 0.75rem 1.25rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
 
-    .btn-success:hover {
-      background-color: #157347;
-      border-color: #157347;
-    }
+.btn-primary:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 20px rgba(255, 110, 196, 0.4);
+}
 
-    #map {
-      height: 300px;
-      border-radius: 8px;
-      overflow: hidden;
-    }
-    .carousel-inner img {
-  height: 300px; /* Set the desired fixed height */
-  object-fit: cover; /* Ensures the image fills the area while maintaining aspect ratio */
+.btn-outline-secondary {
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.btn-outline-secondary:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: scale(1.05);
+}
+
+/* Map Styling */
+#map {
+  height: 300px;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* Shop Details Styling */
+.shop-details {
+  background: rgba(255, 255, 255, 0.05); /* Transparent background */
+  backdrop-filter: blur(10px);
+  padding: 1.5rem;
+  border-radius: 16px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+}
+
+.shop-details h5 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #ff6ec4; /* Vibrant heading color */
+  margin-bottom: 1rem;
+}
+
+.shop-details ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.shop-details li {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 0;
+  font-size: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.shop-details li:last-child {
+  border-bottom: none;
+}
+
+.shop-details i {
+  font-size: 1.5rem;
+  margin-right: 0.75rem;
+  color: #7873f5; /* Vibrant icon color */
+}
+
+.shop-details strong {
+  font-weight: 600;
+  margin-right: 0.5rem;
+}
+
+.shop-details span {
+  color: #ccc;
+}
+
+/* Opening Hours Styling */
+.opening-hours {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 1.25rem;
+  border-radius: 16px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+}
+
+.opening-hours h5 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #ff6ec4;
+  margin-bottom: 1rem;
+}
+
+.opening-hours .day {
+  display: flex;
+  justify-content: space-between;
+  font-size: 1rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.opening-hours .day:last-child {
+  border-bottom: none;
+}
+
+.opening-hours .day span {
+  font-size: 1rem;
+  color: #ccc;
+}
+
+/* Carousel Styling */
+.carousel-inner img {
+  height: 260px;
+  object-fit: cover;
+  border-radius: 16px;
+  transition: all 0.3s ease;
+}
+
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+  filter: invert(1);
+}
+
+/* Fixed Booking Section */
+.fixed-booking {
+  position: sticky;
+  top: 80px;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.fixed-booking:hover {
+  transform: translateY(-3px);
+}
+
+/* Input Group Styling */
+.input-group {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.input-group input,
+.input-group select,
+.input-group textarea {
+  border: none;
+  padding: 0.75rem 1rem;
+  width: 100%;
+  font-size: 1rem;
+  background: transparent;
+  color: #ffffff;
+}
+
+.input-group input:focus,
+.input-group select:focus,
+.input-group textarea:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .shop-card,
+  .shop-details,
+  .opening-hours,
+  .fixed-booking {
+    padding: 1rem;
+    border-radius: 12px;
+  }
+
+  .carousel-inner img {
+    height: 200px;
+  }
 }
   </style>
 </head>
 <body>
-  <!-- Navbar -->
-  <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
+  <nav class="navbar navbar-expand-lg navbar-dark fixed-top shadow-lg" id="navbar">
     <div class="container-fluid">
-      <a class="navbar-brand" href="index.html">MyShop</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav ms-auto">
-          <li class="nav-item"><a class="nav-link active" href="index.html">Home</a></li>
-          <li class="nav-item"><a class="nav-link" href="shops.html">Shops</a></li>
-          <li class="nav-item"><a class="nav-link" href="createShop.html">Create Shop</a></li>
-          <li class="nav-item"><a class="nav-link" href="registerLogin.html">Register/Login</a></li>
-        </ul>
-      </div>
+        <a class="navbar-brand" href="index.html">
+            <i class="bi bi-shop"></i> MyShop
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link active" href="index.html">
+                        <i class="bi bi-house-door"></i> Αρχική
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="filteredShops.html">
+                        <i class="bi bi-shop-window"></i> Μαγαζιά
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="application.html">
+                        <i class="bi bi-pencil-square"></i> Κάνε αίτηση
+                    </a>
+                </li>
+                <li class="nav-item" id="registerLoginNavItem">
+                    <a class="nav-link" href="registerLogin.html">
+                        <i class="bi bi-person-plus"></i> Εγγραφή/Σύνδεση
+                    </a>
+                </li>
+                <li class="nav-item d-none" id="dashboardNavItem">
+                    <a class="nav-link" href="shopOwner/index.html">
+                        <i class="bi bi-speedometer2"></i> Πίνακας Ελέγχου
+                    </a>
+                </li>
+                <li class="nav-item dropdown d-none" id="profileDropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="profileDropdownMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-person-circle"></i> Ο λογαριασμός μου
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdownMenu">
+                        <li>
+                            <a class="dropdown-item" href="profile.html">
+                                <i class="bi bi-person"></i> View Profile
+                            </a>
+                        </li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="#" id="logoutBtn">
+                                <i class="bi bi-box-arrow-right"></i> Αποσύνδεση
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
     </div>
-  </nav>
-
+</nav>
   <!-- Main Content -->
   <div class="container mt-4">
     <div class="row g-3">
@@ -123,42 +337,43 @@
         </div>
 
         <!-- Shop Description -->
-        <p id="shopDescription" class="mt-2 text-muted text-center"></p>
-
-     <!-- Shop Details -->
-<div class="card shadow-sm mb-3 p-2">
-    <ul class="list-group list-group-flush">
-      <li class="list-group-item d-flex align-items-center">
-        <i class="bi bi-telephone-fill text-primary fs-5 me-2"></i>
-        <strong>Phone:</strong> <span id="shopPhone">N/A</span>
-      </li>
-      <li class="list-group-item d-flex align-items-center">
-        <i class="bi bi-geo-alt-fill text-danger fs-5 me-2"></i>
-        <strong>City:</strong> <span id="shopCity">N/A</span>
-      </li>
-      <li class="list-group-item d-flex align-items-center">
-        <i class="bi bi-map-fill text-success fs-5 me-2"></i>
-        <strong>Region:</strong> <span id="shopRegion">N/A</span>
-      </li>
-      <li class="list-group-item d-flex align-items-center">
-        <i class="bi bi-tags-fill text-warning fs-5 me-2"></i>
-        <strong>Category:</strong> <span id="shopCategory">N/A</span>
-      </li>
-      <li class="list-group-item d-flex align-items-center">
-        <i class="bi bi-currency-dollar text-info fs-5 me-2"></i>
-        <strong>Price Range:</strong> <span id="shopPriceRange">N/A</span>
-      </li>
-      <li class="list-group-item d-flex align-items-center">
-        <i class="bi bi-geo-alt-fill text-success fs-5 me-2"></i>
-        <strong>Address:</strong> <span id="shopAddress">N/A</span>
-      </li>
-    </ul>
-  </div>
+        <p id="shopDescription" class="mt-2 text text-center"></p>
+<!-- Shop Details -->
+<div class="shop-details">
+  <h5><i class="bi bi-info-circle me-2"></i>Shop Details</h5>
+  <ul>
+    <li>
+      <i class="bi bi-telephone-fill text-primary"></i>
+      <strong>Phone:</strong> <span id="shopPhone">N/A</span>
+    </li>
+    <li>
+      <i class="bi bi-geo-alt-fill text-danger"></i>
+      <strong>City:</strong> <span id="shopCity">N/A</span>
+    </li>
+    <li>
+      <i class="bi bi-map-fill text-success"></i>
+      <strong>Region:</strong> <span id="shopRegion">N/A</span>
+    </li>
+    <li>
+      <i class="bi bi-tags-fill text-warning"></i>
+      <strong>Category:</strong> <span id="shopCategory">N/A</span>
+    </li>
+    <li>
+      <i class="bi bi-currency-dollar text-info"></i>
+      <strong>Price Range:</strong> <span id="shopPriceRange">N/A</span>
+    </li>
+    <li>
+      <i class="bi bi-house-fill text-primary"></i>
+      <strong>Address:</strong> <span id="shopAddress">N/A</span>
+    </li>
+  </ul>
+</div>
   
   <!-- Opening Hours -->
-  <div id="shopDetails" class="mt-3">
-    <!-- Opening hours will be dynamically injected here -->
-  </div>
+<!-- Opening Hours -->
+<div id="shopDetails" class="opening-hours">
+  <!-- Opening hours will be dynamically injected here -->
+</div>
         <!-- Google Maps Button -->
         <a id="openInMaps" href="#" target="_blank" class="btn btn-outline-primary btn-sm w-100 mt-2 text-uppercase">
           <i class="bi bi-geo-alt-fill"></i> Open in Google Maps
@@ -169,42 +384,52 @@
       </div>
 
       <!-- Right Side: Fixed Booking Section -->
-      <div class="col-lg-4">
-        <div class="shop-card fixed-booking">
-          <h5 class="text-primary mb-2 fw-bold text-center">Book a Reservation</h5>
-          <form id="searchForm">
-            <div class="mb-2">
-              <label for="numberOfPeople" class="form-label">People:</label>
-              <input type="number" class="form-control" id="numberOfPeople" name="numberOfPeople" required>
-            </div>
-            <div class="mb-2">
-              <label for="reservationDate" class="form-label">Date:</label>
-              <input type="date" class="form-control" id="reservationDate" name="reservationDate" required>
-            </div>
-            <button type="submit" class="btn btn-primary w-100 text-uppercase">Search Times</button>
-          </form>
-
-          <!-- Available Times -->
-          <div id="availableTimes" class="mt-3"></div>
-
-          <!-- Reservation Form -->
-          <form id="reservationForm" style="display: none;">
-            <div class="mb-2">
-              <label for="userName" class="form-label">Full Name:</label>
-              <input type="text" class="form-control" id="userName" name="userName" required>
-            </div>
-            <div class="mb-2">
-              <label for="reservationTime" class="form-label">Time:</label>
-              <select class="form-control" id="reservationTime" name="reservationTime" required></select>
-            </div>
-            <div class="mb-2">
-              <label for="commentFromUser" class="form-label">Comments:</label>
-              <textarea class="form-control" id="commentFromUser" name="commentFromUser" maxlength="200"></textarea>
-            </div>
-            <button type="submit" class="btn btn-success w-100 text-uppercase">Book Reservation</button>
-          </form>
+      <!-- Right Side: Fixed Booking Section -->
+<div class="col-lg-4">
+  <div class="shop-card fixed-booking">
+    <h5 class="text-primary mb-2 fw-bold text-center">Book a Reservation</h5>
+    <form id="searchForm">
+      <div class="mb-2">
+        <label for="numberOfPeople" class="form-label">People:</label>
+        <div class="input-group">
+          <button type="button" class="btn btn-outline-secondary" id="decrementPeople">-</button>
+          <input type="number" class="form-control text-center" id="numberOfPeople" name="numberOfPeople" value="1" min="1" required>
+          <button type="button" class="btn btn-outline-secondary" id="incrementPeople">+</button>
         </div>
       </div>
+      <div class="mb-2">
+        <label for="reservationDate" class="form-label">Date:</label>
+        <input type="date" class="form-control" id="reservationDate" name="reservationDate" required>
+      </div>
+      <button type="submit" class="btn btn-primary w-100 text-uppercase">Search Times</button>
+    </form>
+
+    <!-- Info Text -->
+    <p class="text mt-3 text-center" style="font-size: 0.9rem;">
+      Booking a table on our site is <strong>completely free</strong>. No hidden charges!
+    </p>
+
+    <!-- Available Times -->
+    <div id="availableTimes" class="mt-3"></div>
+
+    <!-- Reservation Form -->
+    <form id="reservationForm" style="display: none;">
+      <div class="mb-2">
+        <label for="userName" class="form-label">Full Name:</label>
+        <input type="text" class="form-control" id="userName" name="userName" required>
+      </div>
+      <div class="mb-2">
+        <label for="reservationTime" class="form-label">Time:</label>
+        <select class="form-control" id="reservationTime" name="reservationTime" required></select>
+      </div>
+      <div class="mb-2">
+        <label for="commentFromUser" class="form-label">Comments:</label>
+        <textarea class="form-control" id="commentFromUser" name="commentFromUser" maxlength="200"></textarea>
+      </div>
+      <button type="submit" class="btn btn-success w-100 text-uppercase">Book Reservation</button>
+    </form>
+  </div>
+</div>
     </div>
   </div>
 
@@ -217,7 +442,17 @@
   <script>
     // Προσθήκη Mapbox
     mapboxgl.accessToken = 'pk.eyJ1IjoicGFub3UyMSIsImEiOiJjbTlzcW9uYmkwM2k4MmpzYjc5dTF6M2ZtIn0.YBe_KPam5O4bdPh2xCpMdw';
+    document.getElementById('incrementPeople').addEventListener('click', () => {
+  const numberInput = document.getElementById('numberOfPeople');
+  numberInput.value = parseInt(numberInput.value) + 1;
+});
 
+document.getElementById('decrementPeople').addEventListener('click', () => {
+  const numberInput = document.getElementById('numberOfPeople');
+  if (parseInt(numberInput.value) > 1) {
+    numberInput.value = parseInt(numberInput.value) - 1;
+  }
+});
     async function fetchShopDetails() {
   const urlParams = new URLSearchParams(window.location.search);
   const shopId = urlParams.get('id');
@@ -281,23 +516,23 @@
       `;
     }
 
-    // Update opening hours
-    const openingHoursDiv = document.getElementById('shopDetails');
-    if (openingHoursDiv && shop.openingHours) {
-      openingHoursDiv.innerHTML = `
-        <h5 class="text-primary"><i class="bi bi-clock me-2"></i>Opening Hours</h5>
-        ${Object.entries(shop.openingHours)
-          .map(([day, hours]) => `
-            <div class="d-flex justify-content-between">
-              <span>${day.charAt(0).toUpperCase() + day.slice(1)}:</span>
-              <span>${hours.isOpen ? `${hours.open}:00 - ${hours.close}:00` : 'Closed'}</span>
-            </div>
-          `)
-          .join('')}
-      `;
-    } else {
-      openingHoursDiv.innerHTML = '<p>No opening hours available.</p>';
-    }
+// Update opening hours
+const openingHoursDiv = document.getElementById('shopDetails');
+if (openingHoursDiv && shop.openingHours) {
+  openingHoursDiv.innerHTML = `
+    <h5 class="text-primary"><i class="bi bi-clock me-2"></i>Opening Hours</h5>
+    ${Object.entries(shop.openingHours)
+      .map(([day, hours]) => `
+        <div class="day">
+          <span>${day.charAt(0).toUpperCase() + day.slice(1)}:</span>
+          <span>${hours.isOpen ? `${hours.open}:00 - ${hours.close}:00` : 'Closed'}</span>
+        </div>
+      `)
+      .join('')}
+  `;
+} else {
+  openingHoursDiv.innerHTML = '<p class="text-danger">No opening hours available.</p>';
+}
 
     // Update map
     const latitude = shop.location?.coordinates[1]; // Latitude
