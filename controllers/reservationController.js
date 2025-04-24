@@ -154,11 +154,27 @@ const deleteReservation = async (req, res) => {
     // Ενημέρωση της λίστας κρατήσεων του καταστήματος
     await deleteToReservationList(reservation.shopId, reservation.reservationDate, id);
 
-    // Αντιστρέφουμε την αλλαγή διαθεσιμότητας μετά τη διαγραφή
-    await updateWhenReservationDelete(reservation.tableId, reservation.reservationDate, reservation.reservationTime);
+    // Αν το tableId δεν είναι null, ενημερώνουμε τη διαθεσιμότητα του τραπεζιού
+    if (reservation.tableId) {
+      try {
+        await updateWhenReservationDelete(reservation.tableId, reservation.reservationDate, reservation.reservationTime);
+      } catch (error) {
+        console.warn(`Warning: Failed to update table availability: ${error.message}`);
+      }
+    } else {
+      console.log('No tableId provided. Skipping table availability update.');
+    }
 
-    // Αφαιρούμε την κράτηση από το ιστορικό κρατήσεων του χρήστη
-    await removeReservationFromUserHistory(reservation.userId, reservation._id);
+    // Αν το userId δεν είναι null, αφαιρούμε την κράτηση από το ιστορικό του χρήστη
+    if (reservation.userId) {
+      try {
+        await removeReservationFromUserHistory(reservation.userId, reservation._id);
+      } catch (error) {
+        console.warn(`Warning: Failed to remove reservation from user history: ${error.message}`);
+      }
+    } else {
+      console.log('No userId provided. Skipping user history update.');
+    }
 
     res.status(200).json({ success: true, message: 'Reservation deleted successfully' });
   } catch (error) {
