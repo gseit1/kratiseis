@@ -141,6 +141,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+
         // Registration form submission
         document.getElementById('registerForm').addEventListener('submit', async function(event) {
             event.preventDefault();
@@ -171,8 +172,7 @@
             }
         });
 
-        // Login form submission
-        document.getElementById('loginForm').addEventListener('submit', async function(event) {
+        document.getElementById('loginForm').addEventListener('submit', async function (event) {
     event.preventDefault();
 
     const email = document.getElementById('loginEmail').value;
@@ -188,21 +188,24 @@
         });
 
         const result = await response.json();
+
         if (response.ok) {
-            // Store only the JWT in a cookie
-            const isLocal = window.location.hostname === 'localhost';
-document.cookie = `jwt=${result.token}; path=/; ${isLocal ? '' : 'secure;'} SameSite=Strict; max-age=${60 * 60}`;
+            console.log('Login successful:', result);
 
+            // Store user information in localStorage
+            localStorage.setItem('userId', result.userId); // Store user ID
+            localStorage.setItem('role', result.role); // Store user role
+            if (result.shopId) {
+                localStorage.setItem('shopId', result.shopId); // Store shop ID if available
+            }
 
-            // Redirect based on role (if provided in the response)
-            if (result.role === 'user') {
-                window.location.href = 'index.html';
-            } else if (result.role === 'shopOwner') {
+            // Redirect based on role
+            if (result.role === 'shopOwner') {
                 window.location.href = 'shopOwner/index.html';
             } else if (result.role === 'admin') {
                 window.location.href = 'admin.html';
             } else {
-                alert('Unknown role!');
+                window.location.href = 'index.html'; // Default for regular users
             }
         } else {
             alert('Login failed: ' + result.message);
