@@ -76,8 +76,9 @@ body {
 }
 
 #shopsContainer {
-    margin-top: 20px;
-    padding: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
 }
 
 /* Shop Cards */
@@ -455,38 +456,72 @@ body.scrolled {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
 
+.mapboxgl-popup {
+    max-width: 280px !important;
+}
+
+.mapboxgl-popup-content {
+    padding: 15px !important;
+    border-radius: 8px !important;
+}
+
 .popup-card {
-    font-family: Arial, sans-serif;
-    border-radius: 5px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    background-color: #fff;
-    padding: 10px;
+    text-align: center;
 }
 
 .popup-card img {
-    border-radius: 5px;
-    margin-bottom: 10px;
-}
-
-.popup-card h5 {
-    font-size: 16px;
-    font-weight: bold;
-    margin: 10px 0;
-}
-
-.popup-card p {
-    font-size: 12px;
-    color: #666;
-    margin-bottom: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .popup-card button {
-    font-size: 12px;
-    padding: 5px 10px;
+    transition: all 0.2s ease;
 }
 
-.mapboxgl-ctrl {
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    border-radius: 5px;
-    background-color: white;
+.popup-card button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+#mapContainer {
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    margin: 20px 0;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+#mapContainer:hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.mapboxgl-ctrl-group {
+    border-radius: 8px !important;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+}
+
+.mapboxgl-ctrl-group button {
+    transition: background-color 0.2s ease;
+}
+
+.mapboxgl-ctrl-group button:hover {
+    background-color: #f0f0f0;
+}
+
+/* CSS για το κουμπί Back to Shops */
+#backToShopsBtn {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    padding: 10px 20px;
+    border-radius: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+}
+
+#backToShopsBtn:hover {
+    transform: translateX(-50%) scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
