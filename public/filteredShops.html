@@ -9,8 +9,25 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
+    <style>
+        .mapboxgl-popup {
+            max-width: 250px;
+            font-size: 14px;
+            text-align: center;
+        }
 
-    
+        .mapboxgl-popup-content {
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .mapboxgl-popup-content img {
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+    </style>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark fixed-top shadow-lg" id="navbar">
@@ -85,6 +102,9 @@
                                 <option value="">Loading...</option>
                             </select>
                         </div>
+                        <div class="mb-4 d-none" id="mapSearchContainer">
+                            <button type="button" class="btn btn-secondary w-100" id="mapSearchBtn">Ψάξε στον Χάρτη</button>
+                        </div>
                         <div class="mb-4">
                             <label for="regionFilter" class="form-label">Περιοχή</label>
                             <select id="regionFilter" class="form-select">
@@ -115,11 +135,29 @@
                 <div id="shopsContainer" class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-3 g-3 mt-4">
                     <!-- Shop cards will be dynamically inserted here -->
                 </div>
+                <div id="mapContainer" style="display: none; height: 500px; width: 100%;"></div>
+                <button id="backToShopsBtn" class="btn btn-secondary mt-3" style="display: none;">Back to Shops</button>
+            </div>
+        </div>
+    </div>
+    <div id="mapModal" class="modal fade" tabindex="-1" aria-labelledby="mapModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="mapModalLabel">Χάρτης</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="map"></div>
+                </div>
             </div>
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
     <script>
+       mapboxgl.accessToken = 'pk.eyJ1IjoicGFub3UyMSIsImEiOiJjbTlzcW9uYmkwM2k4MmpzYjc5dTF6M2ZtIn0.YBe_KPam5O4bdPh2xCpMdw';
+
        document.addEventListener('DOMContentLoaded', () => {
     const shopsContainer = document.getElementById('shopsContainer');
     const smallCardsBtn = document.getElementById('smallCardsBtn');
@@ -301,6 +339,117 @@
 
                 const filters = { city, region, category };
                 fetchShops(filters);
+            });
+
+            const cityFilter = document.getElementById('cityFilter');
+            const mapSearchContainer = document.getElementById('mapSearchContainer');
+
+            cityFilter.addEventListener('change', () => {
+                if (cityFilter.value) {
+                    mapSearchContainer.classList.remove('d-none');
+                } else {
+                    mapSearchContainer.classList.add('d-none');
+                }
+            });
+
+            document.getElementById('mapSearchBtn').addEventListener('click', async () => {
+                const cityId = document.getElementById('cityFilter').value;
+                if (!cityId) {
+                    alert('Παρακαλώ επιλέξτε μια πόλη.');
+                    return;
+                }
+
+                try {
+                    // Fetch δεδομένα της πόλης
+                    const cityResponse = await fetch(`/city/${cityId}`);
+                    if (!cityResponse.ok) throw new Error('Failed to fetch city data');
+                    const { city } = await cityResponse.json();
+
+                    if (!city || !city.location || !city.location.coordinates || city.location.coordinates.length < 2) {
+                        alert('Η πόλη δεν έχει έγκυρες συντεταγμένες.');
+                        return;
+                    }
+
+                    // Fetch δεδομένα για τον χάρτη
+                    const mapShopsResponse = await fetch(`/search/city/${cityId}/mapUse`);
+                    if (!mapShopsResponse.ok) throw new Error('Failed to fetch map shops data');
+                    const shops = await mapShopsResponse.json();
+
+                    if (!shops || !Array.isArray(shops) || shops.length === 0) {
+                        alert('Δεν βρέθηκαν καταστήματα για αυτή την πόλη.');
+                        return;
+                    }
+
+                    // Δημιουργία του χάρτη με κέντρο τις συντεταγμένες της πόλης
+                    const mapContainer = document.getElementById('mapContainer');
+                    mapContainer.style.display = 'block'; // Βεβαιώσου ότι είναι ορατό
+                    mapContainer.style.height = '500px'; // Βεβαιώσου ότι έχει ύψος
+                    mapContainer.style.width = '100%'; // Βεβαιώσου ότι έχει πλάτος
+                    mapContainer.innerHTML = ''; // Καθαρισμός προηγούμενου χάρτη
+                    const map = new mapboxgl.Map({
+                        container: 'mapContainer',
+                        style: 'mapbox://styles/mapbox/streets-v11',
+                        center: [city.location.coordinates[0], city.location.coordinates[1]],
+                        zoom: 8, // Μικρότερο zoom για μεγαλύτερη περιοχή
+                    });
+
+                    map.addControl(new mapboxgl.NavigationControl(), 'top-right');
+
+                    console.log('Map created:', map);
+
+                    // Προσθήκη markers για κάθε κατάστημα
+                    shops.forEach(shop => {
+                        if (!shop.location || !shop.location.coordinates || shop.location.coordinates.length < 2) {
+                            console.error(`Invalid location data for shop: ${shop._id}`);
+                            return;
+                        }
+
+                        const marker = new mapboxgl.Marker({ color: 'black' })
+                            .setLngLat([shop.location.coordinates[0], shop.location.coordinates[1]])
+                            .addTo(map);
+
+                        // Χρήση του ίδιου HTML template με το shopCard
+                        let imageUrl = shop.image || (shop.images && shop.images.length > 0 ? shop.images[0] : null);
+                        if (!imageUrl || (!imageUrl.startsWith('http') && !imageUrl.startsWith('/'))) {
+                            imageUrl = '/images/default-placeholder.jpg'; // Placeholder αν δεν υπάρχει εικόνα
+                        } else if (imageUrl.startsWith('/')) {
+                            imageUrl = `http://localhost:300${imageUrl}`; // Προσθήκη base URL για σχετικές διαδρομές
+                        }
+
+                        const popupContent = `
+    <div class="popup-card" style="width: 200px; text-align: center;">
+        <img src="${imageUrl}" alt="${shop.shopName}" style="width: 100%; height: 100px; object-fit: cover; border-radius: 5px;">
+        <h5 style="margin: 10px 0; font-size: 16px; font-weight: bold;">${shop.shopName}</h5>
+        <p style="font-size: 12px; color: #666; margin-bottom: 10px;">${shop.shopDescription || ''}</p>
+        <button class="btn btn-primary btn-sm" style="font-size: 12px;" onclick="window.location.href='shop.html?id=${shop._id}'">Λεπτομέρειες</button>
+    </div>
+`;
+
+                        const popup = new mapboxgl.Popup({ offset: 15 })
+                            .setHTML(popupContent);
+
+                        marker.setPopup(popup);
+                    });
+                } catch (error) {
+                    console.error('Error fetching data:', error);
+                    alert('Αποτυχία φόρτωσης δεδομένων.');
+                }
+            });
+
+            document.getElementById('mapModal').addEventListener('shown.bs.modal', () => {
+                map.resize(); // Ενημέρωση του χάρτη όταν εμφανίζεται το modal
+            });
+
+            document.getElementById('mapSearchBtn').addEventListener('click', () => {
+                document.getElementById('mapContainer').style.display = 'block';
+                document.getElementById('shopsContainer').style.display = 'none';
+                document.getElementById('backToShopsBtn').style.display = 'block';
+            });
+
+            document.getElementById('backToShopsBtn').addEventListener('click', () => {
+                document.getElementById('mapContainer').style.display = 'none';
+                document.getElementById('shopsContainer').style.display = 'block';
+                document.getElementById('backToShopsBtn').style.display = 'none';
             });
         });
     </script>

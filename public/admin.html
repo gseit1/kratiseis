@@ -187,6 +187,12 @@ img {
                   <input type="text" id="cityName" class="form-control" placeholder="City Name" required>
                 </div>
                 <div class="mb-2">
+                  <input type="text" id="cityLatitude" class="form-control" placeholder="Latitude" required>
+                </div>
+                <div class="mb-2">
+                  <input type="text" id="cityLongitude" class="form-control" placeholder="Longitude" required>
+                </div>
+                <div class="mb-2">
                   <input type="file" id="cityImage" name="image" class="form-control" accept="image/*" required>
                 </div>
                 <button type="submit" class="btn btn-primary">Add City</button>
@@ -202,6 +208,14 @@ img {
               <div class="mb-2">
                 <label for="editCityName" class="form-label">New City Name</label>
                 <input type="text" id="editCityName" class="form-control" placeholder="Enter new city name" required>
+              </div>
+              <div class="mb-2">
+                <label for="editCityLatitude" class="form-label">New Latitude</label>
+                <input type="text" id="editCityLatitude" class="form-control" placeholder="Enter new latitude" required>
+              </div>
+              <div class="mb-2">
+                <label for="editCityLongitude" class="form-label">New Longitude</label>
+                <input type="text" id="editCityLongitude" class="form-control" placeholder="Enter new longitude" required>
               </div>
               <div class="mb-2">
                 <label for="editCityImage" class="form-label">New City Image</label>
@@ -524,7 +538,7 @@ async function fetchCities() {
           <img src="${city.image}" alt="${city.name}" style="width: 50px; height: 50px; object-fit: cover; margin-left: 10px;">
         </div>
         <div>
-          <button class="btn btn-sm btn-warning me-2" onclick="editCity('${city._id}', '${city.name}', '${city.image}')">Edit</button>
+          <button class="btn btn-sm btn-warning me-2" onclick="editCity('${city._id}', '${city.name}', '${city.latitude}', '${city.longitude}', '${city.image}')">Edit</button>
           <button class="btn btn-sm btn-danger" onclick="deleteCity('${city._id}')">Delete</button>
         </div>
       `;
@@ -674,36 +688,9 @@ async function addCategory(event) {
   event.preventDefault();
 
   const formData = new FormData();
-  formData.append('type', 'city'); // Ορίζουμε τον τύπο ως "city"
-  formData.append('name', document.getElementById('cityName').value); // Όνομα πόλης
-  formData.append('image', document.getElementById('cityImage').files[0]); // Εικόνα πόλης
-
-  try {
-    const response = await fetch('/api/upload', {
-      method: 'POST',
-      body: formData,
-    });
-
-    if (!response.ok) throw new Error('Failed to upload city image');
-    const data = await response.json();
-    alert(`City added successfully with image: ${data.filePath}`);
-
-    // Καθαρισμός πεδίων φόρμας
-    document.getElementById('cityName').value = '';
-    document.getElementById('cityImage').value = '';
-    fetchCities(); // Ενημέρωση της λίστας πόλεων
-  } catch (error) {
-    console.error('Error adding city:', error);
-    alert('Error adding city');
-  }
-}
-
-
-document.getElementById('addCityForm').addEventListener('submit', async (event) => {
-  event.preventDefault();
-
-  const formData = new FormData();
   formData.append('name', document.getElementById('cityName').value);
+  formData.append('latitude', document.getElementById('cityLatitude').value);
+  formData.append('longitude', document.getElementById('cityLongitude').value);
   formData.append('image', document.getElementById('cityImage').files[0]);
 
   try {
@@ -720,6 +707,32 @@ document.getElementById('addCityForm').addEventListener('submit', async (event) 
     console.error('Error adding city:', error);
     alert('Error adding city');
   }
+}
+
+
+document.getElementById('addCityForm').addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    const formData = new FormData();
+    formData.append('name', document.getElementById('cityName').value);
+    formData.append('latitude', document.getElementById('cityLatitude').value);
+    formData.append('longitude', document.getElementById('cityLongitude').value);
+    formData.append('image', document.getElementById('cityImage').files[0]);
+
+    try {
+        const response = await fetch('/city', {
+            method: 'POST',
+            body: formData,
+        });
+
+        if (!response.ok) throw new Error('Failed to add city');
+        const data = await response.json();
+        alert('City added successfully');
+        fetchCities(); // Ενημέρωση της λίστας πόλεων
+    } catch (error) {
+        console.error('Error adding city:', error);
+        alert('Error adding city');
+    }
 });
 
 
@@ -840,25 +853,29 @@ function cancelEditCategory() {
 
 
 
-async function editCity(id, name, imageUrl) {
-  // Προσυμπλήρωση της φόρμας με τα τρέχοντα δεδομένα
+async function editCity(id, name, latitude, longitude, imageUrl) {
+  // Pre-fill the form with current data
   document.getElementById('editCityName').value = name;
+  document.getElementById('editCityLatitude').value = latitude;
+  document.getElementById('editCityLongitude').value = longitude;
   document.getElementById('editCitySection').style.display = 'block';
 
-  // Αποθήκευση του ID της πόλης που επεξεργάζεσαι
+  // Store the selected city ID
   selectedCityId = id;
 
-  // Αφαίρεση προηγούμενων event listeners
+  // Remove previous event listeners
   const editCityForm = document.getElementById('editCityForm');
   const newForm = editCityForm.cloneNode(true);
   editCityForm.replaceWith(newForm);
 
-  // Προσθήκη νέου event listener
+  // Add new event listener
   newForm.addEventListener('submit', async (event) => {
     event.preventDefault();
 
     const formData = new FormData();
     formData.append('name', document.getElementById('editCityName').value);
+    formData.append('latitude', document.getElementById('editCityLatitude').value);
+    formData.append('longitude', document.getElementById('editCityLongitude').value);
     const imageFile = document.getElementById('editCityImage').files[0];
     if (imageFile) {
       formData.append('image', imageFile);
@@ -872,18 +889,14 @@ async function editCity(id, name, imageUrl) {
 
       if (!response.ok) throw new Error('Failed to edit city');
       alert('City updated successfully');
-      fetchCities(); // Ενημέρωση της λίστας πόλεων
-      document.getElementById('editCitySection').style.display = 'none'; // Κλείσιμο της φόρμας
+      fetchCities(); // Refresh the city list
+      document.getElementById('editCitySection').style.display = 'none'; // Close the form
     } catch (error) {
       console.error('Error editing city:', error);
       alert('Error editing city');
     }
   });
 }
-
-
-
-
 
 function cancelEditCity() {
   document.getElementById('editCitySection').style.display = 'none';

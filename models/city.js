@@ -17,6 +17,19 @@ const citySchema = mongoose.Schema({
         default:[],
     }],
 
+    location: {
+        type: {
+            type: String,
+            enum: ['Point'],
+            required: true,
+            default: 'Point'
+        },
+        coordinates: {
+            type: [Number],
+            required: true
+        }
+    }
+
 });
 
 const City = mongoose.model('City',citySchema);

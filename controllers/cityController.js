@@ -1,4 +1,5 @@
 const { addCityService, deleteCityService, getAllCitiesService , editCityService } = require('../services/cityServices');
+const City = require('../models/city');
 
 // Προσθήκη νέας πόλης
 const addCity = async (req, res) => {
@@ -6,14 +7,25 @@ const addCity = async (req, res) => {
     console.log('Request body:', req.body);
     console.log('Request file:', req.file);
 
-    const { name } = req.body;
+    const { name, latitude, longitude } = req.body;
     const image = req.file ? `/uploads/cities/${req.file.filename}` : null;
 
     if (!image) {
       return res.status(400).json({ success: false, message: 'Image is required' });
     }
 
-    const newCity = await addCityService({ name, image });
+    if (!latitude || !longitude) {
+      return res.status(400).json({ success: false, message: 'Latitude and longitude are required' });
+    }
+
+    const newCity = await addCityService({
+      name,
+      image,
+      location: {
+        type: 'Point',
+        coordinates: [longitude, latitude]
+      }
+    });
     res.status(201).json({ success: true, message: 'City added successfully', city: newCity });
   } catch (error) {
     console.error('Error adding city:', error.message);
@@ -44,10 +56,18 @@ const deleteCity = async (req, res) => {
 const editCity = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name } = req.body;
+    const { name, latitude, longitude } = req.body;
     const image = req.file ? `/uploads/cities/${req.file.filename}` : null;
 
-    const updatedCity = await editCityService(id, { name, image });
+    const updatedData = { name, image };
+    if (latitude && longitude) {
+      updatedData.location = {
+        type: 'Point',
+        coordinates: [longitude, latitude]
+      };
+    }
+
+    const updatedCity = await editCityService(id, updatedData);
     res.status(200).json({ success: true, message: 'City updated successfully', city: updatedCity });
   } catch (error) {
     console.error('Error editing city:', error.message);
@@ -66,9 +86,24 @@ const getAllCities = async (req, res) => {
   }
 };
 
+const getCityById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const city = await City.findById(id).populate('regions');
+    if (!city) {
+      return res.status(404).json({ success: false, message: 'City not found' });
+    }
+    res.status(200).json({ success: true, city });
+  } catch (error) {
+    console.error('Error fetching city by ID:', error.message);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
   addCity,
   deleteCity,
   getAllCities,
   editCity,
+  getCityById,
 };

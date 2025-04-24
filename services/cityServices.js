@@ -27,13 +27,7 @@ const deleteCityService = async (cityId) => {
 
 
 const editCityService = async (cityId, cityData) => {
-  const { name, image } = cityData;
-
-  const updatedData = {};
-  if (name) updatedData.name = name;
-  if (image) updatedData.image = image;
-
-  const updatedCity = await City.findByIdAndUpdate(cityId, updatedData, { new: true });
+  const updatedCity = await City.findByIdAndUpdate(cityId, cityData, { new: true });
   if (!updatedCity) {
     throw new Error('City not found');
   }
@@ -53,4 +47,4 @@ module.exports = {
   deleteCityService,
   getAllCitiesService,
   editCityService,
-};  
+};
