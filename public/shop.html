@@ -13,189 +13,202 @@
   <!-- Mapbox CSS -->
   <link href="https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.css" rel="stylesheet">
   <!-- Additional Custom Style -->
+
   <style>
     body {
       font-family: 'Poppins', sans-serif;
-      background: #f4f4f9;
+      background-color: #f8f9fa;
       color: #333;
-      padding-top: 20px;
+      padding-top: 4rem;
     }
-   .container {
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-  padding: 40px 30px;
-  min-height: 600px; /* Καθορίστε ελάχιστο ύψος */
-}
 
-.shop-img {
-    width: 100%;
-    max-height: 350px;
-    object-fit: cover;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    aspect-ratio: 16 / 9; /* Προσθήκη αναλογίας διαστάσεων */
-  }
-
-  p {
-    font-size: 1rem;
-    margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  p i {
-    font-size: 1.2rem;
-  }
-
-  .text-primary {
-    color: #0d6efd !important;
-  }
-
-  .text-danger {
-    color: #dc3545 !important;
-  }
-
-  .text-success {
-    color: #198754 !important;
-  }
-
-  .text-warning {
-    color: #ffc107 !important;
-  }
-
-  .text-info {
-    color: #0dcaf0 !important;
-  }
-
-    h1, h3 {
-      font-family: 'Lora', serif;
+    .container {
+      max-width: 1200px;
     }
-    .shop-img {
-      width: 100%;
-      height: 300px;
-      object-fit: cover;
+
+    .left-content {
+      overflow-y: auto;
+      max-height: calc(100vh - 80px); /* Adjust for navbar height */
+      padding-right: 1rem;
+    }
+
+    .fixed-booking {
+      position: sticky;
+      top: 80px; /* Adjust for navbar height */
+    }
+
+    .shop-card {
+      background-color: #fff;
       border-radius: 10px;
+      padding: 2rem;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
     }
-    form {
-      margin-top: 20px;
-    }
-    #availableTimes {
-      margin-top: 20px;
-      min-height: 50px; /* Καθορίστε ελάχιστο ύψος */
-    }
+
     .btn-primary {
-      background-color: #5a67d8;
-      border-color: #5a67d8;
+      background-color: #0d6efd;
+      border-color: #0d6efd;
     }
+
     .btn-primary:hover {
-      background-color: #434190;
-      border-color: #434190;
+      background-color: #0b5ed7;
+      border-color: #0b5ed7;
     }
-    
+
+    .btn-success {
+      background-color: #198754;
+      border-color: #198754;
+    }
+
+    .btn-success:hover {
+      background-color: #157347;
+      border-color: #157347;
+    }
+
     #map {
-      height: 400px;
-      width: 100%;
-      margin-bottom: 20px;
+      height: 300px;
+      border-radius: 8px;
+      overflow: hidden;
     }
-    #shopDetails {
-      min-height: 100px; /* Καθορίστε ελάχιστο ύψος */
-    }
+    .carousel-inner img {
+  height: 300px; /* Set the desired fixed height */
+  object-fit: cover; /* Ensures the image fills the area while maintaining aspect ratio */
+}
   </style>
 </head>
 <body>
+  <!-- Navbar -->
   <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
     <div class="container-fluid">
-        <a class="navbar-brand" href="index.html">MyShop</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item">
-                    <a class="nav-link active" href="index.html">Home</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="shops.html">Shops</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="createShop.html">Create Shop</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="registerLogin.html">Register/Login</a>
-                </li>
-            </ul>
-        </div>
+      <a class="navbar-brand" href="index.html">MyShop</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link active" href="index.html">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="shops.html">Shops</a></li>
+          <li class="nav-item"><a class="nav-link" href="createShop.html">Create Shop</a></li>
+          <li class="nav-item"><a class="nav-link" href="registerLogin.html">Register/Login</a></li>
+        </ul>
+      </div>
     </div>
-</nav>
-<div class="container mt-5">
-  <div class="row g-4 align-items-start">
-    <!-- Left Side: Image, Name, Description -->
-    <div class="col-lg-6">
-      <h1 id="shopName" class="mb-3"></h1>
-      <img id="shopImage" class="shop-img mb-3" alt="Shop Image">
-      <p id="shopDescription" class="mb-4"></p>
-      <p><i class="bi bi-telephone-fill text-primary"></i> <strong>Phone:</strong> <span id="shopPhone">N/A</span></p>
-      <p><i class="bi bi-geo-alt-fill text-danger"></i> <strong>City:</strong> <span id="shopCity">N/A</span></p>
-      <p><i class="bi bi-map-fill text-success"></i> <strong>Region:</strong> <span id="shopRegion">N/A</span></p>
-      <p><i class="bi bi-tags-fill text-warning"></i> <strong>Category:</strong> <span id="shopCategory">N/A</span></p>
-      <p><i class="bi bi-currency-dollar text-info"></i> <strong>Price Range:</strong> <span id="shopPriceRange">N/A</span></p>
-     
-      <p>
-        <i class="bi bi-geo-alt-fill text-success"></i> 
-        <strong>Address:</strong> 
-        <span id="shopAddress">N/A</span>
-      </p>
-      <a id="openInMaps" href="#" target="_blank" class="btn btn-outline-primary btn-sm">
-        Open in Google Maps
-      </a>
-      <div id="map" style="height: 200px; margin-bottom: 20px;"></div>
-    </div>
+  </nav>
 
-    <!-- Right Side: Opening Hours + Reservation -->
-    <div class="col-lg-6">
-      <div id="shopDetails" class="mb-4">
-        <!-- Shop opening hours will be injected here -->
+  <!-- Main Content -->
+  <div class="container mt-4">
+    <div class="row g-3">
+      <!-- Left Side: Scrollable Content -->
+      <div class="col-lg-8 left-content">
+        <!-- Shop Name -->
+        <h1 id="shopName" class="mb-2 text-primary font-weight-bold text-center"></h1>
+
+        <!-- Carousel -->
+        <div id="shopCarousel" class="carousel slide mb-3" data-bs-ride="carousel">
+          <div class="carousel-inner" id="carouselImages">
+            <!-- Images will be dynamically injected here -->
+          </div>
+          <button class="carousel-control-prev" type="button" data-bs-target="#shopCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+          </button>
+          <button class="carousel-control-next" type="button" data-bs-target="#shopCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+          </button>
+        </div>
+
+        <!-- Thumbnails -->
+        <div class="d-flex justify-content-center mb-3" id="carouselThumbnails">
+          <!-- Thumbnails will be dynamically injected here -->
+        </div>
+
+        <!-- Shop Description -->
+        <p id="shopDescription" class="mt-2 text-muted text-center"></p>
+
+     <!-- Shop Details -->
+<div class="card shadow-sm mb-3 p-2">
+    <ul class="list-group list-group-flush">
+      <li class="list-group-item d-flex align-items-center">
+        <i class="bi bi-telephone-fill text-primary fs-5 me-2"></i>
+        <strong>Phone:</strong> <span id="shopPhone">N/A</span>
+      </li>
+      <li class="list-group-item d-flex align-items-center">
+        <i class="bi bi-geo-alt-fill text-danger fs-5 me-2"></i>
+        <strong>City:</strong> <span id="shopCity">N/A</span>
+      </li>
+      <li class="list-group-item d-flex align-items-center">
+        <i class="bi bi-map-fill text-success fs-5 me-2"></i>
+        <strong>Region:</strong> <span id="shopRegion">N/A</span>
+      </li>
+      <li class="list-group-item d-flex align-items-center">
+        <i class="bi bi-tags-fill text-warning fs-5 me-2"></i>
+        <strong>Category:</strong> <span id="shopCategory">N/A</span>
+      </li>
+      <li class="list-group-item d-flex align-items-center">
+        <i class="bi bi-currency-dollar text-info fs-5 me-2"></i>
+        <strong>Price Range:</strong> <span id="shopPriceRange">N/A</span>
+      </li>
+      <li class="list-group-item d-flex align-items-center">
+        <i class="bi bi-geo-alt-fill text-success fs-5 me-2"></i>
+        <strong>Address:</strong> <span id="shopAddress">N/A</span>
+      </li>
+    </ul>
+  </div>
+  
+  <!-- Opening Hours -->
+  <div id="shopDetails" class="mt-3">
+    <!-- Opening hours will be dynamically injected here -->
+  </div>
+        <!-- Google Maps Button -->
+        <a id="openInMaps" href="#" target="_blank" class="btn btn-outline-primary btn-sm w-100 mt-2 text-uppercase">
+          <i class="bi bi-geo-alt-fill"></i> Open in Google Maps
+        </a>
+
+        <!-- Map -->
+        <div id="map" class="mt-3" style="height: 250px; border-radius: 8px;"></div>
       </div>
 
-      <!-- Reservation Search Form -->
-      <h3 class="mb-3">Book a Reservation</h3>
-      <form id="searchForm">
-        <div class="mb-3">
-          <label for="numberOfPeople" class="form-label">Number of People:</label>
-          <input type="number" class="form-control" id="numberOfPeople" name="numberOfPeople" required>
-        </div>
-        <div class="mb-3">
-          <label for="reservationDate" class="form-label">Date:</label>
-          <input type="date" class="form-control" id="reservationDate" name="reservationDate" required>
-        </div>
-        <button type="submit" class="btn btn-primary">Search Available Times</button>
-      </form>
+      <!-- Right Side: Fixed Booking Section -->
+      <div class="col-lg-4">
+        <div class="shop-card fixed-booking">
+          <h5 class="text-primary mb-2 fw-bold text-center">Book a Reservation</h5>
+          <form id="searchForm">
+            <div class="mb-2">
+              <label for="numberOfPeople" class="form-label">People:</label>
+              <input type="number" class="form-control" id="numberOfPeople" name="numberOfPeople" required>
+            </div>
+            <div class="mb-2">
+              <label for="reservationDate" class="form-label">Date:</label>
+              <input type="date" class="form-control" id="reservationDate" name="reservationDate" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100 text-uppercase">Search Times</button>
+          </form>
 
-      <!-- Available Times -->
-      <div id="availableTimes" class="mt-4"></div>
+          <!-- Available Times -->
+          <div id="availableTimes" class="mt-3"></div>
 
-      <!-- Reservation Form -->
-      <form id="reservationForm" class="mt-4" style="display: none;">
-        <div class="mb-3">
-          <label for="userName" class="form-label">Full Name:</label>
-          <input type="text" class="form-control" id="userName" name="userName" required>
+          <!-- Reservation Form -->
+          <form id="reservationForm" style="display: none;">
+            <div class="mb-2">
+              <label for="userName" class="form-label">Full Name:</label>
+              <input type="text" class="form-control" id="userName" name="userName" required>
+            </div>
+            <div class="mb-2">
+              <label for="reservationTime" class="form-label">Time:</label>
+              <select class="form-control" id="reservationTime" name="reservationTime" required></select>
+            </div>
+            <div class="mb-2">
+              <label for="commentFromUser" class="form-label">Comments:</label>
+              <textarea class="form-control" id="commentFromUser" name="commentFromUser" maxlength="200"></textarea>
+            </div>
+            <button type="submit" class="btn btn-success w-100 text-uppercase">Book Reservation</button>
+          </form>
         </div>
-        <div class="mb-3">
-          <label for="reservationTime" class="form-label">Time:</label>
-          <select class="form-control" id="reservationTime" name="reservationTime" required></select>
-        </div>
-        <div class="mb-3">
-          <label for="commentFromUser" class="form-label">Comments:</label>
-          <textarea class="form-control" id="commentFromUser" name="commentFromUser" maxlength="200"></textarea>
-        </div>
-        <button type="submit" class="btn btn-primary">Book Reservation</button>
-      </form>
+      </div>
     </div>
   </div>
-</div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
   <!-- Bootstrap Bundle with Popper -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
@@ -206,75 +219,113 @@
     mapboxgl.accessToken = 'pk.eyJ1IjoicGFub3UyMSIsImEiOiJjbTlzcW9uYmkwM2k4MmpzYjc5dTF6M2ZtIn0.YBe_KPam5O4bdPh2xCpMdw';
 
     async function fetchShopDetails() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const shopId = urlParams.get('id');
+  const urlParams = new URLSearchParams(window.location.search);
+  const shopId = urlParams.get('id');
 
-        try {
-            const response = await fetch(`/api/shop/${shopId}`);
-            if (!response.ok) {
-                throw new Error('Failed to fetch shop details');
-            }
-            const shop = await response.json();
+  try {
+    const response = await fetch(`/api/shop/${shopId}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch shop details');
+    }
+    const shop = await response.json();
 
-            // Ενημέρωση πληροφοριών καταστήματος
-            document.getElementById('shopName').textContent = shop.shopName;
-            document.getElementById('shopImage').src = `${shop.images[0]}`;
-            document.getElementById('shopDescription').textContent = shop.shopDescription;
-            document.getElementById('shopPhone').textContent = shop.phone || 'N/A';
-            document.getElementById('shopCity').textContent = shop.city?.name || 'N/A';
-            document.getElementById('shopRegion').textContent = shop.region?.name || 'N/A';
-            document.getElementById('shopCategory').textContent = shop.category?.name || 'N/A';
-            document.getElementById('shopPriceRange').textContent = shop.priceRange || 'N/A';
+    // Update shop details
+    document.getElementById('shopName').textContent = shop.shopName || 'N/A';
+    document.getElementById('shopDescription').textContent = shop.shopDescription || 'N/A';
+    document.getElementById('shopPhone').textContent = shop.phone || 'N/A';
+    document.getElementById('shopCity').textContent = shop.city?.name || 'N/A';
+    document.getElementById('shopRegion').textContent = shop.region?.name || 'N/A';
+    document.getElementById('shopCategory').textContent = shop.category?.name || 'N/A';
+    document.getElementById('shopPriceRange').textContent = shop.priceRange || 'N/A';
+    document.getElementById('shopAddress').textContent = shop.address || 'N/A';
 
-            // Ενημέρωση διεύθυνσης
-            document.getElementById('shopAddress').textContent = shop.address || 'N/A';
+    // Update carousel images
+    const carouselImages = document.getElementById('carouselImages');
+    const carouselThumbnails = document.getElementById('carouselThumbnails');
+    if (carouselImages && shop.images && shop.images.length > 0) {
+      carouselImages.innerHTML = shop.images
+        .slice(0, 3) // Limit to 3 images
+        .map((image, index) => `
+          <div class="carousel-item ${index === 0 ? 'active' : ''}">
+            <img src="${image}" class="d-block w-100 shop-img" alt="Shop Image ${index + 1}">
+          </div>
+        `)
+        .join('');
 
-            // Ενημέρωση χάρτη
-            const latitude = shop.location?.coordinates[1]; // Latitude
-            const longitude = shop.location?.coordinates[0]; // Longitude
-
-            if (latitude && longitude) {
-                const map = new mapboxgl.Map({
-                    container: 'map',
-                    style: 'mapbox://styles/mapbox/streets-v12',
-                    center: [longitude, latitude],
-                    zoom: 14,
-                    interactive: true,
-                });
-
-                new mapboxgl.Marker()
-                    .setLngLat([longitude, latitude])
-                    .addTo(map);
-
-                // Ρύθμιση του συνδέσμου για το κουμπί "Open in Google Maps"
-                const googleMapsLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
-                document.getElementById('openInMaps').href = googleMapsLink;
-            } else {
-                // Αν δεν υπάρχουν συντεταγμένες, απενεργοποιούμε το κουμπί
-                document.getElementById('openInMaps').style.display = 'none';
-            }
-
-            // Display opening hours
-            const openingHoursDiv = document.getElementById('shopDetails');
-            if (shop.openingHours) {
-                openingHoursDiv.innerHTML = Object.entries(shop.openingHours)
-                    .map(([day, hours]) => `
-                        <p>
-                            <strong>${day.charAt(0).toUpperCase() + day.slice(1)}:</strong> 
-                            ${hours.isOpen ? `${hours.open}:00 - ${hours.close}:00` : 'Closed'}
-                        </p>
-                    `)
-                    .join('');
-            } else {
-                openingHoursDiv.innerHTML = '<p>No opening hours available.</p>';
-            }
-        } catch (error) {
-            console.error('Error fetching shop details:', error);
-            alert('Error fetching shop details');
-        }
+      carouselThumbnails.innerHTML = shop.images
+        .slice(0, 3) // Limit to 3 images
+        .map((image, index) => `
+          <img 
+            src="${image}" 
+            class="img-thumbnail mx-2 carousel-thumbnail ${index === 0 ? 'active-thumbnail' : ''}" 
+            alt="Thumbnail ${index + 1}" 
+            style="width: 80px; height: 80px; object-fit: cover; cursor: pointer;" 
+            onclick="document.querySelector('#shopCarousel .carousel-item:nth-child(${index + 1})').scrollIntoView({ behavior: 'smooth' });"
+          >
+        `)
+        .join('');
+    } else {
+      // Fallback for no images
+      carouselImages.innerHTML = `
+        <div class="carousel-item active">
+          <img src="images/default-placeholder.jpg" class="d-block w-100 shop-img" alt="Default Image">
+        </div>
+      `;
+      carouselThumbnails.innerHTML = `
+        <img 
+          src="images/default-placeholder.jpg" 
+          class="img-thumbnail mx-2" 
+          alt="Default Thumbnail" 
+          style="width: 80px; height: 80px; object-fit: cover;"
+        >
+      `;
     }
 
-    // Format time number into HH:MM format.
+    // Update opening hours
+    const openingHoursDiv = document.getElementById('shopDetails');
+    if (openingHoursDiv && shop.openingHours) {
+      openingHoursDiv.innerHTML = `
+        <h5 class="text-primary"><i class="bi bi-clock me-2"></i>Opening Hours</h5>
+        ${Object.entries(shop.openingHours)
+          .map(([day, hours]) => `
+            <div class="d-flex justify-content-between">
+              <span>${day.charAt(0).toUpperCase() + day.slice(1)}:</span>
+              <span>${hours.isOpen ? `${hours.open}:00 - ${hours.close}:00` : 'Closed'}</span>
+            </div>
+          `)
+          .join('')}
+      `;
+    } else {
+      openingHoursDiv.innerHTML = '<p>No opening hours available.</p>';
+    }
+
+    // Update map
+    const latitude = shop.location?.coordinates[1]; // Latitude
+    const longitude = shop.location?.coordinates[0]; // Longitude
+    if (latitude && longitude) {
+      const map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/mapbox/streets-v12',
+        center: [longitude, latitude],
+        zoom: 14,
+        interactive: true,
+      });
+
+      new mapboxgl.Marker()
+        .setLngLat([longitude, latitude])
+        .addTo(map);
+
+      // Update "Open in Google Maps" link
+      const googleMapsLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
+      document.getElementById('openInMaps').href = googleMapsLink;
+    } else {
+      document.getElementById('openInMaps').style.display = 'none';
+    }
+  } catch (error) {
+    console.error('Error fetching shop details:', error);
+    alert('Error fetching shop details');
+  }
+}    // Format time number into HH:MM format.
     function formatTime(time) {
       const hours = Math.floor(time);
       const minutes = Math.round((time % 1) * 60);
