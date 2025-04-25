@@ -1,0 +1,140 @@
+<style>
+    
+/* General Navbar Styling */
+#navbar {
+    background: rgba(255, 255, 255, 0.1); /* Transparent background */
+    backdrop-filter: blur(8px); /* Blurring effect */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+#navbar .navbar-nav .nav-link {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #ffffff; /* White color for links */
+    padding: 0.8rem 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: color 0.3s ease, transform 0.3s ease;
+}
+
+#navbar .navbar-nav .nav-link:hover,
+#navbar .navbar-nav .nav-link:focus {
+    color: #ec4899; /* Add hover color transition to match hero section */
+    transform: scale(1.1); /* Subtle scaling on hover */
+}
+
+#navbar .navbar-toggler {
+    border: none;
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.1); /* Match navbar style */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Soft shadow */
+    transition: background 0.3s ease;
+}
+
+#navbar .navbar-toggler:hover {
+    background: rgba(255, 255, 255, 0.3); /* Hover effect for toggler */
+}
+
+#navbar .navbar-toggler-icon {
+    background-color: #ec4899; /* Match with hero section accent color */
+}
+
+#navbar .dropdown-menu {
+    background: rgba(0, 0, 0, 0.8); /* Slightly transparent dark background */
+    border-radius: 0.5rem;
+}
+
+#navbar .dropdown-item {
+    color: #ffffff;
+    padding: 0.8rem 1.5rem;
+}
+
+#navbar .dropdown-item:hover {
+    background-color: #ec4899; /* Highlight on hover */
+    color: #ffffff;
+}
+
+/* When the user scrolls, make navbar solid */
+body.scrolled #navbar {
+    background: rgba(255, 255, 255, 0.95); /* Add solid background on scroll */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15); /* Stronger shadow */
+}
+
+/* Add smooth scroll transition */
+body.scrolled {
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Navbar styling for smaller screens (Mobile) */
+@media (max-width: 768px) {
+    #navbar .navbar-nav .nav-link {
+        font-size: 1rem; /* Slightly smaller font size on mobile */
+    }
+}
+
+/* Add active class to change link color */
+.navbar-nav .nav-item.active .nav-link {
+    color: #ec4899 !important;
+    transform: scale(1.1);
+}
+</style>
+<nav class="navbar navbar-expand-lg navbar-dark fixed-top shadow-lg" id="navbar">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="index.html">
+            <i class="bi bi-shop"></i> MyShop
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link active" href="index.html">
+                        <i class="bi bi-house-door"></i> Αρχική
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="filteredShops.html">
+                        <i class="bi bi-shop-window"></i> Μαγαζιά
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="application.html">
+                        <i class="bi bi-pencil-square"></i> Κάνε αίτηση
+                    </a>
+                </li>
+                <li class="nav-item" id="registerLoginNavItem">
+                    <a class="nav-link" href="registerLogin.html">
+                        <i class="bi bi-person-plus"></i> Εγγραφή/Σύνδεση
+                    </a>
+                </li>
+                <li class="nav-item d-none" id="dashboardNavItem">
+                    <a class="nav-link" href="shopOwner/index.html">
+                        <i class="bi bi-speedometer2"></i> Πίνακας Ελέγχου
+                    </a>
+                </li>
+                <li class="nav-item dropdown d-none" id="profileDropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="profileDropdownMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-person-circle"></i> Ο λογαριασμός μου
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdownMenu">
+                        <li>
+                            <a class="dropdown-item" href="profile.html">
+                                <i class="bi bi-person"></i> View Profile
+                            </a>
+                        </li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="#" id="logoutBtn">
+                                <i class="bi bi-box-arrow-right"></i> Αποσύνδεση
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>

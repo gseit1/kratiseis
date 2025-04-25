@@ -1,334 +1,303 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up & Apply for a Shop</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        /* General Styling */
-        body {
-          font-family: 'Poppins', sans-serif;
-          background: linear-gradient(to right, #6a11cb, #2575fc); /* Vibrant gradient background */
-          color: #ffffff;
-          min-height: 100vh;
-          margin: 0;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 20px;
-        }
-    
-        .container-fluid {
-          max-width: 1200px;
-          background: rgba(255, 255, 255, 0.05); /* Transparent background */
-          backdrop-filter: blur(10px);
-          border-radius: 15px;
-          padding: 2rem;
-          box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-        }
-    
-        /* Hero Section */
-        .hero-section {
-          text-align: center;
-          background: linear-gradient(to right, #ff6ec4, #7873f5); /* Vibrant gradient */
-          color: #ffffff;
-          padding: 4rem 2rem;
-          border-radius: 15px;
-          box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-        }
-    
-        .hero-title {
-          font-size: 3rem;
-          font-weight: 800;
-          margin-bottom: 1rem;
-          line-height: 1.2;
-        }
-    
-        .hero-subtitle {
-          font-size: 1.25rem;
-          margin-bottom: 2rem;
-          color: #e0e0e0;
-        }
-    
-        .cta-button {
-          background: linear-gradient(135deg, #ff6ec4, #7873f5);
-          padding: 1rem 2rem;
-          border-radius: 40px;
-          color: #fff;
-          font-weight: 600;
-          font-size: 1.1rem;
-          text-decoration: none;
-          transition: transform 0.3s ease, box-shadow 0.3s ease;
-          display: inline-block;
-        }
-    
-        .cta-button:hover {
-          transform: scale(1.05);
-          box-shadow: 0 8px 20px rgba(255, 110, 196, 0.4);
-        }
-    
-        /* How-To Section */
-        .how-to-section {
-          background: rgba(255, 255, 255, 0.05);
-          border-radius: 15px;
-          padding: 2rem;
-          box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-        }
-    
-        .how-to-title {
-          text-align: center;
-          font-size: 2rem;
-          font-weight: 800;
-          color: #ff6ec4;
-          margin-bottom: 1.5rem;
-        }
-    
-        .steps {
-          display: flex;
-          flex-direction: column;
-          gap: 1.5rem;
-        }
-    
-        .step {
-          display: flex;
-          align-items: flex-start;
-          gap: 1rem;
-        }
-    
-        .step-number {
-          background: linear-gradient(135deg, #ff6ec4, #7873f5);
-          color: #ffffff;
-          font-size: 1.5rem;
-          font-weight: 700;
-          width: 50px;
-          height: 50px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: 50%;
-          box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-        }
-    
-        .step-content h3 {
-          font-size: 1.25rem;
-          font-weight: 700;
-          color: #ffffff;
-          margin-bottom: 0.5rem;
-        }
-    
-        .step-content p {
-          font-size: 1rem;
-          color: #d1d5db;
-          margin: 0;
-        }
-    
-        /* Form Section */
-        .form-container {
-          background: rgba(255, 255, 255, 0.05);
-          border-radius: 15px;
-          padding: 2rem;
-          box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-          margin-top: 2rem;
-        }
-    
-        .form-container h3 {
-          font-size: 1.5rem;
-          font-weight: 700;
-          color: #ff6ec4;
-          margin-bottom: 1rem;
-        }
-    
-        label {
-          font-weight: bold;
-          color: #ffffff;
-        }
-    
-        input, textarea, button {
-          width: 100%;
-          padding: 10px;
-          margin-bottom: 15px;
-          border: 1px solid #ccc;
-          border-radius: 5px;
-        }
-    
-        input:focus, textarea:focus {
-          border-color: #ff6ec4;
-          box-shadow: 0 0 5px rgba(255, 110, 196, 0.5);
-        }
-    
-        button {
-          background-color: #ff6ec4;
-          color: white;
-          border: none;
-          cursor: pointer;
-          font-size: 1.1rem;
-          font-weight: bold;
-          transition: background 0.3s ease;
-        }
-    
-        button:hover {
-          background-color: #e056b3;
-        }
-      </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Apply for a Shop</title>
+  <link rel="stylesheet" href="styles/customer.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet" />
+  <style>
+    body {
+      background: linear-gradient(135deg, #e0eafc, #cfdef3);
+      font-family: 'Poppins', sans-serif;
+      padding-top: 3rem;
+      color: #333;
+    }
+
+    .hero {
+      text-align: center;
+      padding: 60px 20px;
+      background: linear-gradient(to right, #667eea, #764ba2);
+      color: #fff;
+      border-radius: 20px;
+      margin-bottom: 2rem;
+    }
+
+    .hero h1 {
+      font-size: 3rem;
+      font-weight: 700;
+    }
+
+    .hero p {
+      font-size: 1.2rem;
+      margin-top: 10px;
+    }
+
+    .steps {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      margin: 40px 0;
+      flex-wrap: wrap;
+    }
+
+    .step {
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      flex: 1 1 250px;
+      text-align: center;
+    }
+
+    .step i {
+      font-size: 2rem;
+      color: #764ba2;
+      margin-bottom: 10px;
+    }
+
+    .form-container {
+      background: #ffffff;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+      margin-bottom: 2rem;
+    }
+
+    .form-container h3 {
+      color: #764ba2;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+
+    .form-control {
+      border-radius: 10px;
+    }
+
+    .btn-purple {
+      background-color: #764ba2;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+    }
+
+    .btn-purple:hover {
+      background-color: #5a3d91;
+    }
+
+    .alert-success {
+      animation: fadeIn 0.6s ease;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
 </head>
 <body>
+  <nav class="navbar navbar-expand-lg navbar-dark fixed-top shadow-lg" id="navbar">
     <div class="container-fluid">
-      <div class="row">
-        <!-- Left Column: Hero Section -->
-        <div class="col-lg-6">
-          <section class="hero-section">
-            <div class="hero-content">
-              <h1 class="hero-title">Start Your Journey as a Shop Owner</h1>
-              <p class="hero-subtitle">Join our platform and bring your shop to life. It's quick, easy, and free to apply!</p>
-              <a href="#signup-form" class="cta-button">Get Started Now</a>
-            </div>
-          </section>
+        <a class="navbar-brand" href="index.html">
+            <i class="bi bi-shop"></i> MyShop
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link active" href="index.html">
+                        <i class="bi bi-house-door"></i> Αρχική
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="filteredShops.html">
+                        <i class="bi bi-shop-window"></i> Μαγαζιά
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="application.html">
+                        <i class="bi bi-pencil-square"></i> Κάνε αίτηση
+                    </a>
+                </li>
+                <li class="nav-item" id="registerLoginNavItem">
+                    <a class="nav-link" href="registerLogin.html">
+                        <i class="bi bi-person-plus"></i> Εγγραφή/Σύνδεση
+                    </a>
+                </li>
+                <li class="nav-item d-none" id="dashboardNavItem">
+                    <a class="nav-link" href="shopOwner/index.html">
+                        <i class="bi bi-speedometer2"></i> Πίνακας Ελέγχου
+                    </a>
+                </li>
+                <li class="nav-item dropdown d-none" id="profileDropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="profileDropdownMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-person-circle"></i> Ο λογαριασμός μου
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdownMenu">
+                        <li>
+                            <a class="dropdown-item" href="profile.html">
+                                <i class="bi bi-person"></i> View Profile
+                            </a>
+                        </li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="#" id="logoutBtn">
+                                <i class="bi bi-box-arrow-right"></i> Αποσύνδεση
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
         </div>
-  
-        <!-- Right Column: How-To Section -->
-        <div class="col-lg-6">
-          <section class="how-to-section">
-            <h2 class="how-to-title">How to Apply for a Shop</h2>
-            <div class="steps">
-              <div class="step">
-                <div class="step-number">1</div>
-                <div class="step-content">
-                  <h3>Sign Up</h3>
-                  <p>Create an account by filling in your name, email, and password. This will give you access to our platform.</p>
-                </div>
-              </div>
-              <div class="step">
-                <div class="step-number">2</div>
-                <div class="step-content">
-                  <h3>Fill Out Your Shop Details</h3>
-                  <p>Provide your shop name and a brief description to let us know about your business.</p>
-                </div>
-              </div>
-              <div class="step">
-                <div class="step-number">3</div>
-                <div class="step-content">
-                  <h3>Submit Your Application</h3>
-                  <p>Click the submit button, and we’ll review your application. You’ll hear back from us shortly!</p>
-                </div>
-              </div>
-            </div>
-          </section>
-        </div>
+    </div>
+</nav>
+
+  <div class="container">
+
+    <!-- Hero Section -->
+    <div class="hero">
+      <h1>Open Your Shop Today!</h1>
+      <p>Sign up and apply in just a few easy steps. Start growing your business now.</p>
+    </div>
+
+    <!-- Step-by-step -->
+    <div class="steps">
+      <div class="step">
+        <i class="bi bi-person-plus-fill"></i>
+        <h5>Step 1</h5>
+        <p>Create your personal account.</p>
       </div>
-  
-      <!-- Form Section -->
-      <div class="row mt-4">
-        <div class="col-12">
-          <div class="container">
-            <h2>Sign Up & Apply for a Shop</h2>
-            <p class="instructions">Follow the steps below to sign up and apply for a shop.</p>
-  
-            <!-- Sign Up Form -->
-            <div class="form-container">
-              <h3>Step 1: Sign Up</h3>
-              <form id="signup-form">
-                <label for="name">Name:</label>
-                <input type="text" id="name" name="name" placeholder="Enter your name" required>
-  
-                <label for="surname">Surname:</label>
-                <input type="text" id="surname" name="surname" placeholder="Enter your surname" required>
-  
-                <label for="email">Email:</label>
-                <input type="email" id="email" name="email" placeholder="Enter your email" required>
-  
-                <label for="password">Password:</label>
-                <input type="password" id="password" name="password" placeholder="Enter your password" required>
-  
-                <button type="submit">Sign Up</button>
-              </form>
-            </div>
-  
-            <!-- Post Application Form -->
-            <div class="form-container">
-              <h3>Step 2: Apply for a Shop</h3>
-              <form id="post-application-form">
-                <label for="shopName">Shop Name:</label>
-                <input type="text" id="shopName" name="shopName" placeholder="Enter your shop name" required>
-  
-                <label for="shopDescription">Shop Description:</label>
-                <textarea id="shopDescription" name="shopDescription" rows="5" placeholder="Describe your shop" required></textarea>
-  
-                <button type="submit">Submit Application</button>
-              </form>
-            </div>
-          </div>
-        </div>
+      <div class="step">
+        <i class="bi bi-shop"></i>
+        <h5>Step 2</h5>
+        <p>Submit your shop information.</p>
       </div>
-    </div>    <script>
-        // Initialize userId from localStorage
-        let userId = localStorage.getItem('userId');
-    
-        // Handle Sign Up Form Submission
-        document.getElementById('signup-form').addEventListener('submit', async function(event) {
-            event.preventDefault();
-    
-            const name = document.getElementById('name').value;
-            const surname = document.getElementById('surname').value;
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-    
-            try {
-                const response = await fetch('/api/signup', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ name, surname, email, password }),
-                });
-    
-                const result = await response.json();
-                if (response.ok) {
-                    alert('Sign Up Successful!');
-                    userId = result.userId; // Save userId
-                    localStorage.setItem('userId', userId); // Save to localStorage
-                    console.log('User ID saved to localStorage:', userId);
-                } else {
-                    alert('Error: ' + result.message);
-                }
-            } catch (error) {
-                console.error('Error during sign up:', error);
-                alert('An error occurred during sign up.');
-            }
+      <div class="step">
+        <i class="bi bi-check-circle"></i>
+        <h5>Step 3</h5>
+        <p>Wait for approval & go live.</p>
+      </div>
+    </div>
+    <div id="alertContainer" class="mt-3"></div>
+
+    <!-- Sign Up Form -->
+    <div class="form-container">
+      <h3>Step 1: Sign Up</h3>
+      <form id="signup-form">
+        <div class="mb-3">
+          <label for="name">First Name</label>
+          <input type="text" id="name" class="form-control" required>
+        </div>
+        <div class="mb-3">
+          <label for="surname">Last Name</label>
+          <input type="text" id="surname" class="form-control" required>
+        </div>
+        <div class="mb-3">
+          <label for="email">Email</label>
+          <input type="email" id="email" class="form-control" required>
+        </div>
+        <div class="mb-3">
+          <label for="password">Password</label>
+          <input type="password" id="password" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-purple w-100">Sign Up</button>
+      </form>
+    </div>
+
+    <!-- Apply Form -->
+    <div class="form-container">
+      <h3>Step 2: Apply for Your Shop</h3>
+      <form id="post-application-form">
+        <div class="mb-3">
+          <label for="shopName">Shop Name</label>
+          <input type="text" id="shopName" class="form-control" required>
+        </div>
+        <div class="mb-3">
+          <label for="shopDescription">Shop Description</label>
+          <textarea id="shopDescription" class="form-control" rows="4" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-purple w-100">Submit Application</button>
+      </form>
+    </div>
+
+  </div>
+
+  <!-- JS Script -->
+  <script>
+    let userId = localStorage.getItem('userId');
+
+    function showAlert(message, type = 'success') {
+      const alert = document.createElement('div');
+      alert.className = `alert alert-${type} alert-dismissible fade show alert-success`;
+      alert.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      `;
+      document.getElementById('alertContainer').appendChild(alert);
+    }
+
+    document.getElementById('signup-form').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const name = document.getElementById('name').value;
+      const surname = document.getElementById('surname').value;
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      try {
+        const response = await fetch('/api/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, surname, email, password })
         });
-    
-        // Handle Post Application Form Submission
-        document.getElementById('post-application-form').addEventListener('submit', async function(event) {
-            event.preventDefault();
-    
-            if (!userId) {
-                alert('Please sign up first!');
-                return;
-            }
-    
-            const shopName = document.getElementById('shopName').value;
-            const shopDescription = document.getElementById('shopDescription').value;
-    
-            try {
-                const response = await fetch('/api/applications', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ userId, shopName, shopDescription }),
-                });
-    
-                const result = await response.json();
-                if (response.ok) {
-                    alert('Application Submitted Successfully!');
-                } else {
-                    alert('Error: ' + result.message);
-                }
-            } catch (error) {
-                console.error('Error during application submission:', error);
-                alert('An error occurred during application submission.');
-            }
+        const result = await response.json();
+        if (response.ok) {
+          userId = result.userId;
+          localStorage.setItem('userId', userId);
+          showAlert('Sign up successful!');
+        } else {
+          showAlert('Error: ' + result.message, 'danger');
+        }
+      } catch (error) {
+        showAlert('An error occurred during sign up.', 'danger');
+      }
+    });
+
+    document.getElementById('post-application-form').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      if (!userId) return showAlert('Please sign up first.', 'warning');
+
+      const shopName = document.getElementById('shopName').value;
+      const shopDescription = document.getElementById('shopDescription').value;
+
+      try {
+        const response = await fetch('/api/applications', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId, shopName, shopDescription })
         });
-    </script>
+        const result = await response.json();
+        if (response.ok) {
+          showAlert('Application submitted successfully!');
+        } else {
+          showAlert('Error: ' + result.message, 'danger');
+        }
+      } catch (error) {
+        showAlert('An error occurred during application submission.', 'danger');
+      }
+    });
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
