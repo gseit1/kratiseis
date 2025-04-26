@@ -1,7 +1,7 @@
 const express = require('express');
-const { verifyToken } = require('../middlewares/authMiddleware');
+const { verifyToken, isUser } = require('../middlewares/authMiddleware');
 const { check, validationResult } = require('express-validator');
-const { signUp, login, changeUserRole, deleteUser ,getUserRole,getUserDetails,getAllUsers,setUserShopId,filterByRole} = require('../controllers/authController');
+const { signUp, login, changeUserRole, deleteUser ,getUserRole,getUserDetails,getAllUsers,setUserShopId,filterByRole , getUserReservationHistory} = require('../controllers/authController');
 const authRouter = express.Router();
 
 // Route για εγγραφή χρήστη
@@ -59,6 +59,10 @@ authRouter.get('/api/get-role',  getUserRole);
 
 // Route για επιστροφή των δεδομένων του χρήστη
 authRouter.get('/api/users/details', verifyToken, getUserDetails);
+
+//Route gia get ReservationHistory
+authRouter.get('/api/user/reservationHistory',verifyToken,isUser,getUserReservationHistory)
+
 // Route για ενημέρωση του shopId του χρήστη
 authRouter.patch('/api/user/shopId',verifyToken,  setUserShopId);
 //

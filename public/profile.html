@@ -268,12 +268,12 @@
   <section class="container profile-container" aria-labelledby="profileHeader">
     <h2 id="profileHeader" class="text-center mb-4">Your Details</h2>
     <div id="profileSection">
-      <p class="profile-item"><strong>Name:</strong> <span id="userName">Loading...</span></p>
-      <p class="profile-item"><strong>Email:</strong> <span id="userEmail">Loading...</span></p>
-      <p class="profile-item"><strong>Role:</strong> <span id="userRole">Loading...</span></p>
+        <p class="profile-item"><strong>Name:</strong> <span id="userName">Loading...</span></p>
+        <p class="profile-item"><strong>Surname:</strong> <span id="userSurname">Loading...</span></p>
+        <p class="profile-item"><strong>Email:</strong> <span id="userEmail">Loading...</span></p>
     </div>
     <div class="text-center mt-3">
-      <button id="editProfileBtn" class="btn btn-primary">Edit Profile</button>
+        <button id="editProfileBtn" class="btn btn-primary">Edit Profile</button>
     </div>
   </section>
 
@@ -298,31 +298,118 @@
 
   <!-- Script -->
   <script type="module">
-    import { handleLogout, getUserDetails } from './authUtils.js';
+    import { handleLogout, updateNavbarOnLogin, applyNavbarStateFromSession } from './authUtils.js';
 
     async function initializeUser() {
-      const userDetails = await getUserDetails();
-      if (!userDetails) {
-        alert('You are not logged in. Redirecting to login page.');
-        window.location.href = 'registerLogin.html';
-      } else {
-        document.getElementById('userGreetingName').textContent = userDetails.name || 'N/A';
-        document.getElementById('userName').textContent = userDetails.name || 'N/A';
-        document.getElementById('userEmail').textContent = userDetails.email || 'N/A';
-        document.getElementById('userRole').textContent = userDetails.role || 'N/A';
-      }
+        try {
+            // Κλήση στο endpoint `/api/user/details` απευθείας με fetch
+            const response = await fetch('/api/users/details', {
+                method: 'GET',
+                credentials: 'include', // Περιλαμβάνει cookies για αυθεντικοποίηση
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch user details');
+            }
+
+            const userDetails = await response.json();
+            console.log('User Details:', userDetails); // Debugging
+
+            if (!userDetails || !userDetails.isAuthenticated) {
+                alert('You are not logged in. Redirecting to login page.');
+                window.location.href = 'registerLogin.html';
+                return;
+            }
+
+            // Ενημέρωση των στοιχείων του χρήστη στη σελίδα
+            const user = userDetails.user; // Πρόσβαση στο αντικείμενο `user`
+            document.getElementById('userGreetingName').textContent = `${user.name || 'N/A'} ${user.surname || 'N/A'}`;
+            document.getElementById('userName').textContent = user.name || 'N/A';
+            document.getElementById('userSurname').textContent = user.surname || 'N/A';
+            document.getElementById('userEmail').textContent = user.email || 'N/A';
+
+            // Κλήση για το ιστορικό κρατήσεων
+            await fetchReservationHistory();
+        } catch (error) {
+            console.error('Error initializing user:', error);
+            alert('An error occurred. Redirecting to login page.');
+            window.location.href = 'registerLogin.html';
+        }
+    }
+
+    async function fetchReservationHistory() {
+        try {
+            const response = await fetch('/api/user/reservationHistory', {
+                method: 'GET',
+                credentials: 'include', // Περιλαμβάνει cookies για αυθεντικοποίηση
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch reservation history');
+            }
+
+            const { reservationHistory } = await response.json();
+            console.log('Reservation History:', reservationHistory); // Debugging
+
+            const historyContainer = document.getElementById('reservationHistory');
+            historyContainer.innerHTML = ''; // Καθαρισμός του container
+
+            if (!reservationHistory || reservationHistory.length === 0) {
+                historyContainer.innerHTML = '<p class="text-warning">Δεν υπάρχει ιστορικό κρατήσεων.</p>';
+                return;
+            }
+
+            // Δημιουργία καρτών για κάθε κράτηση
+            reservationHistory.forEach(reservation => {
+                const hours = Math.floor(reservation.reservationTime);
+                const minutes = Math.round((reservation.reservationTime % 1) * 60);
+                const formattedTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+
+                historyContainer.innerHTML += `
+                    <div class="reservation-card">
+                        <h5>Reservation #${reservation._id}</h5>
+                        <p><strong>Shop:</strong> ${reservation.shopName || 'N/A'}</p>
+                        <p><strong>Date:</strong> ${new Date(reservation.reservationDate).toLocaleDateString()}</p>
+                        <p><strong>Time:</strong> ${formattedTime}</p>
+                        <p><strong>Seats:</strong> ${reservation.seats || 'N/A'}</p>
+                        <p><strong>Comment:</strong> ${reservation.commentFromUser || 'N/A'}</p>
+                    </div>
+                `;
+            });
+        } catch (error) {
+            console.error('Error fetching reservation history:', error);
+            const historyContainer = document.getElementById('reservationHistory');
+            historyContainer.innerHTML = '<p class="text-danger">Αποτυχία φόρτωσης ιστορικού κρατήσεων.</p>';
+        }
     }
 
     document.getElementById('logoutBtn').addEventListener('click', async () => {
-      try {
-        await handleLogout();
-      } catch (error) {
-        console.error('Error during logout:', error);
-        alert('An error occurred while logging out. Please try again.');
-      }
+        try {
+            await handleLogout();
+            alert('You have been logged out.');
+            window.location.href = 'registerLogin.html';
+        } catch (error) {
+            console.error('Error during logout:', error);
+            alert('An error occurred while logging out. Please try again.');
+        }
     });
 
-    document.addEventListener('DOMContentLoaded', initializeUser);
+    document.addEventListener('DOMContentLoaded', async () => {
+        try {
+            // Ενημέρωση του navbar
+            const navbarState = sessionStorage.getItem('navbarState');
+            if (navbarState) {
+                applyNavbarStateFromSession();
+            } else {
+                await updateNavbarOnLogin();
+            }
+
+            // Αρχικοποίηση του χρήστη
+            await initializeUser();
+        } catch (error) {
+            console.error('Error during page initialization:', error);
+        }
+    });
   </script>
 </body>
 </html>

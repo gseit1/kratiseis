@@ -12,7 +12,7 @@ async function authCheck() {
     }
 }
 
-async function getUserDetails() {
+export async function getUserDetails() {
     try {
         const response = await fetch('/api/user/details', {
             credentials: 'include'

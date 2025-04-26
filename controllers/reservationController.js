@@ -4,133 +4,136 @@ const { addReservationService, editReservationService, deleteReservationService 
 const { addToReservationList, deleteToReservationList } = require('../services/shopServices');
 const { findBestAvailableTable, updateTableAvailability, updateWhenReservationDelete } = require('../services/tableServices');
 const { addReservationToUserHistory, removeReservationFromUserHistory } = require('../services/userServices');
+const User = require('../models/user'); // Import User model
 
 // Δημιουργία νέας κράτησης
+const addManualReservation = async (reservationData) => {
+  console.log("🔹 Manual reservation by shopOwner");
+
+  // Ελέγχουμε αν έχουν δοθεί όλα τα απαραίτητα δεδομένα
+  if (!reservationData.shopId || !reservationData.reservationDate || !reservationData.reservationTime || !reservationData.seats) {
+    throw new Error("Missing required fields for manual reservation");
+  }
+
+  // Βρίσκουμε το καταλληλότερο διαθέσιμο τραπέζι
+  const bestTable = await findBestAvailableTable(
+    reservationData.shopId,
+    reservationData.reservationDate,
+    reservationData.reservationTime,
+    reservationData.seats
+  );
+
+  if (!bestTable) {
+    console.warn("⚠️ No available table found for manual reservation");
+    throw new Error("No available table found");
+  }
+
+  console.log("✅ Best table found for manual reservation:", bestTable);
+
+  // Προσθέτουμε το tableId στο reservationData
+  reservationData.tableId = bestTable._id;
+
+  // Δημιουργούμε την κράτηση
+  const newReservation = await addReservationService(reservationData);
+  console.log("✅ Manual reservation created:", newReservation);
+
+  // Ενημέρωση της λίστας κρατήσεων
+  console.log("🔹 Updating reservation list for shop:", reservationData.shopId);
+  await addToReservationList(
+    reservationData.shopId,
+    reservationData.reservationDate,
+    newReservation._id.toString()
+  );
+
+  // Ενημέρωση της διαθεσιμότητας του τραπεζιού
+  await updateTableAvailability(
+    reservationData.tableId,
+    reservationData.reservationDate,
+    reservationData.reservationTime
+  );
+
+  console.log("✅ Table availability updated successfully for manual reservation");
+
+  return newReservation;
+};
+
+const addUserReservation = async (reservationData) => {
+  console.log("🔹 User reservation");
+
+  // Ελέγχουμε αν έχουν δοθεί όλα τα απαραίτητα δεδομένα
+  if (!reservationData.shopId || !reservationData.userId || !reservationData.reservationDate || !reservationData.reservationTime || !reservationData.seats) {
+    throw new Error("Missing required fields for user reservation");
+  }
+
+  // Βρίσκουμε το καταλληλότερο διαθέσιμο τραπέζι
+  const bestTable = await findBestAvailableTable(
+    reservationData.shopId,
+    reservationData.reservationDate,
+    reservationData.reservationTime,
+    reservationData.seats
+  );
+
+  if (!bestTable) {
+    console.warn("⚠️ No available table found for user reservation");
+    throw new Error("No available table found");
+  }
+
+  console.log("✅ Best table found for user reservation:", bestTable);
+
+  reservationData.tableId = bestTable._id;
+
+  // Αυτόματη εύρεση name και surname από το προφίλ του χρήστη
+  const user = await User.findById(reservationData.userId);
+  if (!user) {
+    throw new Error("User not found");
+  }
+  reservationData.name = user.name;
+  reservationData.surname = user.surname;
+
+  console.log("🔹 Creating reservation with data:", reservationData);
+
+  // Δημιουργία της κράτησης
+  const newReservation = await addReservationService(reservationData);
+  console.log("✅ User reservation created:", newReservation);
+
+  // Ενημέρωση της λίστας κρατήσεων
+  console.log("🔹 Updating reservation list for shop:", reservationData.shopId);
+  await addToReservationList(
+    reservationData.shopId,
+    reservationData.reservationDate,
+    newReservation._id.toString()
+  );
+
+  // Ενημέρωση του ιστορικού κρατήσεων του χρήστη
+  console.log("🔹 Updating user's reservation history for user:", reservationData.userId);
+  await addReservationToUserHistory(reservationData.userId, newReservation._id);
+
+  // Ενημέρωση της διαθεσιμότητας του τραπεζιού
+  await updateTableAvailability(
+    reservationData.tableId,
+    reservationData.reservationDate,
+    reservationData.reservationTime
+  );
+
+  console.log("✅ Table availability updated successfully for user reservation");
+
+  return newReservation;
+};
+
 const addReservation = async (req, res) => {
   try {
     console.log("🔹 Received reservation request:", req.body);
     const reservationData = req.body;
 
-    // Ελέγχουμε αν είναι manual κράτηση (δεν υπάρχει userId)
+    // Ελέγχουμε αν είναι manual κράτηση ή κανονική
     const isManual = !reservationData.userId;
 
+    let newReservation;
     if (isManual) {
-      console.log("🔹 Manual reservation by shopOwner");
-
-      // Ελέγχουμε αν έχουν δοθεί όλα τα απαραίτητα δεδομένα
-      if (!reservationData.shopId || !reservationData.reservationDate || !reservationData.reservationTime || !reservationData.seats) {
-        return res.status(400).json({ message: "Missing required fields for manual reservation" });
-      }
-
-      // Βρίσκουμε το καταλληλότερο διαθέσιμο τραπέζι
-      const bestTable = await findBestAvailableTable(
-        reservationData.shopId,
-        reservationData.reservationDate,
-        reservationData.reservationTime,
-        reservationData.seats
-      );
-
-      if (!bestTable) {
-        console.warn("⚠️ No available table found for manual reservation");
-        return res.status(404).json({ message: "No available table found" });
-      }
-
-      console.log("✅ Best table found for manual reservation:", bestTable);
-
-      // Προσθέτουμε το tableId στο reservationData
-      reservationData.tableId = bestTable._id;
-
-      // Δημιουργούμε την κράτηση
-      const newReservation = await addReservationService(reservationData);
-      console.log("✅ Manual reservation created:", newReservation);
-
-
-//ReservationList update
-console.log("🔹 Updating reservation list for shop:", reservationData.shopId);
-    await addToReservationList(
-      reservationData.shopId,
-      reservationData.reservationDate,
-      newReservation._id.toString() // Στέλνουμε μόνο το ID
-    );
-    console.log("✅ Reservation list updated successfully");
-
-
-      // Ενημερώνουμε τη διαθεσιμότητα του τραπεζιού
-      await updateTableAvailability(
-        reservationData.tableId,
-        reservationData.reservationDate,
-        reservationData.reservationTime
-      );
-
-      console.log("✅ Table availability updated successfully for manual reservation");
-
-      return res.status(201).json({ success: true, message: "Manual reservation added successfully", reservation: newReservation });
+      newReservation = await addManualReservation(reservationData);
+    } else {
+      newReservation = await addUserReservation(reservationData);
     }
-
-    // Λογική για κρατήσεις από χρήστες
-    console.log("🔹 Searching for best available table with:", {
-      shopId: reservationData.shopId,
-      reservationDate: reservationData.reservationDate,
-      reservationTime: reservationData.reservationTime,
-      seats: reservationData.seats,
-    });
-
-    // Βρίσκουμε το καταλληλότερο διαθέσιμο τραπέζι
-    const bestTable = await findBestAvailableTable(
-      reservationData.shopId,
-      reservationData.reservationDate,
-      reservationData.reservationTime,
-      reservationData.seats
-    );
-
-    if (!bestTable) {
-      console.warn("⚠️ No available table found");
-      return res.status(404).json({ message: "No available table found" });
-    }
-    console.log("✅ Best table found:", bestTable);
-
-    reservationData.tableId = bestTable._id;
-
-    // Αυτόματη εύρεση name και surname από το προφίλ του χρήστη
-    const user = await User.findById(reservationData.userId);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-    reservationData.name = user.name;
-    reservationData.surname = user.surname;
-
-    console.log("🔹 Creating reservation with data:", reservationData);
-
-    // Δημιουργία της κράτησης
-    const newReservation = await addReservationService(reservationData);
-    console.log("✅ Reservation created:", newReservation);
-
-    // Ενημέρωση της λίστας κρατήσεων στο κατάστημα με το ID της νέας κράτησης
-    console.log("🔹 Updating reservation list for shop:", reservationData.shopId);
-    await addToReservationList(
-      reservationData.shopId,
-      reservationData.reservationDate,
-      newReservation._id.toString() // Στέλνουμε μόνο το ID
-    );
-    console.log("✅ Reservation list updated successfully");
-
-    // Ενημέρωση του ιστορικού κρατήσεων του χρήστη
-    console.log("🔹 Updating user's reservation history for user:", reservationData.userId);
-    await addReservationToUserHistory(reservationData.userId, newReservation._id);
-    console.log("✅ User reservation history updated successfully");
-
-    // Ανανεώνουμε τη διαθεσιμότητα του τραπεζιού
-    console.log("🔹 Calling updateTableAvailability with:", {
-      tableId: reservationData.tableId,
-      reservationDate: reservationData.reservationDate,
-      reservationTime: reservationData.reservationTime,
-    });
-    await updateTableAvailability(
-      reservationData.tableId,
-      reservationData.reservationDate,
-      reservationData.reservationTime
-    );
-    console.log("✅ Table availability updated successfully");
 
     res.status(201).json({ success: true, message: "Reservation added successfully", reservation: newReservation });
   } catch (error) {
