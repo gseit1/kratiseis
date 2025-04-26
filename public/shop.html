@@ -445,7 +445,11 @@ body {
     <form id="reservationForm" style="display: none;">
       <div class="mb-2">
         <label for="userName" class="form-label">Full Name:</label>
-        <input type="text" class="form-control" id="userName" name="userName" required>
+        <input type="text" class="form-control" id="userName" name="userName" readonly>
+      </div>
+      <div class="mb-2">
+        <label for="userEmail" class="form-label">Email:</label>
+        <input type="email" class="form-control" id="userEmail" name="userEmail" readonly>
       </div>
       <div class="mb-2">
         <label for="reservationTime" class="form-label">Time:</label>
@@ -629,10 +633,99 @@ document.getElementById('decrementPeople').addEventListener('click', () => {
       const numberOfPeople = document.getElementById('numberOfPeople').value;
 
       try {
-        const response = await fetch(`/api/availability?shopId=${shopId}&dateString=${reservationDate}&seats=${numberOfPeople}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch available times');
+        // Έλεγχος αν ο χρήστης είναι συνδεδεμένος
+        const authResponse = await fetch('/api/check-auth', { credentials: 'include' });
+        const authData = await authResponse.json();
+
+        if (!authData.isAuthenticated) {
+          // Εμφάνιση πλαισίου για login/signup ή κράτηση ως guest
+          document.getElementById('availableTimes').innerHTML = `
+            <div class="alert alert-warning">
+              <p>You are not logged in. Please <a href="registerLogin.html">Login/Signup</a> or make a reservation as a guest.</p>
+            </div>
+            <form id="guestReservationForm">
+              <div class="mb-2">
+                <label for="guestName" class="form-label">Name:</label>
+                <input type="text" id="guestName" class="form-control" required>
+              </div>
+              <div class="mb-2">
+                <label for="guestSurname" class="form-label">Surname:</label>
+                <input type="text" id="guestSurname" class="form-control" required>
+              </div>
+              <div class="mb-2">
+                <label for="guestEmail" class="form-label">Email:</label>
+                <input type="email" id="guestEmail" class="form-control" required>
+              </div>
+              <div class="mb-2">
+                <label for="guestComment" class="form-label">Comment:</label>
+                <textarea id="guestComment" class="form-control"></textarea>
+              </div>
+              <div class="mb-2">
+                <label for="guestReservationTime" class="form-label">Available Times:</label>
+                <select id="guestReservationTime" class="form-control" required></select>
+              </div>
+              <button type="submit" class="btn btn-primary w-100">Submit Reservation</button>
+            </form>
+          `;
+
+          // Φόρτωση διαθέσιμων ωρών
+          const response = await fetch(`/api/availability?shopId=${shopId}&dateString=${reservationDate}&seats=${numberOfPeople}`);
+          const result = await response.json();
+          const availableTimes = result.availability;
+
+          if (availableTimes && availableTimes.length > 0) {
+            document.getElementById('guestReservationTime').innerHTML = availableTimes
+              .map(time => `<option value="${time}">${formatTime(time)}</option>`)
+              .join('');
+          } else {
+            document.getElementById('guestReservationTime').innerHTML = `<option disabled>No available times</option>`;
+          }
+
+          // Προσθήκη event listener για υποβολή κράτησης ως guest
+          document.getElementById('guestReservationForm').addEventListener('submit', async function (e) {
+  e.preventDefault();
+  const guestName = `guest ${document.getElementById('guestName').value}`;
+  const guestSurname = document.getElementById('guestSurname').value;
+  const guestEmail = document.getElementById('guestEmail').value;
+  const guestComment = document.getElementById('guestComment').value;
+  const guestReservationTime = document.getElementById('guestReservationTime').value;
+
+  const reservationData = {
+    shopId,
+    name: guestName,
+    surname: guestSurname,
+    email: guestEmail,
+    commentFromUser: guestComment,
+    reservationDate,
+    reservationTime: guestReservationTime,
+    seats: numberOfPeople,
+  };
+
+  try {
+    const response = await fetch('/api/reservation/guest', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(reservationData),
+    });
+
+    if (response.ok) {
+      alert('Reservation booked successfully!');
+      displayReservationDetails(reservationData); // Εμφάνιση του μηνύματος επιβεβαίωσης
+    } else {
+      const error = await response.json();
+      alert('Error booking reservation: ' + error.message);
+    }
+  } catch (error) {
+    console.error('Error booking reservation:', error);
+    alert('Error booking reservation');
+  }
+});
+
+          return;
         }
+
+        // Αν ο χρήστης είναι συνδεδεμένος, εμφάνιση κανονικής φόρμας
+        const response = await fetch(`/api/availability?shopId=${shopId}&dateString=${reservationDate}&seats=${numberOfPeople}`);
         const result = await response.json();
         const availableTimes = result.availability;
 
@@ -640,10 +733,8 @@ document.getElementById('decrementPeople').addEventListener('click', () => {
         if (availableTimes && availableTimes.length > 0) {
           availableTimesDiv.innerHTML = `<p class="fw-bold">Available Times:</p>
             <p>${availableTimes.map(time => formatTime(time)).join(', ')}</p>`;
-          // Populate the reservationTime select element.
           const reservationTimeSelect = document.getElementById('reservationTime');
           reservationTimeSelect.innerHTML = availableTimes.map(time => `<option value="${time}">${formatTime(time)}</option>`).join('');
-          // Display the reservation form.
           document.getElementById('reservationForm').style.display = 'block';
         } else {
           availableTimesDiv.innerHTML = `<p class="text-danger">No available times for the selected date and number of people.</p>`;
@@ -655,7 +746,7 @@ document.getElementById('decrementPeople').addEventListener('click', () => {
       }
     }
 
-    // Submit the reservation form.
+    // Submit the reservation form
     document.getElementById('reservationForm').addEventListener('submit', async function(event) {
       event.preventDefault();
       const urlParams = new URLSearchParams(window.location.search);
@@ -665,17 +756,20 @@ document.getElementById('decrementPeople').addEventListener('click', () => {
       const reservationData = Object.fromEntries(formData.entries());
       reservationData.shopId = shopId;
       reservationData.reservationDate = document.getElementById('reservationDate').value;
-      reservationData.numberOfPeople = document.getElementById('numberOfPeople').value;
+      reservationData.seats = document.getElementById('numberOfPeople').value;
+      reservationData.surname = document.getElementById('userName').value.split(' ')[1] || ''; // Extract surname from full name
 
       try {
-        const response = await fetch('/api/reservations', {
+        const response = await fetch('/api/reservation/user', { // Use userReservation endpoint
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(reservationData)
+          body: JSON.stringify(reservationData),
+          credentials: 'include', // Include session cookies
         });
         const result = await response.json();
         if (response.ok) {
           alert('Reservation booked successfully!');
+          displayReservationDetails(reservationData); // Show the new form
         } else {
           alert('Error booking reservation: ' + result.message);
         }
@@ -684,6 +778,29 @@ document.getElementById('decrementPeople').addEventListener('click', () => {
         alert('Error booking reservation');
       }
     });
+
+    // Function to display the reservation details form
+    function displayReservationDetails(reservationData) {
+      const reservationForm = document.getElementById('reservationForm');
+      const displayReservation = document.createElement('div');
+      displayReservation.id = 'displayReservation';
+      displayReservation.innerHTML = `
+        <h5 class="text-success text-center">Reservation Completed Successfully!</h5>
+        <p><strong>Shop:</strong> ${reservationData.shopId}</p>
+        <p><strong>Date:</strong> ${reservationData.reservationDate}</p>
+        <p><strong>Time:</strong> ${reservationData.reservationTime}</p>
+        <p><strong>Seats:</strong> ${reservationData.seats}</p>
+        <p><strong>Comments:</strong> ${reservationData.commentFromUser || 'N/A'}</p>
+        <button class="btn btn-primary w-100 text-uppercase" id="continueBookingBtn">Continue</button>
+      `;
+      reservationForm.style.display = 'none';
+      reservationForm.parentNode.appendChild(displayReservation);
+
+      document.getElementById('continueBookingBtn').addEventListener('click', () => {
+        displayReservation.remove();
+        reservationForm.style.display = 'block';
+      });
+    }
 
     // Add event listeners.
     document.getElementById('searchForm').addEventListener('submit', fetchAvailableTimes);

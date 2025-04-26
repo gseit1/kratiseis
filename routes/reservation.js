@@ -1,20 +1,36 @@
 const express = require('express');
-const { addReservation, editReservation, deleteReservation ,getTotalReservations,getReservationById} = require('../controllers/reservationController');
-const { verifyToken, isShopOwner } = require('../middlewares/authMiddleware');
+const { 
+  addManualReservation, 
+  addUserReservation, 
+  addGuestReservation,
+  editReservation, 
+  deleteReservation, 
+  getTotalReservations, 
+  getReservationById 
+} = require('../controllers/reservationController');
+const { verifyToken, isShopOwner ,isUser} = require('../middlewares/authMiddleware');
 
 const reservationRouter = express.Router();
 
-// Route για προσθήκη κράτησης (ανοικτό ή μπορείτε να το προστατέψετε ανάλογα με τις ανάγκες)
-reservationRouter.post('/api/reservation', addReservation);
+// Route for manual reservation (protected for shop owners)
+reservationRouter.post('/api/reservation/manual', verifyToken, isShopOwner, addManualReservation);
 
-// Route για επεξεργασία κράτησης
+// Route for user reservation
+reservationRouter.post('/api/reservation/user', verifyToken, addUserReservation);
+
+// Route for guest reservation
+reservationRouter.post('/api/reservation/guest', addGuestReservation);
+
+// Route for editing a reservation
 reservationRouter.put('/api/reservation/:id', editReservation);
 
-// Route για διαγραφή κράτησης (προστατευμένο για shop owners)
+// Route for deleting a reservation
 reservationRouter.delete('/api/reservation/:id', verifyToken, isShopOwner, deleteReservation);
-//
+
+// Route for getting total reservations count
 reservationRouter.get('/api/reservations/count', getTotalReservations);
-//
+
+// Route for getting a reservation by ID
 reservationRouter.get('/api/reservations/:id', getReservationById);
 
 module.exports = reservationRouter;

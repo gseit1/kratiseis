@@ -211,51 +211,51 @@
 
         // Submit reservation
         document.getElementById('submitReservationBtn').addEventListener('click', async () => {
-            const name = document.getElementById('reservationName').value.trim();
-            const surname = document.getElementById('reservationSurname').value.trim();
-            const dateTime = document.getElementById('reservationDateTime').value.trim();
-            const seats = document.getElementById('seatsRequired').value.trim();
+          const name = document.getElementById('reservationName').value.trim();
+          const surname = document.getElementById('reservationSurname').value.trim();
+          const dateTime = document.getElementById('reservationDateTime').value.trim();
+          const seats = document.getElementById('seatsRequired').value.trim();
 
-            if (!name || !surname || !dateTime || !seats) {
-                alert("Please fill in all required fields.");
-                return;
+          if (!name || !surname || !dateTime || !seats) {
+            alert("Please fill in all required fields.");
+            return;
+          }
+
+          const [reservationDate, reservationTime] = dateTime.split(' ');
+
+          if (!shopId) {
+            alert("Shop ID is missing. Please refresh the page.");
+            return;
+          }
+
+          const reservationData = {
+            shopId,
+            name,
+            surname,
+            reservationDate,
+            reservationTime,
+            seats,
+          };
+
+          try {
+            const response = await fetch('/api/reservation/manual', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(reservationData),
+            });
+
+            if (!response.ok) {
+              const error = await response.json();
+              alert("Error submitting reservation: " + error.message);
+              return;
             }
 
-            const [reservationDate, reservationTime] = dateTime.split(' ');
-
-            if (!shopId) {
-                alert("Shop ID is missing. Please refresh the page.");
-                return;
-            }
-
-            const reservationData = {
-                shopId,
-                name,
-                surname,
-                reservationDate,
-                reservationTime,
-                seats,
-            };
-
-            try {
-                const response = await fetch('/api/reservation', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(reservationData),
-                });
-
-                if (!response.ok) {
-                    const error = await response.json();
-                    alert("Error submitting reservation: " + error.message);
-                    return;
-                }
-
-                alert("Reservation submitted successfully!");
-                document.getElementById('reservationFormContainer').style.display = 'none';
-            } catch (error) {
-                console.error("Error submitting reservation:", error);
-                alert("An error occurred while submitting the reservation.");
-            }
+            alert("Reservation submitted successfully!");
+            document.getElementById('reservationFormContainer').style.display = 'none';
+          } catch (error) {
+            console.error("Error submitting reservation:", error);
+            alert("An error occurred while submitting the reservation.");
+          }
         });
 
         // Fetch shop ID on page load
