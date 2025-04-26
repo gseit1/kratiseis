@@ -131,7 +131,7 @@ document.addEventListener("DOMContentLoaded", typeLoop);
 
 }
     document.addEventListener('DOMContentLoaded', async () => {
-    const selectedShopIds = ['67f3a9c6a4cb7debf70023bd', '67f3ac7ba4cb7debf7002435', '67f3acaba4cb7debf700244a'];
+    const selectedShopIds = ['680b3a29dde23ef9047d534c', '680b3f6bdde23ef9047d5606', '680b410edde23ef9047d571a'];
     const selectedShopsContainer = document.getElementById('selectedShopsContainer');
     const thessalonikiShopsContainer = document.getElementById('thessalonikiShopsContainer');
     const athensShopsContainer = document.getElementById('athensShopsContainer');
@@ -145,7 +145,7 @@ document.addEventListener("DOMContentLoaded", typeLoop);
     }
 
    // Fetch and display shops in Thessaloniki
-   const thessalonikiShops = await fetchShopsByCity('67ef5b1015e5f9c8a42e2e8b'); // Replace with the actual city ID for Thessaloniki
+   const thessalonikiShops = await fetchShopsByCity('67ef5b2f15e5f9c8a42e2e91'); // Replace with the actual city ID for Thessaloniki
     thessalonikiShops.forEach(shop => {
         thessalonikiShopsContainer.innerHTML += createShopCard(shop);
     });
@@ -188,7 +188,7 @@ function createShopCard(shop) {
             <img src="${shop.images && shop.images[0] ? shop.images[0] : shop.image || 'images/default-placeholder.jpg'}" class="card-img-top" alt="${shop.shopName || 'Shop'}">
             <div class="card-body">
                 <h5 class="card-title">${shop.shopName || 'Unnamed Shop'}</h5>
-                <p class="card-text">${shop.shopDescription || 'No description available.'}</p>
+                <p class="card-text">${(shop.shopDescription || '').substring(0, 20)}...</p>
                 <a href="shop.html?id=${shopId}" class="btn btn-outline-primary">Λεπτομέρειες</a>
             </div>
         </div>

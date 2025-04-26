@@ -30,7 +30,7 @@
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark fixed-top shadow-lg" id="navbar">
+        <nav class="navbar navbar-expand-lg navbar-dark fixed-top shadow-lg" id="navbar">
         <div class="container-fluid">
             <a class="navbar-brand" href="index.html">
                 <i class="bi bi-shop"></i> MyShop
@@ -60,14 +60,9 @@
                             <i class="bi bi-person-plus"></i> Εγγραφή/Σύνδεση
                         </a>
                     </li>
-                    <li class="nav-item d-none" id="dashboardNavItem">
-                        <a class="nav-link" href="shopOwnerDashboard.html">
-                            <i class="bi bi-speedometer2"></i> Dashboard
-                        </a>
-                    </li>
                     <li class="nav-item dropdown d-none" id="profileDropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="profileDropdownMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-person-circle"></i> My Account
+                            <i class="bi bi-person-circle"></i> Ο λογαριασμός μου
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdownMenu">
                             <li>
@@ -80,7 +75,7 @@
                             </li>
                             <li>
                                 <a class="dropdown-item" href="#" id="logoutBtn">
-                                    <i class="bi bi-box-arrow-right"></i> Logout
+                                    <i class="bi bi-box-arrow-right"></i> Αποσύνδεση
                                 </a>
                             </li>
                         </ul>
@@ -89,7 +84,7 @@
             </div>
         </div>
     </nav>
-    <div class="container-fluid" style="background-color: black;">
+    <div class="container-fluid" >
         <div class="row">
             <!-- Fixed Left Menu -->
             <nav id="filterMenu" class="col-md-3 col-lg-2 bg-light border-end">
@@ -124,6 +119,7 @@
     
             <!-- Main Content -->
             <div class="col-md-9 col-lg-10">
+             
                 <div class="d-flex justify-content-end align-items-center mb-3" style="padding-top: 70px; padding-right: 20px;">
                     <button id="smallCardsBtn" class="btn btn-outline-secondary me-2">
                         <i class="bi bi-grid-3x3-gap-fill"></i> 
@@ -132,6 +128,7 @@
                         <i class="bi bi-grid-1x2-fill"></i> 
                     </button>
                 </div>
+               
                 <div id="shopsContainer" class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-3 g-3 mt-4">
                     <!-- Shop cards will be dynamically inserted here -->
                 </div>
@@ -326,13 +323,15 @@
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    
     fetchFilters();
 
     // Read filters from localStorage
-    const city = localStorage.getItem('selectedCity');
+   // Read filters from localStorage
+   const city = localStorage.getItem('selectedCity');
     const category = localStorage.getItem('selectedCategory');
 
-    // Apply the filters if they exist, otherwise fetch all shops
+    // Apply the filters if they exist
     if (city || category) {
         const filters = { city, category };
         fetchShops(filters);
@@ -341,7 +340,7 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.removeItem('selectedCity');
         localStorage.removeItem('selectedCategory');
     } else {
-        // Fetch all shops if no filters are provided
+        // Fetch all shops only if no filters are provided
         fetchShops();
     }
 
@@ -354,7 +353,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const filters = { city, region, category };
         fetchShops(filters);
     });
-
     const cityFilter = document.getElementById('cityFilter');
     const mapSearchContainer = document.getElementById('mapSearchContainer');
 
@@ -457,6 +455,21 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('shopsContainer').style.display = 'flex';
         document.getElementById('backToShopsBtn').style.display = 'none';
     });
+
+    document.getElementById('sortByRating').addEventListener('click', () => {
+        // Add logic to sort shops by rating
+        console.log('Sort by Rating clicked');
+    });
+
+    document.getElementById('sortByPopularity').addEventListener('click', () => {
+        // Add logic to sort shops by popularity
+        console.log('Sort by Popularity clicked');
+    });
+
+    document.getElementById('sortByDistance').addEventListener('click', () => {
+        // Add logic to sort shops by distance
+        console.log('Sort by Distance clicked');
+    });
 });
 
     </script>
@@ -524,5 +537,7 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.href = 'registerLogin.html';
     });
 </script>
+
+
 </body>
 </html>

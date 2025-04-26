@@ -1174,234 +1174,133 @@ opacity: 0.8;
 }
 
 
-/* General Navbar Styling */
-#navbar {
-    background: rgba(255, 255, 255, 0.1); /* Transparent background */
-    backdrop-filter: blur(8px); /* Blurring effect */
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
-    transition: background 0.3s ease, box-shadow 0.3s ease;
+/* Navbar */
+.navbar {
+  background: linear-gradient(135deg, #ff6ec4, #7873f5);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
-#navbar .navbar-nav .nav-link {
-    font-size: 1.1rem;
-    font-weight: 500;
-    color: #ffffff; /* White color for links */
-    padding: 0.8rem 1rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    transition: color 0.3s ease, transform 0.3s ease;
+.navbar-brand {
+  font-weight: bold;
+  font-size: 1.5rem;
+  color: #fff;
 }
 
-#navbar .navbar-nav .nav-link:hover,
-#navbar .navbar-nav .nav-link:focus {
-    color: #ec4899; /* Add hover color transition to match hero section */
-    transform: scale(1.1); /* Subtle scaling on hover */
+.navbar-nav .nav-link {
+  color: #fff;
+  font-weight: 500;
+  transition: color 0.3s ease;
 }
 
-#navbar .navbar-toggler {
-    border: none;
-    color: #ffffff;
-    background: rgba(255, 255, 255, 0.1); /* Match navbar style */
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Soft shadow */
-    transition: background 0.3s ease;
-}
-
-#navbar .navbar-toggler:hover {
-    background: rgba(255, 255, 255, 0.3); /* Hover effect for toggler */
-}
-
-#navbar .navbar-toggler-icon {
-    background-color: #ec4899; /* Match with hero section accent color */
-}
-
-#navbar .dropdown-menu {
-    background: rgba(0, 0, 0, 0.8); /* Slightly transparent dark background */
-    border-radius: 0.5rem;
-}
-
-#navbar .dropdown-item {
-    color: #ffffff;
-    padding: 0.8rem 1.5rem;
-}
-
-#navbar .dropdown-item:hover {
-    background-color: #ec4899; /* Highlight on hover */
-    color: #ffffff;
-}
-
-/* When the user scrolls, make navbar solid */
-body.scrolled #navbar {
-    background: rgba(255, 255, 255, 0.95); /* Add solid background on scroll */
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15); /* Stronger shadow */
-}
-
-/* Add smooth scroll transition */
-body.scrolled {
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-/* Navbar styling for smaller screens (Mobile) */
-@media (max-width: 768px) {
-    #navbar .navbar-nav .nav-link {
-        font-size: 1rem; /* Slightly smaller font size on mobile */
-    }
-}
-
-/* Add active class to change link color */
-.navbar-nav .nav-item.active .nav-link {
-    color: #ec4899 !important;
-    transform: scale(1.1);
+.navbar-nav .nav-link:hover {
+  color: #ff6ec4;
 }
 
 /* Scroll animation for smooth transition effect */
  /* ========== Section Background & Title ========== */
  .shop-categories {
-  background-color: #f9f9f9;
-  padding: 4rem 0;
-  border-top: 1px solid #eee;
+    padding: 20px 0;
+    background: linear-gradient(135deg, #f9f9f9, #e0e0e0);
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .shop-categories h2 {
-  font-size: 2.2rem;
-  font-weight: 700;
-  margin-bottom: 3rem;
-  color: #222;
-  letter-spacing: -0.5px;
-  text-shadow: 0 1px 1px rgba(0,0,0,0.04);
+    font-size: 2rem;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 20px;
+    text-align: center;
+    text-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
-/* ========== Category Rows ========== */
 .category-row {
-  margin-bottom: 4rem;
-  padding: 2rem;
-  border-radius: 1rem;
-  background-color: #ffffff;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
-  transition: box-shadow 0.3s ease;
-  position: relative;
-}
-
-.category-row:hover {
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+    margin-bottom: 20px;
+    padding: 10px;
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .category-row h3 {
-  font-size: 1.4rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
-  color: #444;
-  border-left: 4px solid #007bff;
-  padding-left: 1rem;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #555;
+    margin-bottom: 10px;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-/* ========== Layout Container ========== */
-.container {
-  max-width: 1300px;
-  margin: 0 auto;
-  padding: 0 1.5rem;
-}
-
-/* ========== Scrollable Card Row ========== */
 .scrollable-row {
-  display: flex;
-  gap: 0.75rem;
-  overflow-x: auto;
-  scroll-behavior: smooth;
-  padding-bottom: 8px;
-  padding-left: 4px;
-  scrollbar-width: thin;
-  scrollbar-color: #ccc #f1f1f1;
-  position: relative;
+    display: flex;
+    gap: 15px;
+    overflow-x: auto;
+    padding: 10px 0;
+    scrollbar-width: thin;
+    scrollbar-color: #7873f5 transparent;
 }
 
-.scrollable-row::before,
-.scrollable-row::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 50px;
-  pointer-events: none;
-  z-index: 2;
-}
-
-.scrollable-row::before {
-  left: 0;
-  background: linear-gradient(to right, white 0%, transparent 100%);
-}
-
-.scrollable-row::after {
-  right: 0;
-  background: linear-gradient(to left, white 0%, transparent 100%);
-}
-
-/* Scrollbar for WebKit */
 .scrollable-row::-webkit-scrollbar {
-  height: 6px;
-  opacity: 0;
-}
-
-.scrollable-row:hover::-webkit-scrollbar {
-  opacity: 1;
+    height: 8px;
 }
 
 .scrollable-row::-webkit-scrollbar-thumb {
-  background-color: #ccc;
-  border-radius: 4px;
+    background: linear-gradient(135deg, #ff6ec4, #7873f5);
+    border-radius: 4px;
 }
 
 .scrollable-row::-webkit-scrollbar-track {
-  background-color: #f1f1f1;
+    background: transparent;
 }
 
-/* ========== Shop Cards ========== */
 .scrollable-row .card {
-  display: inline-block;
-  min-width: 240px;
-  max-width: 240px;
-  border: none;
-  border-radius: 1rem;
-  overflow: hidden;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  background-color: #fff;
-  flex-shrink: 0;
+    flex: 0 0 auto;
+    width: 160px;
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background: linear-gradient(135deg, #ffffff, #f0f0f0);
 }
 
 .scrollable-row .card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    transform: scale(1.1);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    background: linear-gradient(135deg, #ff6ec4, #7873f5);
+    color: #ffffff;
 }
 
 .scrollable-row .card img {
-  height: 160px;
-  width: 100%;
-  object-fit: cover;
-  border-bottom: 1px solid #eee;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    height: 120px;
+    object-fit: cover;
 }
 
-/* ========== Card Content ========== */
-.card-body {
-  padding: 0.9rem 1rem;
+.scrollable-row .card-body {
+    padding: 10px;
+    text-align: center;
 }
 
-.card-title {
-  font-size: 1rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  color: #333;
+.scrollable-row .card-title {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 5px;
+    transition: color 0.3s ease;
 }
 
-.card-text {
-  font-size: 0.875rem;
-  color: #666;
-  margin-bottom: 0.75rem;
+.scrollable-row .card:hover .card-title {
+    color: #ffffff;
 }
 
-.card .btn {
-  font-size: 0.85rem;
-  padding: 0.4rem 0.8rem;
-  border-radius: 0.5rem;
+.scrollable-row .card-text {
+    font-size: 0.85rem;
+    color: #666;
+    transition: color 0.3s ease;
+}
+
+.scrollable-row .card:hover .card-text {
+    color: #ffffff;
 }
 
 /* Style for the city-selection dropdown */

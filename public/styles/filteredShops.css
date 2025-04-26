@@ -1,13 +1,17 @@
 /* General Reset and Base */
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #000000;
+    font-family: 'Poppins', sans-serif;
+    background-color: #f9f9f9;
     color: #333;
+    margin: 0;
+    padding: 0;
     overflow-x: hidden;
 }
 
-/* Fixed Left Menu */
-/* Fixed Left Menu */
+.container-fluid {
+    padding: 0;
+}
+
 /* Fixed Left Menu */
 #filterMenu {
     position: fixed;
@@ -15,7 +19,7 @@ body {
     left: 0;
     height: calc(100vh - 56px); /* Subtract the navbar height from the viewport height */
     width: 260px;
-    background-color: #000000; /* Match the page's background color */
+    background-color: #ffffff; /* Match the page's background color */
     border-right: 1px solid #e0e0e0;
     padding-top: 20px;
     overflow-y: auto; /* Allow vertical scrolling if content exceeds the height */
@@ -67,40 +71,109 @@ body {
     transform: scale(1.05);
 }
 
+/* Navbar */
+.navbar {
+    background: linear-gradient(135deg, #ff6ec4, #7873f5);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.5rem;
+    color: #fff;
+}
+
+.navbar-nav .nav-link {
+    color: #fff;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.navbar-nav .nav-link:hover {
+    color: #ff6ec4;
+}
+
+/* Breadcrumb */
+.breadcrumb-container {
+    background-color: #fff;
+    padding: 10px 20px;
+    border-bottom: 1px solid #ddd;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.breadcrumb .breadcrumb-item a {
+    color: #7873f5;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.breadcrumb .breadcrumb-item a:hover {
+    text-decoration: underline;
+}
+
+.breadcrumb .breadcrumb-item.active {
+    color: #333;
+    font-weight: bold;
+}
+
+/* Quick Filters */
+.quick-filters-container {
+    margin: 20px 0;
+    padding: 10px 0;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.quick-filter {
+    margin: 5px;
+    padding: 10px 20px;
+    font-size: 1rem;
+    border-radius: 20px;
+    transition: all 0.3s ease;
+}
+
+.quick-filter:hover {
+    background-color: #ff6ec4;
+    color: #fff;
+    transform: scale(1.1);
+}
+
 /* Main Content */
 .col-md-9,
 .col-lg-10 {
     margin-left: 260px; /* Adjust this value to match the width of the fixed menu */
     padding: 30px;
-    background-color: #070707;
+    background-color: #ffffff;
 }
 
 #shopsContainer {
+    padding: 20px;
     display: flex;
+    justify-content: center;
+    align-items: center;
     flex-wrap: wrap;
     gap: 1rem;
 }
 
 /* Shop Cards */
 .card {
-    height: 100%;
     border: none;
-    border-radius: 12px;
-    overflow: hidden;
-    transition: all 0.3s ease;
-    background-color: #ffffff;
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+    transform: scale(1.05);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
 }
 
 .card-img-top {
-    height: 180px;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    height: 200px;
     object-fit: cover;
-    border-bottom: 1px solid #e9ecef;
 }
 
 .card-body {
@@ -110,29 +183,40 @@ body {
 
 .card-title {
     font-size: 1.2rem;
-    font-weight: 600;
-    color: #0d6efd;
-    margin-bottom: 10px;
+    font-weight: bold;
+    color: #333;
 }
 
 .card-text {
-    font-size: 0.95rem;
-    color: #6c757d;
-    margin-bottom: 15px;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+/* Buttons */
+.btn {
+    font-size: 1rem;
+    font-weight: 500;
+    border-radius: 5px;
+    transition: all 0.3s ease;
 }
 
 .btn-primary {
-    font-size: 0.9rem;
-    font-weight: 500;
-    padding: 8px 15px;
-    border-radius: 6px;
-    background-color: #0d6efd;
-    transition: background-color 0.3s ease, transform 0.3s ease;
+    background: linear-gradient(135deg, #ff6ec4, #7873f5);
+    border: none;
 }
 
 .btn-primary:hover {
-    background-color: #0056b3;
-    transform: scale(1.05);
+    background: linear-gradient(135deg, #7873f5, #ff6ec4);
+}
+
+.btn-outline-primary {
+    color: #7873f5;
+    border: 2px solid #7873f5;
+}
+
+.btn-outline-primary:hover {
+    background-color: #7873f5;
+    color: #fff;
 }
 
 /* No Results */
@@ -175,6 +259,12 @@ body {
     transform: scale(1.05);
 }
 
+/* Map Container */
+#mapContainer {
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     #filterMenu {
@@ -184,6 +274,19 @@ body {
         margin-bottom: 20px;
         border-right: none;
         border-bottom: 1px solid #dee2e6;
+    }
+
+    .breadcrumb-container {
+        padding: 5px 10px;
+    }
+
+    .quick-filters-container {
+        padding: 5px 0;
+    }
+
+    .quick-filter {
+        font-size: 0.9rem;
+        padding: 8px 15px;
     }
 
     .col-md-9,
@@ -200,12 +303,11 @@ body {
     }
 
     .card-text {
-        font-size: 0.9rem;
+        font-size: 0.8rem;
     }
 }
 
 @media (max-width: 576px) {
-    
     .card-img-top {
         height: 120px;
     }
@@ -222,7 +324,7 @@ body {
         font-size: 0.8rem;
     }
 }
-/* Small Card Style */
+
 /* Small Card Style */
 .small-card .card {
     height: auto;
@@ -344,7 +446,7 @@ body {
 
 /* General Navbar Styling */
 #navbar {
-    background: rgba(255, 255, 255, 0.1); /* Transparent background */
+    background-color: #333;
     backdrop-filter: blur(8px); /* Blurring effect */
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
     transition: background 0.3s ease, box-shadow 0.3s ease;
@@ -480,32 +582,6 @@ body.scrolled {
 .popup-card button:hover {
     transform: translateY(-1px);
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-}
-
-#mapContainer {
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    margin: 20px 0;
-    overflow: hidden;
-    transition: all 0.3s ease;
-}
-
-#mapContainer:hover {
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-}
-
-.mapboxgl-ctrl-group {
-    border-radius: 8px !important;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
-}
-
-.mapboxgl-ctrl-group button {
-    transition: background-color 0.2s ease;
-}
-
-.mapboxgl-ctrl-group button:hover {
-    background-color: #f0f0f0;
 }
 
 /* CSS για το κουμπί Back to Shops */
