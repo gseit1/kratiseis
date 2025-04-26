@@ -66,41 +66,6 @@ document.addEventListener("DOMContentLoaded", typeLoop);
         
 
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const userId = localStorage.getItem('userId');
-    const role = localStorage.getItem('role');
-    const dashboardNavItem = document.getElementById('dashboardNavItem');
-    const profileDropdown = document.getElementById('profileDropdown');
-    const registerLoginNavItem = document.getElementById('registerLoginNavItem');
-    const logoutBtn = document.getElementById('logoutBtn');
-
-    console.log('User ID:', userId, 'Role:', role);
-
-    if (userId && role) {
-        // User is logged in
-        if (dashboardNavItem) dashboardNavItem.classList.remove('d-none');
-        if (profileDropdown) profileDropdown.classList.remove('d-none');
-        if (registerLoginNavItem) registerLoginNavItem.classList.add('d-none');
-    } else {
-        // User is not logged in
-        if (dashboardNavItem) dashboardNavItem.classList.add('d-none');
-        if (profileDropdown) profileDropdown.classList.add('d-none');
-        if (registerLoginNavItem) registerLoginNavItem.classList.remove('d-none');
-    }
-
-    // Logout functionality
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', () => {
-            localStorage.clear(); // Clear all localStorage data
-            document.cookie = 'jwt=; path=/; max-age=0'; // Clear the JWT cookie
-            alert('You have been logged out.');
-            window.location.href = 'registerLogin.html'; // Redirect to login page
-        });
-    }
-                // Call the function to display cities
-                displayCities();
-                console.log(localStorage.getItem('userId')); // Add this to your script to debug
-        });
       
 
 

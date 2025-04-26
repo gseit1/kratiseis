@@ -134,13 +134,13 @@
                     </a>
                 </li>
                 <li class="nav-item d-none" id="dashboardNavItem">
-                    <a class="nav-link" href="shopOwner/index.html">
-                        <i class="bi bi-speedometer2"></i> Πίνακας Ελέγχου
+                    <a class="nav-link" href="shopOwnerDashboard.html">
+                        <i class="bi bi-speedometer2"></i> Dashboard
                     </a>
                 </li>
                 <li class="nav-item dropdown d-none" id="profileDropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="profileDropdownMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-person-circle"></i> Ο λογαριασμός μου
+                        <i class="bi bi-person-circle"></i> My Account
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdownMenu">
                         <li>
@@ -153,7 +153,7 @@
                         </li>
                         <li>
                             <a class="dropdown-item" href="#" id="logoutBtn">
-                                <i class="bi bi-box-arrow-right"></i> Αποσύνδεση
+                                <i class="bi bi-box-arrow-right"></i> Logout
                             </a>
                         </li>
                     </ul>
@@ -234,70 +234,80 @@
   </div>
 
   <!-- JS Script -->
-  <script>
-    let userId = localStorage.getItem('userId');
+  <script type="module">
+    import { updateNavbarOnLogin, applyNavbarStateFromSession, handleLogout } from './authUtils.js';
 
-    function showAlert(message, type = 'success') {
-      const alert = document.createElement('div');
-      alert.className = `alert alert-${type} alert-dismissible fade show alert-success`;
-      alert.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-      `;
-      document.getElementById('alertContainer').appendChild(alert);
-    }
+    document.addEventListener('DOMContentLoaded', async () => {
+        // Έλεγχος αν υπάρχει αποθηκευμένη κατάσταση στο sessionStorage
+        const navbarState = sessionStorage.getItem('navbarState');
+        if (navbarState) {
+            applyNavbarStateFromSession(); // Εφαρμογή αποθηκευμένης κατάστασης
+        } else {
+            await updateNavbarOnLogin(); // Ενημέρωση από τον server
+        }
 
+        // Προσθήκη event listener στο κουμπί Logout
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            try {
+                await handleLogout();
+            } catch (error) {
+                console.error('Error during logout:', error);
+                alert('An error occurred while logging out. Please try again.');
+            }
+        });
+    });
+
+    // Υποβολή φόρμας εγγραφής
     document.getElementById('signup-form').addEventListener('submit', async function (e) {
-      e.preventDefault();
-      const name = document.getElementById('name').value;
-      const surname = document.getElementById('surname').value;
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
+        e.preventDefault();
+        const name = document.getElementById('name').value;
+        const surname = document.getElementById('surname').value;
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
 
-      try {
-        const response = await fetch('/api/signup', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, surname, email, password })
-        });
-        const result = await response.json();
-        if (response.ok) {
-          userId = result.userId;
-          localStorage.setItem('userId', userId);
-          showAlert('Sign up successful!');
-        } else {
-          showAlert('Error: ' + result.message, 'danger');
+        try {
+            const response = await fetch('/api/signup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, surname, email, password })
+            });
+            const result = await response.json();
+            if (response.ok) {
+                localStorage.setItem('userId', result.userId);
+                alert('Sign up successful!');
+                await updateNavbarOnLogin(); // Ενημέρωση του navbar μετά την εγγραφή
+            } else {
+                alert('Error: ' + result.message);
+            }
+        } catch (error) {
+            alert('An error occurred during sign up.');
         }
-      } catch (error) {
-        showAlert('An error occurred during sign up.', 'danger');
-      }
     });
 
+    // Υποβολή φόρμας αίτησης
     document.getElementById('post-application-form').addEventListener('submit', async function (e) {
-      e.preventDefault();
-      if (!userId) return showAlert('Please sign up first.', 'warning');
+        e.preventDefault();
+        const shopName = document.getElementById('shopName').value;
+        const shopDescription = document.getElementById('shopDescription').value;
 
-      const shopName = document.getElementById('shopName').value;
-      const shopDescription = document.getElementById('shopDescription').value;
-
-      try {
-        const response = await fetch('/api/applications', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId, shopName, shopDescription })
-        });
-        const result = await response.json();
-        if (response.ok) {
-          showAlert('Application submitted successfully!');
-        } else {
-          showAlert('Error: ' + result.message, 'danger');
+        try {
+            const response = await fetch('/api/applications', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ shopName, shopDescription })
+            });
+            const result = await response.json();
+            if (response.ok) {
+                alert('Application submitted successfully!');
+                await updateNavbarOnLogin(); // Ενημέρωση του navbar μετά την υποβολή αίτησης
+            } else {
+                alert('Error: ' + result.message);
+            }
+        } catch (error) {
+            alert('An error occurred during application submission.');
         }
-      } catch (error) {
-        showAlert('An error occurred during application submission.', 'danger');
-      }
     });
-  </script>
-
+</script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -280,13 +280,13 @@ body {
                     </a>
                 </li>
                 <li class="nav-item d-none" id="dashboardNavItem">
-                    <a class="nav-link" href="shopOwner/index.html">
-                        <i class="bi bi-speedometer2"></i> Πίνακας Ελέγχου
+                    <a class="nav-link" href="shopOwnerDashboard.html">
+                        <i class="bi bi-speedometer2"></i> Dashboard
                     </a>
                 </li>
                 <li class="nav-item dropdown d-none" id="profileDropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="profileDropdownMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-person-circle"></i> Ο λογαριασμός μου
+                        <i class="bi bi-person-circle"></i> My Account
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdownMenu">
                         <li>
@@ -299,7 +299,7 @@ body {
                         </li>
                         <li>
                             <a class="dropdown-item" href="#" id="logoutBtn">
-                                <i class="bi bi-box-arrow-right"></i> Αποσύνδεση
+                                <i class="bi bi-box-arrow-right"></i> Logout
                             </a>
                         </li>
                     </ul>
@@ -516,23 +516,23 @@ document.getElementById('decrementPeople').addEventListener('click', () => {
       `;
     }
 
-// Update opening hours
-const openingHoursDiv = document.getElementById('shopDetails');
-if (openingHoursDiv && shop.openingHours) {
-  openingHoursDiv.innerHTML = `
-    <h5 class="text-primary"><i class="bi bi-clock me-2"></i>Opening Hours</h5>
-    ${Object.entries(shop.openingHours)
-      .map(([day, hours]) => `
-        <div class="day">
-          <span>${day.charAt(0).toUpperCase() + day.slice(1)}:</span>
-          <span>${hours.isOpen ? `${hours.open}:00 - ${hours.close}:00` : 'Closed'}</span>
-        </div>
-      `)
-      .join('')}
-  `;
-} else {
-  openingHoursDiv.innerHTML = '<p class="text-danger">No opening hours available.</p>';
-}
+    // Update opening hours
+    const openingHoursDiv = document.getElementById('shopDetails');
+    if (openingHoursDiv && shop.openingHours) {
+      openingHoursDiv.innerHTML = `
+        <h5 class="text-primary"><i class="bi bi-clock me-2"></i>Opening Hours</h5>
+        ${Object.entries(shop.openingHours)
+          .map(([day, hours]) => `
+            <div class="day">
+              <span>${day.charAt(0).toUpperCase() + day.slice(1)}:</span>
+              <span>${hours.isOpen ? `${hours.open}:00 - ${hours.close}:00` : 'Closed'}</span>
+            </div>
+          `)
+          .join('')}
+      `;
+    } else {
+      openingHoursDiv.innerHTML = '<p class="text-danger">No opening hours available.</p>';
+    }
 
     // Update map
     const latitude = shop.location?.coordinates[1]; // Latitude
@@ -635,6 +635,17 @@ if (openingHoursDiv && shop.openingHours) {
     // Add event listeners.
     document.addEventListener('DOMContentLoaded', fetchShopDetails);
     document.getElementById('searchForm').addEventListener('submit', fetchAvailableTimes);
+
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      try {
+        await handleLogout();
+      } catch (error) {
+        console.error('Error during logout:', error);
+        alert('An error occurred while logging out. Please try again.');
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', initializeUser);
   </script>
 </body>
 </html>

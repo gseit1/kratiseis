@@ -12,12 +12,14 @@ const verifyToken = async (req, res, next) => {
 
   try {
     const decodedToken = await admin.auth().verifyIdToken(token);
-    const user = await User.findOne({ firebaseUid: decodedToken.uid });
+    const user = await User.findOne({ firebaseUid: decodedToken.uid })
+      .select('_id name surname email role shopId'); // Explicit field selection
+    
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
     
-    // Make both user record and Firebase claims available to the request
+    // Add user data to request
     req.user = user;
     req.firebaseClaims = decodedToken;
     next();

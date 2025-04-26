@@ -15,6 +15,7 @@ const cityRouter = require('./routes/city');
 const regionRouter = require('./routes/region');
 const applicationRouter = require('./routes/applications');
 const uploadRouter = require('./routes/upload');
+const logoutRouter = require('./routes/logout');
 const cookieParser = require('cookie-parser');
 
 const PORT = 300; // Define port number server will listen
@@ -51,6 +52,7 @@ app.use(cityRouter);
 app.use(regionRouter);
 app.use(applicationRouter);
 app.use(uploadRouter);
+app.use(logoutRouter);
 
 
 
@@ -58,6 +60,7 @@ app.use(uploadRouter);
 
 // Εξυπηρέτηση του φακέλου public
 app.use(express.static(path.join(__dirname, 'public')));
+
 
 
 

@@ -263,26 +263,40 @@
             try {
                 const response = await fetch('/api/users/details', {
                     method: 'GET',
-                    credentials: 'include',
+                    credentials: 'include'
                 });
 
-                if (!response.ok) throw new Error("Failed to fetch user details");
-                const user = await response.json();
-                shopId = user.shopId;
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
 
-                if (!shopId) {
-                    alert("Shop ID is missing. Redirecting to create shop page.");
-                    window.location.href = 'createShop.html';
+                const userData = await response.json();
+                console.log('User Data:', userData); // Debugging
+
+                if (userData.isAuthenticated && userData.user) {
+                    shopId = userData.user.shopId;
+
+                    if (!shopId) {
+                        console.log('No shopId found, redirecting to create shop');
+                        window.location.href = 'createShop.html';
+                    } else {
+                        console.log('ShopId found:', shopId);
+                    }
+                } else {
+                    throw new Error('Invalid user data structure');
                 }
             } catch (error) {
-                console.error("Error fetching shop ID:", error);
-                alert("Failed to fetch shop details. Please try again later.");
+                console.error('Error fetching shop ID:', error);
+                alert('Failed to fetch shop details. Redirecting to login.');
+                window.location.href = '../registerLogin.html';
             }
         }
 
         // Initialize page
-        fetchShopId();
-        document.getElementById('checkAvailabilityBtn').addEventListener('click', fetchAvailability);
+        document.addEventListener('DOMContentLoaded', async () => {
+            await fetchShopId();
+            document.getElementById('checkAvailabilityBtn').addEventListener('click', fetchAvailability);
+        });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>

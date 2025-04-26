@@ -184,50 +184,44 @@ const getAllUsers = async (req, res) => {
 const mongoose = require('mongoose');
 
 const getUserDetails = async (req, res) => {
-  console.log('getUserDetails called'); // Log function entry
-
   try {
-    // Ensure req.user is populated
-    if (!req.user || !req.user.id) {
-      console.error('Unauthorized: Missing user information in request');
-      return res.status(401).json({ message: 'Unauthorized: Missing user information' });
+    if (!req.user) {
+      return res.status(401).json({
+        isAuthenticated: false,
+        message: 'Unauthorized: No authenticated user',
+      });
     }
 
-    const userId = req.user.id;
-    console.log('Authenticated user ID from middleware:', userId);
-
-    // Validate userId
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-      console.error('Invalid user ID:', userId);
-      return res.status(400).json({ message: 'Invalid user ID' });
-    }
-
-    console.log('Fetching user details from MongoDB for user ID:', userId);
-
-    // Fetch user details and select only necessary fields
-    const user = await User.findById(userId).select('name surname email role shopId phone address city region');
-    console.log('User details retrieved from MongoDB:', user);
+    const user = await User.findById(req.user._id).select('name surname email role shopId').lean();
 
     if (!user) {
-      console.error('User not found for ID:', userId);
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({
+        isAuthenticated: false,
+        message: 'User not found',
+      });
     }
 
-    console.log('User details successfully fetched:', user);
-
-    // Return only necessary user details
     res.status(200).json({
-      name: user.name,
-      surname: user.surname,
-      email: user.email,
-      role: user.role,
-      shopId: user.shopId,
-        });
+      isAuthenticated: true,
+      user: {
+        id: user._id,
+        name: user.name,
+        surname: user.surname,
+        email: user.email,
+        role: user.role,
+        shopId: user.shopId || null,
+      },
+    });
   } catch (error) {
-    console.error('Error fetching user details:', error.message);
-    res.status(500).json({ message: 'An unexpected error occurred. Please try again later.' });
+    console.error('Error in getUserDetails:', error);
+    res.status(500).json({
+      isAuthenticated: false,
+      message: 'Error fetching user details',
+      error: error.message,
+    });
   }
 };
+
 
 const setUserShopId = async (req, res) => {
   const { shopId } = req.body;

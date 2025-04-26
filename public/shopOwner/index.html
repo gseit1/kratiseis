@@ -126,42 +126,42 @@ let shopId = null;
 
 // User Details fetch
 async function fetchUserProfile() {
-  try {
-    const response = await fetch('/api/users/details', {
-      method: 'GET',
-      credentials: 'include', // Include cookies in the request
-    });
+    try {
+        const response = await fetch('/api/users/details', {  // Διόρθωση του endpoint
+            method: 'GET',
+            credentials: 'include'
+        });
 
-    if (response.ok) {
-      const userProfile = await response.json();
-      console.log('User Profile:', userProfile);
+        if (response.ok) {
+            const userData = await response.json();
+            console.log('User Data:', userData); // Debug log
 
-      // Set the global shopId variable
-      shopId = userProfile.shopId;
+            // Έλεγχος της δομής των δεδομένων
+            if (userData.isAuthenticated && userData.user) {
+                shopId = userData.user.shopId;  // Το shopId είναι μέσα στο user object
+                
+                const shopIdDisplay = document.getElementById('shopIdDisplay');
+                if (shopIdDisplay) {
+                    shopIdDisplay.textContent = `Shop ID: ${shopId}`;
+                }
 
-      // Update shop ID display in the UI
-      const shopIdDisplay = document.getElementById('shopIdDisplay');
-      if (shopIdDisplay) {
-        shopIdDisplay.textContent = `Shop ID: ${shopId}`;
-      }
-
-      // Check if shopId is valid
-      if (!shopId) {
-        alert("Shop ID is missing. Redirecting to create shop page.");
-        window.location.href = '../createShop.html';
-      } else {
-        // Initialize data fetching
-        fetchTables();
-      }
-    } else {
-      console.error('Failed to fetch user profile:', response.status, response.statusText);
-      alert(`Failed to fetch user profile: ${response.statusText}. Please log in again.`);
-      window.location.href = '../registerLogin.html';
+                if (!shopId) {
+                    console.log('No shopId found, redirecting to create shop');
+                    window.location.href = '../createShop.html';
+                } else {
+                    console.log('ShopId found:', shopId);
+                    fetchTables();
+                }
+            } else {
+                throw new Error('Invalid user data structure');
+            }
+        } else {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+    } catch (error) {
+        console.error('Error in fetchUserProfile:', error);
+        window.location.href = '../registerLogin.html';
     }
-  } catch (error) {
-    console.error('Error fetching user profile:', error);
-    alert('An error occurred while fetching the user profile. Please try again later.');
-  }
 }
 
 // Call the function to fetch the user profile
@@ -333,6 +333,30 @@ function hideTableAvailability(tableId) {
       }
     };
     fetchTables();
+
+    document.addEventListener('DOMContentLoaded', () => {
+    // Logout handler
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+        try {
+            // Καλούμε το backend endpoint για logout
+            const response = await fetch('/api/logout', {
+                method: 'POST',
+                credentials: 'include'
+            });
+
+            if (response.ok) {
+                // Redirect στη σελίδα login
+                window.location.href = '../registerLogin.html';
+            } else {
+                throw new Error('Logout failed');
+            }
+        } catch (error) {
+            console.error('Error during logout:', error);
+            // Ακόμα και αν αποτύχει το fetch, κάνουμε redirect
+            window.location.href = '../registerLogin.html';
+        }
+    });
+});
 
     </script>
 </body>

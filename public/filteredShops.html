@@ -62,12 +62,12 @@
                     </li>
                     <li class="nav-item d-none" id="dashboardNavItem">
                         <a class="nav-link" href="shopOwnerDashboard.html">
-                            <i class="bi bi-speedometer2"></i> Πίνακας Ελέγχου
+                            <i class="bi bi-speedometer2"></i> Dashboard
                         </a>
                     </li>
                     <li class="nav-item dropdown d-none" id="profileDropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="profileDropdownMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-person-circle"></i> Ο λογαριασμός μου
+                            <i class="bi bi-person-circle"></i> My Account
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdownMenu">
                             <li>
@@ -80,7 +80,7 @@
                             </li>
                             <li>
                                 <a class="dropdown-item" href="#" id="logoutBtn">
-                                    <i class="bi bi-box-arrow-right"></i> Αποσύνδεση
+                                    <i class="bi bi-box-arrow-right"></i> Logout
                                 </a>
                             </li>
                         </ul>
@@ -460,6 +460,7 @@
                             this._container = document.createElement('div');
                             this._container.className = 'mapboxgl-ctrl mapboxgl-ctrl-group';
                             
+
                             // Κουμπί για Street View με 3D
                             const streetButton = document.createElement('button');
                             streetButton.type = 'button';
@@ -595,6 +596,35 @@
             });
         });
 
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+        localStorage.clear();
+        sessionStorage.clear();
+        alert('You have been logged out.');
+        window.location.href = 'registerLogin.html';
+    });
     </script>
+    <script type="module">
+    import { updateNavbarOnLogin, applyNavbarStateFromSession, handleLogout } from './authUtils.js';
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        // Έλεγχος αν υπάρχει αποθηκευμένη κατάσταση στο sessionStorage
+        const navbarState = sessionStorage.getItem('navbarState');
+        if (navbarState) {
+            applyNavbarStateFromSession(); // Εφαρμογή αποθηκευμένης κατάστασης
+        } else {
+            await updateNavbarOnLogin(); // Ενημέρωση από τον server
+        }
+
+        // Προσθήκη event listener στο κουμπί Logout
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            try {
+                await handleLogout();
+            } catch (error) {
+                console.error('Error during logout:', error);
+                alert('An error occurred while logging out. Please try again.');
+            }
+        });
+    });
+</script>
 </body>
 </html>

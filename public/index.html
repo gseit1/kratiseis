@@ -43,11 +43,6 @@
                             <i class="bi bi-person-plus"></i> Εγγραφή/Σύνδεση
                         </a>
                     </li>
-                    <li class="nav-item d-none" id="dashboardNavItem">
-                        <a class="nav-link" href="shopOwner/index.html">
-                            <i class="bi bi-speedometer2"></i> Πίνακας Ελέγχου
-                        </a>
-                    </li>
                     <li class="nav-item dropdown d-none" id="profileDropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="profileDropdownMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-person-circle"></i> Ο λογαριασμός μου
@@ -108,7 +103,7 @@
       
             
       
-      
+
 
     <section id="how-to" class="w-full bg-gray-100 py-20 px-4 md:px-12 lg:px-32">
         <div class="text-center mb-12" data-aos="fade-up">
@@ -234,8 +229,8 @@
     
     
     
-
-      <section class="cta text-center py-5 bg-primary text-light position-relative overflow-hidden">
+    
+    <section class="cta text-center py-5 bg-primary text-light position-relative overflow-hidden">
         <div class="container position-relative z-index-1">
             <h2 class="cta-heading mb-4">Έτοιμος να Ανακαλύψεις το Επόμενο <br> Αγαπημένο σου Σημείο;</h2>
             <p class="cta-text mb-4">Κάνε εγγραφή τώρα και ξεκίνα την εξερεύνηση των καλύτερων τοποθεσιών κοντά σου!
@@ -288,7 +283,8 @@
         </div>
       </section>
       
-  
+
+
     <footer class="text-center">
         <p>&copy; 2025 MyShop. All rights reserved. <a href="privacy.html">Privacy Policy</a> | <a href="terms.html">Terms of Service</a></p>
         <div class="social-icons">
@@ -303,7 +299,22 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
-    <script src="script.js"></script>
+    <script src="/authUtils.js"></script>
+    <script type="module">
+    import { updateNavbarOnLogin, applyNavbarStateFromSession, handleLogout } from '/authUtils.js';
 
+    document.addEventListener('DOMContentLoaded', async () => {
+        // Έλεγχος αν υπάρχει αποθηκευμένη κατάσταση στο sessionStorage
+        const navbarState = sessionStorage.getItem('navbarState');
+        if (navbarState) {
+            applyNavbarStateFromSession(); // Εφαρμογή αποθηκευμένης κατάστασης
+        } else {
+            await updateNavbarOnLogin(); // Ενημέρωση από τον server
+        }
+    });
+
+    // Προσθήκη event listener στο κουμπί Logout
+    document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+</script>
 </body>
 </html>
