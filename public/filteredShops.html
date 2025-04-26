@@ -327,274 +327,141 @@
         console.error('Error fetching shops:', error);
     }
 }
-        document.addEventListener('DOMContentLoaded', () => {
-            fetchFilters();
-            fetchShops();
 
-            document.getElementById('applyFilters').addEventListener('click', () => {
-                const city = document.getElementById('cityFilter').value;
-                const region = document.getElementById('regionFilter').value;
-                const category = document.getElementById('categoryFilter').value;
+document.addEventListener('DOMContentLoaded', () => {
+    fetchFilters();
 
-                const filters = { city, region, category };
-                fetchShops(filters);
+    // Read filters from localStorage
+    const city = localStorage.getItem('selectedCity');
+    const category = localStorage.getItem('selectedCategory');
+
+    // Apply the filters if they exist, otherwise fetch all shops
+    if (city || category) {
+        const filters = { city, category };
+        fetchShops(filters);
+
+        // Clear the filters from localStorage after applying them
+        localStorage.removeItem('selectedCity');
+        localStorage.removeItem('selectedCategory');
+    } else {
+        // Fetch all shops if no filters are provided
+        fetchShops();
+    }
+
+    // Add event listener for the "Apply Filters" button
+    document.getElementById('applyFilters').addEventListener('click', () => {
+        const city = document.getElementById('cityFilter').value;
+        const region = document.getElementById('regionFilter').value;
+        const category = document.getElementById('categoryFilter').value;
+
+        const filters = { city, region, category };
+        fetchShops(filters);
+    });
+
+    const cityFilter = document.getElementById('cityFilter');
+    const mapSearchContainer = document.getElementById('mapSearchContainer');
+
+    cityFilter.addEventListener('change', () => {
+        if (cityFilter.value) {
+            mapSearchContainer.classList.remove('d-none');
+        } else {
+            mapSearchContainer.classList.add('d-none');
+        }
+    });
+
+    document.getElementById('mapSearchBtn').addEventListener('click', async () => {
+        const cityId = document.getElementById('cityFilter').value;
+        if (!cityId) {
+            alert('Παρακαλώ επιλέξτε μια πόλη.');
+            return;
+        }
+
+        try {
+            const cityResponse = await fetch(`/city/${cityId}`);
+            if (!cityResponse.ok) throw new Error('Failed to fetch city data');
+            const { city } = await cityResponse.json();
+
+            if (!city || !city.location || !city.location.coordinates || city.location.coordinates.length < 2) {
+                alert('Η πόλη δεν έχει έγκυρες συντεταγμένες.');
+                return;
+            }
+
+            const mapShopsResponse = await fetch(`/search/city/${cityId}/mapUse`);
+            if (!mapShopsResponse.ok) throw new Error('Failed to fetch map shops data');
+            const shops = await mapShopsResponse.json();
+
+            if (!shops || !Array.isArray(shops) || shops.length === 0) {
+                alert('Δεν βρέθηκαν καταστήματα για αυτή την πόλη.');
+                return;
+            }
+
+            const mapContainer = document.getElementById('mapContainer');
+            mapContainer.style.display = 'block';
+            mapContainer.style.height = '500px';
+            mapContainer.style.width = '100%';
+            mapContainer.innerHTML = '';
+            const map = new mapboxgl.Map({
+                container: 'mapContainer',
+                style: 'mapbox://styles/mapbox/streets-v12',
+                center: [city.location.coordinates[0], city.location.coordinates[1]],
+                zoom: 10,
+                pitch: 45,
+                bearing: -17.6,
+                antialias: true,
+                maxZoom: 18,
+                minZoom: 5,
+                maxPitch: 85,
+                dragRotate: true,
+                boxZoom: true,
+                fadeDuration: 250
             });
 
-            const cityFilter = document.getElementById('cityFilter');
-            const mapSearchContainer = document.getElementById('mapSearchContainer');
+            map.addControl(new mapboxgl.ScaleControl(), 'bottom-left');
 
-            cityFilter.addEventListener('change', () => {
-                if (cityFilter.value) {
-                    mapSearchContainer.classList.remove('d-none');
-                } else {
-                    mapSearchContainer.classList.add('d-none');
+            shops.forEach(shop => {
+                if (shop.location && shop.location.coordinates) {
+                    const marker = new mapboxgl.Marker()
+                        .setLngLat(shop.location.coordinates)
+                        .addTo(map);
+
+                    let imageUrl = shop.image || (shop.images && shop.images.length > 0 ? shop.images[0] : '/images/default-placeholder.jpg');
+                    if (imageUrl.startsWith('/')) {
+                        imageUrl = `http://localhost:300${imageUrl}`;
+                    }
+
+                    const popup = new mapboxgl.Popup({ offset: 25 })
+                        .setHTML(`
+                            <div class="popup-card">
+                                <img src="${imageUrl}" 
+                                     alt="${shop.shopName}" 
+                                     style="width: 100%; height: 120px; object-fit: cover; border-radius: 4px; margin-bottom: 8px;">
+                                <h5 style="font-size: 16px; margin: 8px 0;">${shop.shopName}</h5>
+                                <p style="font-size: 14px; color: #666; margin-bottom: 8px;">${shop.shopDescription || ''}</p>
+                                <button onclick="window.location.href='shop.html?id=${shop._id}'" 
+                                        class="btn btn-primary btn-sm w-100">Λεπτομέρειες</button>
+                            </div>
+                        `);
+
+                    marker.setPopup(popup);
                 }
             });
 
-            document.getElementById('mapSearchBtn').addEventListener('click', async () => {
-                const cityId = document.getElementById('cityFilter').value;
-                if (!cityId) {
-                    alert('Παρακαλώ επιλέξτε μια πόλη.');
-                    return;
-                }
+            document.getElementById('backToShopsBtn').style.display = 'block';
+            document.getElementById('shopsContainer').style.display = 'none';
 
-                try {
-                    // Fetch δεδομένα της πόλης
-                    const cityResponse = await fetch(`/city/${cityId}`);
-                    if (!cityResponse.ok) throw new Error('Failed to fetch city data');
-                    const { city } = await cityResponse.json();
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Σφάλμα κατά τη φόρτωση του χάρτη.');
+        }
+    });
 
-                    if (!city || !city.location || !city.location.coordinates || city.location.coordinates.length < 2) {
-                        alert('Η πόλη δεν έχει έγκυρες συντεταγμένες.');
-                        return;
-                    }
-
-                    // Fetch δεδομένα για τον χάρτη
-                    const mapShopsResponse = await fetch(`/search/city/${cityId}/mapUse`);
-                    if (!mapShopsResponse.ok) throw new Error('Failed to fetch map shops data');
-                    const shops = await mapShopsResponse.json();
-
-                    if (!shops || !Array.isArray(shops) || shops.length === 0) {
-                        alert('Δεν βρέθηκαν καταστήματα για αυτή την πόλη.');
-                        return;
-                    }
-
-                    // Δημιουργία του χάρτη με κέντρο τις συντεταγμένες της πόλης
-                    const mapContainer = document.getElementById('mapContainer');
-                    mapContainer.style.display = 'block'; // Βεβαιώσου ότι είναι ορατό
-                    mapContainer.style.height = '500px'; // Βεβαιώσου ότι έχει ύψος
-                    mapContainer.style.width = '100%'; // Βεβαιώσου ότι έχει πλάτος
-                    mapContainer.innerHTML = ''; // Καθαρισμός προηγούμενου χάρτη
-                    const map = new mapboxgl.Map({
-                        container: 'mapContainer',
-                        style: 'mapbox://styles/mapbox/streets-v12',
-                        center: [city.location.coordinates[0], city.location.coordinates[1]],
-                        zoom: 10,
-                        pitch: 45,
-                        bearing: -17.6,
-                        antialias: true,
-                        maxZoom: 18,
-                        minZoom: 5,
-                        maxPitch: 85,
-                        dragRotate: true,
-                        boxZoom: true,
-                        fadeDuration: 250
-                    });
-
-                    // Προσθήκη κλίμακας
-                    map.addControl(new mapboxgl.ScaleControl(), 'bottom-left');
-
-                    // Προσθήκη κουμπιού πλήρους οθόνης
-
-                    // Προσθήκη 3D κτιρίων
-                    map.on('load', () => {
-                        // Προσθήκη πηγής και layer για 3D κτίρια
-                        map.addSource('mapbox-dem', {
-                            'type': 'raster-dem',
-                            'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
-                            'tileSize': 512,
-                            'maxzoom': 14
-                        });
-                        
-                        // Προσθήκη του terrain-rgb και εφέ σκίασης
-                        map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
-                        map.addLayer({
-                            'id': 'sky',
-                            'type': 'sky',
-                            'paint': {
-                                'sky-type': 'atmosphere',
-                                'sky-atmosphere-sun': [0.0, 90.0],
-                                'sky-atmosphere-color': 'rgba(85, 151, 210, 0.5)'
-                            }
-                        });
-
-                        // Προσθήκη 3D κτιρίων
-                        map.addLayer({
-                            'id': '3d-buildings',
-                            'source': 'composite',
-                            'source-layer': 'building',
-                            'filter': ['==', 'extrude', 'true'],
-                            'type': 'fill-extrusion',
-                            'minzoom': 15,
-                            'paint': {
-                                'fill-extrusion-color': '#aaa',
-                                'fill-extrusion-height': [
-                                    'interpolate', ['linear'], ['zoom'],
-                                    15, 0,
-                                    15.05, ['get', 'height']
-                                ],
-                                'fill-extrusion-base': [
-                                    'interpolate', ['linear'], ['zoom'],
-                                    15, 0,
-                                    15.05, ['get', 'min_height']
-                                ],
-                                'fill-extrusion-opacity': 0.6
-                            }
-                        });
-                    });
-
-                    // Προσθήκη του custom style switcher
-                    class StyleSwitcherControl {
-                        onAdd(map) {
-                            this._map = map;
-                            this._container = document.createElement('div');
-                            this._container.className = 'mapboxgl-ctrl mapboxgl-ctrl-group';
-                            
-
-                            // Κουμπί για Street View με 3D
-                            const streetButton = document.createElement('button');
-                            streetButton.type = 'button';
-                            streetButton.className = 'mapboxgl-ctrl-icon';
-                            streetButton.innerHTML = '🏙️';
-                            streetButton.title = '3D Street View';
-                            streetButton.onclick = () => {
-                                map.setStyle('mapbox://styles/mapbox/streets-v12');
-                                this._reloadLayers();
-                            };
-
-                            // Κουμπί για Satellite View με 3D
-                            const satelliteButton = document.createElement('button');
-                            satelliteButton.type = 'button';
-                            satelliteButton.className = 'mapboxgl-ctrl-icon';
-                            satelliteButton.innerHTML = '🛰️';
-                            satelliteButton.title = '3D Satellite View';
-                            satelliteButton.onclick = () => {
-                                map.setStyle('mapbox://styles/mapbox/satellite-streets-v12');
-                                this._reloadLayers();
-                            };
-
-                            this._container.appendChild(streetButton);
-                            this._container.appendChild(satelliteButton);
-                            
-                            return this._container;
-                        }
-
-                        _reloadLayers() {
-                            // Επαναφόρτωση των 3D layers μετά την αλλαγή style
-                            this._map.once('style.load', () => {
-                                // Προσθήκη πηγής και layer για 3D κτίρια
-                                this._map.addSource('mapbox-dem', {
-                                    'type': 'raster-dem',
-                                    'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
-                                    'tileSize': 512,
-                                    'maxzoom': 14
-                                });
-                                
-                                this._map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
-                                
-                                this._map.addLayer({
-                                    'id': 'sky',
-                                    'type': 'sky',
-                                    'paint': {
-                                        'sky-type': 'atmosphere',
-                                        'sky-atmosphere-sun': [0.0, 90.0],
-                                        'sky-atmosphere-color': 'rgba(85, 151, 210, 0.5)'
-                                    }
-                                });
-
-                                this._map.addLayer({
-                                    'id': '3d-buildings',
-                                    'source': 'composite',
-                                    'source-layer': 'building',
-                                    'filter': ['==', 'extrude', 'true'],
-                                    'type': 'fill-extrusion',
-                                    'minzoom': 15,
-                                    'paint': {
-                                        'fill-extrusion-color': '#aaa',
-                                        'fill-extrusion-height': [
-                                            'interpolate', ['linear'], ['zoom'],
-                                            15, 0,
-                                            15.05, ['get', 'height']
-                                        ],
-                                        'fill-extrusion-base': [
-                                            'interpolate', ['linear'], ['zoom'],
-                                            15, 0,
-                                            15.05, ['get', 'min_height']
-                                        ],
-                                        'fill-extrusion-opacity': 0.6
-                                    }
-                                });
-                            });
-                        }
-
-                        onRemove() {
-                            this._container.parentNode.removeChild(this._container);
-                            this._map = undefined;
-                        }
-                    }
-
-                    // Προσθήκη του style switcher control
-                    map.addControl(new StyleSwitcherControl(), 'top-right');
-
-                    // Προσθήκη των markers για τα καταστήματα
-                    shops.forEach(shop => {
-                        if (shop.location && shop.location.coordinates) {
-                            const marker = new mapboxgl.Marker()
-                                .setLngLat(shop.location.coordinates)
-                                .addTo(map);
+    document.getElementById('backToShopsBtn').addEventListener('click', () => {
+        document.getElementById('mapContainer').style.display = 'none';
+        document.getElementById('shopsContainer').style.display = 'flex';
+        document.getElementById('backToShopsBtn').style.display = 'none';
+    });
+});
         
-                            // Δημιουργία του imageUrl
-                            let imageUrl = shop.image || (shop.images && shop.images.length > 0 ? shop.images[0] : '/images/default-placeholder.jpg');
-                            if (imageUrl.startsWith('/')) {
-                                imageUrl = `http://localhost:300${imageUrl}`;
-                            }
-
-                            // Ενημερωμένο popup με εικόνα
-                            const popup = new mapboxgl.Popup({ offset: 25 })
-                                .setHTML(`
-                                    <div class="popup-card">
-                                        <img src="${imageUrl}" 
-                                             alt="${shop.shopName}" 
-                                             style="width: 100%; height: 120px; object-fit: cover; border-radius: 4px; margin-bottom: 8px;">
-                                        <h5 style="font-size: 16px; margin: 8px 0;">${shop.shopName}</h5>
-                                        <p style="font-size: 14px; color: #666; margin-bottom: 8px;">${shop.shopDescription || ''}</p>
-                                        <button onclick="window.location.href='shop.html?id=${shop._id}'" 
-                                                class="btn btn-primary btn-sm w-100">Λεπτομέρειες</button>
-                                    </div>
-                                `);
-        
-                            marker.setPopup(popup);
-                        }
-                    });
-
-                    // Εμφάνιση του κουμπιού "Back to Shops"
-                    document.getElementById('backToShopsBtn').style.display = 'block';
-                    // Απόκρυψη του container με τα shop cards
-                    document.getElementById('shopsContainer').style.display = 'none';
-
-                } catch (error) {
-                    console.error('Error:', error);
-                    alert('Σφάλμα κατά τη φόρτωση του χάρτη.');
-                }
-            });
-
-            // Event listener για το κουμπί "Back to Shops"
-            document.getElementById('backToShopsBtn').addEventListener('click', () => {
-                document.getElementById('mapContainer').style.display = 'none';
-                document.getElementById('shopsContainer').style.display = 'flex';
-                document.getElementById('backToShopsBtn').style.display = 'none';
-            });
-        });
 
         document.getElementById('logoutBtn').addEventListener('click', () => {
         localStorage.clear();

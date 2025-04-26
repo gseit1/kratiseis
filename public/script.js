@@ -6,7 +6,49 @@ const typingSpeed = 100;
 const eraseSpeed = 60;
 const delayBetween = 2000;
 const subtitleEl = document.getElementById("typedSubtitle");
+// Event listener for city grid tiles
+document.querySelectorAll('.city-tile').forEach(tile => {
+    tile.addEventListener('click', (event) => {
+        const categoryId = tile.dataset.categoryId; // Get category ID from data attribute
+        const cityId = '67ef5b2215e5f9c8a42e2e8e'; // Replace with a valid city ID
 
+        // Store the selected filters in localStorage
+        localStorage.setItem('selectedCity', cityId);
+        localStorage.setItem('selectedCategory', categoryId);
+
+        // Redirect to the filteredShops page
+        window.location.href = 'filteredShops.html';
+    });
+});
+async function displayDynamicCities() {
+    const cityGrid = document.querySelector('.city-grid'); // Ensure this container exists in your HTML
+    try {
+        const response = await fetch('/city'); // Fetch cities from the backend
+        if (!response.ok) throw new Error('Failed to fetch cities');
+        const cities = await response.json();
+
+        // Display the first 3 cities as options
+        cities.slice(0, 3).forEach(city => {
+            const cityTile = document.createElement('a');
+            cityTile.href = '#';
+            cityTile.className = 'city-tile';
+            cityTile.dataset.cityId = city._id; // Store city ID in a data attribute
+            cityTile.textContent = city.name; // Display city name
+            cityTile.addEventListener('click', (event) => {
+                event.preventDefault();
+
+                // Store the selected city in localStorage
+                localStorage.setItem('selectedCity', city._id);
+
+                // Redirect to the filteredShops page
+                window.location.href = 'filteredShops.html';
+            });
+            cityGrid.appendChild(cityTile);
+        });
+    } catch (error) {
+        console.error('Error fetching cities:', error);
+    }
+}
 function typeLoop() {
   if (charIndex < subtitlePhrases[index].length) {
     subtitleEl.textContent += subtitlePhrases[index].charAt(charIndex++);
@@ -143,6 +185,8 @@ document.addEventListener("DOMContentLoaded", typeLoop);
     athensShops.forEach(shop => {
         athensShopsContainer.innerHTML += createShopCard(shop);
     });
+    displayDynamicCities();
+
 });
 
 // Helper function to fetch a shop by ID
