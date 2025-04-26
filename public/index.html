@@ -18,7 +18,25 @@
         <link rel="stylesheet" href="styles/cities.css">
         <link rel="stylesheet" href="styles/cta.css">
         <link rel="stylesheet" href="styles/newsletter.css">
-        
+        <style>
+            .city-selection {
+  margin: 20px 0;
+  text-align: center;
+}
+
+.city-selection label {
+  font-size: 1.2rem;
+  margin-right: 10px;
+}
+
+.city-selection .form-select {
+  display: inline-block;
+  width: auto;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  border-radius: 5px;
+}
+        </style>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark fixed-top shadow-lg" id="navbar">
@@ -99,13 +117,13 @@
         <div class="categories">
             <h1 class="hero-title">Πού Θέλεις να Πας Σήμερα; 🚀</h1>
             <p class="hero-subtitle">Εξερεύνησε την πόλη σου μέσα από vibes και γεύσεις!</p>
-            <div class="city-grid">
-                <a href="#" class="city-tile" data-category-id="67ef5a1015e5f9c8a42e2e59">☕ Θέλω καφέ</a>
-                <a href="#" class="city-tile" data-category-id="67ef5aad15e5f9c8a42e2e64">🍔 Ψάχνω φαγητό</a>
-                <a href="#" class="city-tile" data-category-id="67ef5aad15e5f9c8a42e2e64">🍻 Πού θα πιούμε</a>
+            <div class="city-selection">
+                <label for="cityDropdown">Διάλεξε πόλη:</label>
+                <select id="cityDropdown" class="form-select">
+                  <option value="">-- πόλη --</option>
+                </select>
               </div>
-              
-        </div>
+            <div class="city-grid"> </div>
    
       
       

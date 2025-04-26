@@ -1,5 +1,3 @@
-
-
 const subtitlePhrases = ["Εξερέυνησε.", "Κάνε κράτηση.", "Απόλαυσε."];
 let index = 0, charIndex = 0;
 const typingSpeed = 100;
@@ -20,35 +18,7 @@ document.querySelectorAll('.city-tile').forEach(tile => {
         window.location.href = 'filteredShops.html';
     });
 });
-async function displayDynamicCities() {
-    const cityGrid = document.querySelector('.city-grid'); // Ensure this container exists in your HTML
-    try {
-        const response = await fetch('/city'); // Fetch cities from the backend
-        if (!response.ok) throw new Error('Failed to fetch cities');
-        const cities = await response.json();
 
-        // Display the first 3 cities as options
-        cities.slice(0, 3).forEach(city => {
-            const cityTile = document.createElement('a');
-            cityTile.href = '#';
-            cityTile.className = 'city-tile';
-            cityTile.dataset.cityId = city._id; // Store city ID in a data attribute
-            cityTile.textContent = city.name; // Display city name
-            cityTile.addEventListener('click', (event) => {
-                event.preventDefault();
-
-                // Store the selected city in localStorage
-                localStorage.setItem('selectedCity', city._id);
-
-                // Redirect to the filteredShops page
-                window.location.href = 'filteredShops.html';
-            });
-            cityGrid.appendChild(cityTile);
-        });
-    } catch (error) {
-        console.error('Error fetching cities:', error);
-    }
-}
 function typeLoop() {
   if (charIndex < subtitlePhrases[index].length) {
     subtitleEl.textContent += subtitlePhrases[index].charAt(charIndex++);
@@ -185,7 +155,7 @@ document.addEventListener("DOMContentLoaded", typeLoop);
     athensShops.forEach(shop => {
         athensShopsContainer.innerHTML += createShopCard(shop);
     });
-    displayDynamicCities();
+    
 
 });
 
@@ -229,3 +199,65 @@ document.addEventListener("mousemove", e => {
   lightCursor.style.top = e.clientY + 'px';
   lightCursor.style.left = e.clientX + 'px';
 });
+
+// Function to handle city and category selection
+async function setupCityAndCategorySelection() {
+    const cityDropdown = document.getElementById('cityDropdown'); // Dropdown for city selection
+    const cityGrid = document.querySelector('.city-grid'); // Container for category tiles
+
+    try {
+        // Fetch cities dynamically
+        const cityResponse = await fetch('/city');
+        if (!cityResponse.ok) throw new Error('Failed to fetch cities');
+        const cities = await cityResponse.json();
+
+        // Populate city dropdown
+        cities.forEach(city => {
+            const option = document.createElement('option');
+            option.value = city._id;
+            option.textContent = city.name;
+            cityDropdown.appendChild(option);
+        });
+
+        // Add event listener to city dropdown
+        cityDropdown.addEventListener('change', async () => {
+            const selectedCityId = cityDropdown.value;
+
+            // Clear existing category tiles
+            cityGrid.innerHTML = '';
+
+            if (selectedCityId) {
+                // Display 3 fixed category options for the selected city
+                const categories = [
+                    { id: '67ef5a1015e5f9c8a42e2e59', name: '☕ καφέ' },
+                    { id: '67ef5aad15e5f9c8a42e2e64', name: '🍔 εστιατόριο' },
+                    { id: '67ef5abf15e5f9c8a42e2e6f', name: '🍻 τσιπουράδικο' }
+                ];
+
+                categories.forEach(category => {
+                    const categoryTile = document.createElement('a');
+                    categoryTile.href = '#';
+                    categoryTile.className = 'city-tile';
+                    categoryTile.dataset.categoryId = category.id; // Store category ID in a data attribute
+                    categoryTile.textContent = category.name; // Display category name
+                    categoryTile.addEventListener('click', (event) => {
+                        event.preventDefault();
+
+                        // Store the selected city and category in localStorage
+                        localStorage.setItem('selectedCity', selectedCityId);
+                        localStorage.setItem('selectedCategory', category.id);
+
+                        // Redirect to the filteredShops page
+                        window.location.href = 'filteredShops.html';
+                    });
+                    cityGrid.appendChild(categoryTile);
+                });
+            }
+        });
+    } catch (error) {
+        console.error('Error setting up city and category selection:', error);
+    }
+}
+
+// Call the function on page load
+document.addEventListener('DOMContentLoaded', setupCityAndCategorySelection);
