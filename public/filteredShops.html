@@ -274,55 +274,52 @@
         }
 
         shops.forEach(shop => {
-            console.log('Shop Object:', shop); // Debugging: Log the shop object
+    const shopCard = document.createElement('div');
+    shopCard.className = 'col-md-4';
 
-            const shopCard = document.createElement('div');
-            shopCard.className = 'col-md-4';
+    const shopId = shop.id || shop._id;
+    if (!shopId) {
+        console.error('Shop is missing an id:', shop);
+        return;
+    }
 
-            // Handle both `id` and `_id` properties
-            const shopId = shop.id || shop._id;
-            if (!shopId) {
-                console.error('Shop is missing an id:', shop);
-                return;
-            }
+    shopCard.setAttribute('data-id', shopId);
 
-            shopCard.setAttribute('data-id', shopId); // Add shop ID as a data attribute
+    let imageUrl = shop.image || (shop.images && shop.images.length > 0 ? shop.images[0] : '/images/default-placeholder.jpg');
+    if (!imageUrl || (!imageUrl.startsWith('http') && !imageUrl.startsWith('/'))) {
+        imageUrl = '/images/default-placeholder.jpg';
+    } else if (imageUrl.startsWith('/')) {
+        imageUrl = `http://localhost:300${imageUrl}`;
+    }
 
-            // Use the first image from the `images` array or a placeholder
-            let imageUrl = shop.image || (shop.images && shop.images.length > 0 ? shop.images[0] : null);
-            if (!imageUrl || (!imageUrl.startsWith('http') && !imageUrl.startsWith('/'))) {
-                imageUrl = '/images/default-placeholder.jpg'; // Use placeholder if image is invalid
-            } else if (imageUrl.startsWith('/')) {
-                imageUrl = `http://localhost:300${imageUrl}`; // Prepend base URL for relative paths
-            }
+    shopCard.innerHTML = `
+        <div class="card mb-4 position-relative">
+            <img src="${imageUrl}" class="card-img-top" alt="${shop.shopName}">
+            <div class="card-body">
+                <h5 class="card-title">${shop.shopName}</h5>
+                <p class="card-text">${(shop.shopDescription || '').substring(0, 20)}...</p>
+                <a href="#" class="btn btn-primary view-details">Λεπτομέρειες</a>
+            </div>
+            <button class="btn btn-light position-absolute top-0 end-0 m-2 favourite-btn" title="Add to Favourites">
+                <i class="bi bi-heart"></i>
+            </button>
+        </div>
+    `;
 
-            console.log('Image URL:', imageUrl); // Debugging: Log the image URL
+    shopsContainer.appendChild(shopCard);
 
-            shopCard.innerHTML = `
-                <div class="card mb-4">
-                    <img src="${imageUrl}" class="card-img-top" alt="${shop.shopName}">
-                    <div class="card-body">
-                        <h5 class="card-title">${shop.shopName}</h5>
-<p class="card-text">${(shop.shopDescription || '').substring(0, 20)}...</p>                        <a href="#" class="btn btn-primary view-details">Λεπτομέρειες</a>
-                    </div>
-                </div>
-            `;
-            shopsContainer.appendChild(shopCard);
+    // Προσθήκη event listener στο κουμπί "Add to Favourites"
+    const favouriteBtn = shopCard.querySelector('.favourite-btn');
+    favouriteBtn.addEventListener('click', async (event) => {
+        event.stopPropagation(); // Αποφυγή ενεργοποίησης άλλων events
+        await handleAddToFavourites(shopId);
+    });
 
-            console.log('Shop Card:', shopCard); // Debugging: Log the shop card
-
-            // Add click event listener to the shop card
-            shopCard.addEventListener('click', () => {
-                const shopId = shopCard.getAttribute('data-id');
-                console.log('Shop ID:', shopId); // Log the shop ID
-                if (shopId) {
-                    // Redirect to the shop details page
-                    window.location.href = `shop.html?id=${shopId}`;
-                } else {
-                    console.error('Shop ID is missing!');
-                }
-            });
-        });
+    // Προσθήκη event listener για το κουμπί "Λεπτομέρειες"
+    shopCard.querySelector('.view-details').addEventListener('click', () => {
+        window.location.href = `shop.html?id=${shopId}`;
+    });
+});
     } catch (error) {
         console.error('Error fetching shops:', error);
     }
@@ -461,20 +458,15 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('backToShopsBtn').style.display = 'none';
     });
 });
-        
 
-        document.getElementById('logoutBtn').addEventListener('click', () => {
-        localStorage.clear();
-        sessionStorage.clear();
-        alert('You have been logged out.');
-        window.location.href = 'registerLogin.html';
-    });
     </script>
     <script type="module">
-    import { updateNavbarOnLogin, applyNavbarStateFromSession, handleLogout } from './authUtils.js';
+    import { authCheck, applyNavbarStateFromSession, updateNavbarOnLogin } from './authUtils.js';
+
+    // Εκθέτουμε τη συνάρτηση authCheck στο global scope
+    window.authCheck = authCheck;
 
     document.addEventListener('DOMContentLoaded', async () => {
-        // Έλεγχος αν υπάρχει αποθηκευμένη κατάσταση στο sessionStorage
         const navbarState = sessionStorage.getItem('navbarState');
         if (navbarState) {
             applyNavbarStateFromSession(); // Εφαρμογή αποθηκευμένης κατάστασης
@@ -482,15 +474,54 @@ document.addEventListener('DOMContentLoaded', () => {
             await updateNavbarOnLogin(); // Ενημέρωση από τον server
         }
 
-        // Προσθήκη event listener στο κουμπί Logout
-        document.getElementById('logoutBtn').addEventListener('click', async () => {
-            try {
-                await handleLogout();
-            } catch (error) {
-                console.error('Error during logout:', error);
-                alert('An error occurred while logging out. Please try again.');
+        await fetchFilters();
+        await fetchShops();
+    });
+</script>
+
+<script>
+    async function handleAddToFavourites(shopId) {
+        try {
+            // Έλεγχος αν ο χρήστης είναι συνδεδεμένος μέσω authCheck
+            const isAuthenticated = await authCheck();
+
+            if (!isAuthenticated) {
+                alert('Πρέπει να είστε συνδεδεμένος για να προσθέσετε καταστήματα στα αγαπημένα.');
+                return;
             }
-        });
+
+            // Κλήση στο API για προσθήκη στα αγαπημένα
+            const response = await fetch('/api/users/favourites', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ shopId }),
+                credentials: 'include', // Περιλαμβάνει cookies για αυθεντικοποίηση
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                alert(`Σφάλμα: ${error.message}`);
+                return;
+            }
+
+            const data = await response.json();
+            alert('Το κατάστημα προστέθηκε στα αγαπημένα σας!');
+            console.log('Updated Favourites:', data.favouriteShops);
+        } catch (error) {
+            console.error('Error adding to favourites:', error);
+            alert('Σφάλμα κατά την προσθήκη στα αγαπημένα. Παρακαλώ δοκιμάστε ξανά.');
+        }
+    }
+</script>
+
+<script>
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+        localStorage.clear();
+        sessionStorage.clear();
+        alert('You have been logged out.');
+        window.location.href = 'registerLogin.html';
     });
 </script>
 </body>

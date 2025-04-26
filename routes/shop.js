@@ -9,7 +9,7 @@ const { handleBookingHoursUpdate } = require('../middlewares/editsMiddleware');
 const upload = require('../middlewares/multerMiddleware');
 
 //! POST: Δημιουργία νέου καταστήματος με τα απαραιτητα πεδια
-shopRouter.post('/api/shop', verifyToken, addShop);
+shopRouter.post('/api/shop', verifyToken, isShopOwner, addShop);
 
 //! GET για επιστροφη ολων των καταστηματων
 shopRouter.get('/api/shop', getAllShops);

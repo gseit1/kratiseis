@@ -39,6 +39,11 @@ const userSchema = new mongoose.Schema({
     ref: 'Reservation',
     default:[],
   }],
+  favouriteShops: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Shop',
+    default: [],
+  }],
 });
 
 const User = mongoose.model('User', userSchema);

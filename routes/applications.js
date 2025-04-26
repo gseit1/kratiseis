@@ -1,6 +1,6 @@
 const express = require('express');
 const { getApplications, postApplication, handleApplicationDecision ,getApplicationById} = require('../controllers/applicationsController');
-//const { verifyToken, isAdmin } = require('../middlewares/authMiddleware');
+const { verifyToken, isAdmin } = require('../middlewares/authMiddleware');
 
 const applicationsRouter = express.Router();
 
@@ -11,7 +11,7 @@ applicationsRouter.get('/api/applications', getApplications);
 applicationsRouter.get('/api/applications/:applicationId', getApplicationById);
 
 // POST: Δημιουργία νέας αίτησης
-applicationsRouter.post('/api/applications',  postApplication);
+applicationsRouter.post('/api/applications',    postApplication);
 
 // PATCH: Αποδοχή ή απόρριψη αίτησης
 applicationsRouter.patch('/api/applications/handle',  handleApplicationDecision);

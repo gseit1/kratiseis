@@ -351,7 +351,80 @@ const getUserReservationHistory = async (req, res) => {
 };
 
 
-module.exports = { setUserShopId };
+const addToFavourites = async (req, res) => {
+  const { shopId } = req.body;
+
+  try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Unauthorized: No authenticated user' });
+    }
+
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (user.favouriteShops.includes(shopId)) {
+      return res.status(400).json({ message: 'Shop is already in favourites' });
+    }
+
+    user.favouriteShops.push(shopId);
+    await user.save();
+
+    res.status(200).json({ message: 'Shop added to favourites', favouriteShops: user.favouriteShops });
+  } catch (error) {
+    console.error('Error adding to favourites:', error.message);
+    res.status(500).json({ message: 'Error adding to favourites', error: error.message });
+  }
+};
+
+
+const deleteFromFavourites = async (req, res) => {
+  const { shopId } = req.body;
+
+  try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Unauthorized: No authenticated user' });
+    }
+
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (!user.favouriteShops.includes(shopId)) {
+      return res.status(400).json({ message: 'Shop is not in favourites' });
+    }
+
+    user.favouriteShops = user.favouriteShops.filter(id => id.toString() !== shopId);
+    await user.save();
+
+    res.status(200).json({ message: 'Shop removed from favourites', favouriteShops: user.favouriteShops });
+  } catch (error) {
+    console.error('Error removing from favourites:', error.message);
+    res.status(500).json({ message: 'Error removing from favourites', error: error.message });
+  }
+};
+
+
+const getFavouriteShops = async (req, res) => {
+  try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Unauthorized: No authenticated user' });
+    }
+
+    const user = await User.findById(req.user.id).populate('favouriteShops');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.status(200).json({ favouriteShops: user.favouriteShops });
+  } catch (error) {
+    console.error('Error fetching favourite shops:', error.message);
+    res.status(500).json({ message: 'Error fetching favourite shops', error: error.message });
+  }
+};
+
 
 module.exports = {
   signUp,
@@ -364,4 +437,7 @@ module.exports = {
   getAllUsers,
   filterByRole,
   getUserReservationHistory,
+  addToFavourites,
+  deleteFromFavourites,
+  getFavouriteShops
 };

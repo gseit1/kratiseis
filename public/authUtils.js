@@ -1,5 +1,5 @@
 // authUtils.js
-async function authCheck() {
+export async function authCheck() {
     try {
         const response = await fetch('/api/check-auth', { credentials: 'include' });
         if (!response.ok) throw new Error('Not authenticated');
