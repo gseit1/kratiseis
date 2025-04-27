@@ -11,7 +11,7 @@ applicationsRouter.get('/api/applications', getApplications);
 applicationsRouter.get('/api/applications/:applicationId', getApplicationById);
 
 // POST: Δημιουργία νέας αίτησης
-applicationsRouter.post('/api/applications',    postApplication);
+applicationsRouter.post('/api/applications', verifyToken ,   postApplication);
 
 // PATCH: Αποδοχή ή απόρριψη αίτησης
 applicationsRouter.patch('/api/applications/handle',  handleApplicationDecision);

@@ -1,23 +1,19 @@
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
-
   firebaseUid: {
     type: String,
     required: true,
     unique: true,
   },
-
-  name:{
-    type:String,
-    required:true,
+  name: {
+    type: String,
+    required: true,
   },
-  
-  surname:{
-    type:String,
-    required:true,
+  surname: {
+    type: String,
+    required: true,
   },
-
   email: {
     type: String,
     required: true,
@@ -25,7 +21,7 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['user', 'shopOwner','admin'],
+    enum: ['user', 'shopOwner', 'admin'],
     default: 'user',
     required: true,
   },
@@ -37,13 +33,17 @@ const userSchema = new mongoose.Schema({
   reservationHistory: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Reservation',
-    default:[],
+    default: [],
   }],
   favouriteShops: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Shop',
     default: [],
   }],
+  applied: {
+    type: Boolean,
+    default: false, // Αρχικοποιείται ως false
+  },
 });
 
 const User = mongoose.model('User', userSchema);

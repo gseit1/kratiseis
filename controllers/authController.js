@@ -426,6 +426,30 @@ const getFavouriteShops = async (req, res) => {
 };
 
 
+const toggleAppliedStatus = async (req, res) => {
+  try {
+    const { userId, applied } = req.body;
+
+    if (typeof applied !== 'boolean') {
+      return res.status(400).json({ message: 'Invalid value for applied. Must be true or false.' });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    user.applied = applied;
+    await user.save();
+
+    res.status(200).json({ message: 'Applied status updated successfully', applied: user.applied });
+  } catch (error) {
+    console.error('Error updating applied status:', error.message);
+    res.status(500).json({ message: 'Error updating applied status', error: error.message });
+  }
+};
+
+
 module.exports = {
   signUp,
   login,
@@ -439,5 +463,6 @@ module.exports = {
   getUserReservationHistory,
   addToFavourites,
   deleteFromFavourites,
-  getFavouriteShops
+  getFavouriteShops,
+  toggleAppliedStatus,
 };

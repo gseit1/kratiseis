@@ -16,12 +16,11 @@ const getApplications = async (req, res) => {
 // POST: Δημιουργία νέας αίτησης
 const postApplication = async (req, res) => {
   try {
-    const { userId, shopName, shopDescription } = req.body;
+    const { shopName, shopDescription } = req.body;
+    const userId = req.user._id; // Λήψη του userId από το req.user
 
-    // Επαλήθευση αν ο χρήστης υπάρχει
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+    if (!userId) {
+      return res.status(400).json({ message: 'User ID is required' });
     }
 
     const newApplication = new Application({
