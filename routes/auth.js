@@ -33,17 +33,28 @@ authRouter.post('/api/login', [
 // New route to check if user is authenticated
 authRouter.get('/api/check-auth', verifyToken, (req, res) => {
   try {
-    res.status(200).json({ 
+    if (!req.user) {
+      return res.status(401).json({
+        isAuthenticated: false,
+        user: null,
+      });
+    }
+
+    res.status(200).json({
       isAuthenticated: true,
       user: {
         id: req.user._id,
-        role: req.user.role  // Χρειάζεται για τα βασικά permissions
-      }
+        name: req.user.name,
+        surname: req.user.surname,
+        email: req.user.email,
+        role: req.user.role,
+      },
     });
   } catch (error) {
-    res.status(401).json({
+    console.error('Error in /api/check-auth:', error.message);
+    res.status(500).json({
       isAuthenticated: false,
-      user: null
+      message: 'Error checking authentication',
     });
   }
 });
