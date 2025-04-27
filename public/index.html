@@ -341,12 +341,20 @@
     import { updateNavbarOnLogin, applyNavbarStateFromSession, handleLogout } from '/authUtils.js';
 
     document.addEventListener('DOMContentLoaded', async () => {
-        // Έλεγχος αν υπάρχει αποθηκευμένη κατάσταση στο sessionStorage
-        const navbarState = sessionStorage.getItem('navbarState');
-        if (navbarState) {
-            applyNavbarStateFromSession(); // Εφαρμογή αποθηκευμένης κατάστασης
-        } else {
-            await updateNavbarOnLogin(); // Ενημέρωση από τον server
+        try {
+            // Έλεγχος αν ο χρήστης είναι συνδεδεμένος
+            const response = await fetch('/api/check-auth', { credentials: 'include' });
+            const authData = await response.json();
+
+            if (authData.isAuthenticated) {
+                // Ενημέρωση του navbar
+                await updateNavbarOnLogin();
+            } else {
+                // Αν ο χρήστης δεν είναι συνδεδεμένος, καθαρισμός του UI
+                applyNavbarStateFromSession();
+            }
+        } catch (error) {
+            console.error('Error during authentication check:', error);
         }
     });
 

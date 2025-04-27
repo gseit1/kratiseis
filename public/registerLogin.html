@@ -166,7 +166,7 @@
         import { updateNavbarOnLogin } from '/authUtils.js';
 
         // Registration form submission
-        document.getElementById('registerForm').addEventListener('submit', async function(event) {
+        document.getElementById('registerForm').addEventListener('submit', async function (event) {
             event.preventDefault();
 
             const name = document.getElementById('name').value;
@@ -178,14 +178,22 @@
                 const response = await fetch('/api/signup', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ name, surname, email, password })
+                    body: JSON.stringify({ name, surname, email, password }),
+                    credentials: 'include', // Περιλαμβάνει το cookie με το token
                 });
 
                 const result = await response.json();
+
                 if (response.ok) {
                     alert('Registration successful!');
+                    // Καθυστέρηση για να διασφαλιστεί ότι το token έχει αποθηκευτεί
+                    setTimeout(async () => {
+                        await updateNavbarOnLogin();
+                        // Ανακατεύθυνση στο index.html
+                        window.location.href = '/index.html';
+                    }, 500); // 500ms καθυστέρηση
                 } else {
                     alert('Error: ' + result.message);
                 }

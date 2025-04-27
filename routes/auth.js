@@ -88,7 +88,7 @@ authRouter.delete('/api/users/favourites', verifyToken, isUser, deleteFromFavour
 //
 authRouter.get('/api/users/favourites', verifyToken, isUser, getFavouriteShops);
 
-const { toggleAppliedStatus } = require('../controllers/authController');
+
 
 authRouter.patch('/api/users/applied', verifyToken, toggleAppliedStatus);
 

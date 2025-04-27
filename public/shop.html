@@ -523,15 +523,33 @@ body {
 
 
     document.addEventListener('DOMContentLoaded', async () => {
-        const navbarState = sessionStorage.getItem('navbarState');
-        if (navbarState) {
-            applyNavbarStateFromSession(); // Εφαρμογή αποθηκευμένης κατάστασης
-        } else {
-            await updateNavbarOnLogin(); // Ενημέρωση από τον server
-        }
+        try {
+            // Ενημέρωση του navbar κατά την αρχική φόρτωση
+            const response = await fetch('/api/check-auth', { credentials: 'include' });
+            const authData = await response.json();
 
-        await initializeUser();
-        await fetchShopDetails();
+            if (authData.isAuthenticated) {
+                await updateNavbarOnLogin();
+            } else {
+                // Αν ο χρήστης δεν είναι συνδεδεμένος, ανακατεύθυνση στη σελίδα σύνδεσης
+                window.location.href = 'registerLogin.html';
+            }
+
+            // Φόρτωση λεπτομερειών καταστήματος
+            await fetchShopDetails();
+        } catch (error) {
+            console.error('Error during authentication check:', error);
+        }
+    });
+
+    // Προσθήκη event listener στο κουμπί Logout
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+        try {
+            await handleLogout();
+        } catch (error) {
+            console.error('Error during logout:', error);
+            alert('An error occurred while logging out. Please try again.');
+        }
     });
 </script>
   <script>
@@ -770,15 +788,6 @@ document.getElementById('decrementPeople').addEventListener('click', () => {
 
     // Add event listeners.
     document.getElementById('searchForm').addEventListener('submit', fetchAvailableTimes);
-
-    document.getElementById('logoutBtn').addEventListener('click', async () => {
-      try {
-        await handleLogout();
-      } catch (error) {
-        console.error('Error during logout:', error);
-        alert('An error occurred while logging out. Please try again.');
-      }
-    });
 
     async function handleAddToFavourites() {
     const urlParams = new URLSearchParams(window.location.search);

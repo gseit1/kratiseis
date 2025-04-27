@@ -27,25 +27,23 @@ export async function getUserDetails() {
 
 // Εξαγωγή της συνάρτησης
 export async function updateNavbarOnLogin() {
-    const auth = await authCheck();
-    const registerLogin = document.getElementById('registerLoginNavItem');
-    const profileDropdown = document.getElementById('profileDropdown');
+    try {
+        const response = await fetch('/api/check-auth', { credentials: 'include' });
+        const authData = await response.json();
 
-    // Αποθήκευση της κατάστασης στο sessionStorage
-    const navbarState = {
-        isAuthenticated: auth.isAuthenticated,
-        role: auth.user?.role || null,
-    };
-    sessionStorage.setItem('navbarState', JSON.stringify(navbarState));
-    console.log('Navbar State Updated:', navbarState); // Καταγραφή της αποθηκευμένης κατάστασης
+        const registerLogin = document.getElementById('registerLoginNavItem');
+        const profileDropdown = document.getElementById('profileDropdown');
 
-    // Ενημέρωση του DOM
-    if (auth.isAuthenticated) {
-        registerLogin?.classList.add('d-none');
-        profileDropdown?.classList.remove('d-none');
-    } else {
-        registerLogin?.classList.remove('d-none');
-        profileDropdown?.classList.add('d-none');
+        if (authData.isAuthenticated) {
+            registerLogin?.classList.add('d-none');
+            profileDropdown?.classList.remove('d-none');
+            profileDropdown.querySelector('.dropdown-toggle').textContent = `${authData.user.name} ${authData.user.surname}`;
+        } else {
+            registerLogin?.classList.remove('d-none');
+            profileDropdown?.classList.add('d-none');
+        }
+    } catch (error) {
+        console.error('Error updating navbar:', error);
     }
 }
 

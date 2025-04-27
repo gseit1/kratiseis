@@ -21,17 +21,37 @@ const signUp = async (req, res) => {
       name: name,
       surname: surname,
       email: email,
-      role: 'user', // Ο ρόλος είναι πάντα 'user' κατά την εγγραφή
+      role: 'user',
     });
 
     await newUser.save();
 
-    // Επιστροφή επιτυχίας με το userId
+    // Αυτόματο login του χρήστη
+    const loginResponse = await axios.post(
+      `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${process.env.FIREBASE_API_KEY}`,
+      {
+        email,
+        password,
+        returnSecureToken: true,
+      }
+    );
+
+    const idToken = loginResponse.data.idToken;
+
+    // Αποθήκευση του token ως HTTP-only cookie
+    res.cookie('jwt', idToken, {
+      httpOnly: true,
+      secure: false, // Χρησιμοποίησε `true` σε παραγωγή με HTTPS
+      sameSite: 'Lax',
+      maxAge: 1000 * 60 * 60, // 1 ώρα
+    });
+
     res.status(201).json({
-      message: 'User registered successfully',
-      userId: newUser._id, // Επιστροφή του MongoDB userId
+      message: 'User registered and logged in successfully',
+      userId: newUser._id,
     });
   } catch (error) {
+    console.error('Error during sign up:', error.message);
     res.status(500).json({ message: 'Error registering user', error: error.message });
   }
 };
