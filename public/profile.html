@@ -102,26 +102,72 @@
       color: #ff6ec4;
     }
   
+    /* Styling for Reservation Card */
     .reservation-card {
-      background: rgba(255, 255, 255, 0.2);
-      border-radius: 10px;
-      margin: 10px 0;
-      padding: 15px;
-      color: #fff;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-      text-align: left;
-    }
-  
-    .reservation-card h5 {
-      font-size: 1.2rem;
-      font-weight: 600;
-      margin-bottom: 10px;
-    }
-  
-    .reservation-card p {
-      font-size: 0.9rem;
-      margin: 0;
-    }
+  background: #fff;
+  color: #333;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+  transition: all 0.3s ease;
+  height: 100%;
+}
+
+.reservation-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.25);
+}
+
+.reservation-card h5 {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #6a11cb;
+  margin-bottom: 15px;
+  word-break: break-word;
+}
+
+.reservation-card p {
+  font-size: 0.95rem;
+  margin-bottom: 8px;
+}
+
+.badge-status {
+  display: inline-block;
+  padding: 5px 10px;
+  border-radius: 30px;
+  font-size: 0.75rem;
+  text-transform: capitalize;
+  background: #eee;
+  color: #555;
+}
+
+.badge-status.pending {
+  background: #ffc107;
+  color: #fff;
+}
+.badge-status.accepted {
+  background: #17a2b8;
+  color: #fff;
+}
+.badge-status.completed {
+  background: #28a745;
+  color: #fff;
+}
+.badge-status.notShown {
+  background: #dc3545;
+  color: #fff;
+}
+
+.comment {
+  margin-top: 15px;
+  font-size: 0.85rem;
+  color: #666;
+  background: #f8f9fa;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+
   
     .filter-btn {
       margin: 0 5px 10px;
@@ -288,6 +334,68 @@
         padding: 6px 12px;
       }
     }
+    .history-wrapper {
+  max-height: 80vh; /* Limit the height to 80% of viewport */
+  overflow-y: auto;
+  padding-right: 10px;
+  margin-top: 20px;
+}
+
+/* Hide the ugly default scrollbar, optional */
+.history-wrapper::-webkit-scrollbar {
+  width: 8px;
+}
+.history-wrapper::-webkit-scrollbar-thumb {
+  background-color: #c1c1c1;
+  border-radius: 4px;
+}
+.history-wrapper::-webkit-scrollbar-track {
+  background: #f0f0f0;
+}
+
+.reservation-card {
+  background: #fff;
+  color: #333;
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  height: 100%;
+}
+
+.reservation-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+}
+
+.reservation-card h5 {
+  font-size: 1.1rem;
+  margin-bottom: 10px;
+}
+
+.reservation-card p {
+  font-size: 0.9rem;
+  margin-bottom: 6px;
+  color: #555;
+}
+
+.badge-status {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.comment {
+  background-color: #f8f8f8;
+  border-left: 4px solid #6a11cb;
+  padding: 10px;
+  font-size: 0.85rem;
+  margin-top: 10px;
+  border-radius: 6px;
+}
+
   </style>
   
 </head>
@@ -384,9 +492,12 @@
     <button class="filter-btn" onclick="filterReservations('completed')">Completed</button>
     <button class="filter-btn" onclick="filterReservations('notShown')">Not Shown</button>
   </div>
-  <div id="reservationHistory" class="mt-3 text-center">
-    <p>Loading reservation history...</p>
+  <div id="reservationHistoryWrapper" class="history-wrapper">
+    <div id="reservationHistory" class="row g-3">
+      <!-- reservations injected here -->
+    </div>
   </div>
+  
 </section>
 
   <section class="container favourite-shops" aria-labelledby="favouritesHeader">
@@ -479,29 +590,37 @@ function displayReservations(reservations) {
   const historyContainer = document.getElementById('reservationHistory');
   historyContainer.innerHTML = '';
 
-  if (!reservations || reservations.length === 0) {
-    historyContainer.innerHTML = '<p class="text-warning">No reservations found for this filter.</p>';
-    return;
-  }
+  const fragment = document.createDocumentFragment(); // better for performance
 
   reservations.forEach(reservation => {
     const hours = Math.floor(reservation.reservationTime);
     const minutes = Math.round((reservation.reservationTime % 1) * 60);
     const formattedTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
 
-    historyContainer.innerHTML += `
-      <div class="reservation-card">
-        <h5>Reservation #${reservation._id}</h5>
-        <p><strong>Shop:</strong> ${reservation.shopName || 'N/A'}</p>
-        <p><strong>Date:</strong> ${new Date(reservation.reservationDate).toLocaleDateString()}</p>
-        <p><strong>Time:</strong> ${formattedTime}</p>
-        <p><strong>Seats:</strong> ${reservation.seats || 'N/A'}</p>
-        <p><strong>State:</strong> ${reservation.state}</p>
-        <p><strong>Comment:</strong> ${reservation.commentFromUser || 'N/A'}</p>
-      </div>
-    `;
+    const col = document.createElement('div');
+    col.className = 'col-12 col-md-6 col-lg-4';
+
+    col.innerHTML = `
+  <div class="reservation-card h-100 d-flex flex-column justify-content-between">
+    <div>
+      <h5><i class="bi bi-receipt-cutoff me-2"></i> Reservation #${reservation._id.slice(-6)}</h5>
+      <p><i class="bi bi-shop me-2"></i><strong>Shop:</strong> ${reservation.shopName || 'N/A'}</p>
+      <p><i class="bi bi-calendar-event me-2"></i><strong>Date:</strong> ${new Date(reservation.reservationDate).toLocaleDateString()}</p>
+      <p><i class="bi bi-clock me-2"></i><strong>Time:</strong> ${formattedTime}</p>
+      <p><i class="bi bi-people-fill me-2"></i><strong>Seats:</strong> ${reservation.seats || 'N/A'}</p>
+      <p><i class="bi bi-info-circle me-2"></i><strong>Status:</strong> <span class="badge-status ${reservation.state.toLowerCase()}">${reservation.state}</span></p>
+    </div>
+    ${reservation.commentFromUser ? `<div class="comment"><i class="bi bi-chat-left-text me-2"></i> ${reservation.commentFromUser}</div>` : ''}
+  </div>
+`;
+
+
+    fragment.appendChild(col);
   });
+
+  historyContainer.appendChild(fragment);
 }
+
 
     async function removeFromFavourites(shopId) {
         try {

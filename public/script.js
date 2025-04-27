@@ -261,3 +261,36 @@ async function setupCityAndCategorySelection() {
 
 // Call the function on page load
 document.addEventListener('DOMContentLoaded', setupCityAndCategorySelection);
+
+// Fetch and display the 4 latest shops
+async function fetchLatestShops() {
+  try {
+    const response = await fetch('/api/shop/');
+    if (!response.ok) {
+      throw new Error('Failed to fetch latest shops');
+    }
+
+    const latestShops = await response.json();
+    const latestShopsContainer = document.getElementById('latestShopsContainer');
+
+    latestShopsContainer.innerHTML = latestShops
+      .slice(0, 4) // Limit to 4 shops
+      .map(shop => `
+        <div class="col-md-3">
+          <div class="card mb-4">
+            <img src="${shop.images && shop.images[0] ? shop.images[0] : shop.image || 'images/default-placeholder.jpg'}" class="card-img-top" alt="${shop.shopName || 'Shop'}">
+            <div class="card-body">
+              <h5 class="card-title">${shop.shopName}</h5>
+              <p class="card-text">${(shop.shopDescription || '').substring(0, 50)}...</p>
+              <a href="shop.html?id=${shop._id}" class="btn btn-primary">View Details</a>
+            </div>
+          </div>
+        </div>
+      `)
+      .join('');
+  } catch (error) {
+    console.error('Error fetching latest shops:', error);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', fetchLatestShops);
