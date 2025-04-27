@@ -185,13 +185,20 @@ function createShopCard(shop) {
 
     return `
         <div class="card mb-3" style="min-width: 240px; max-width: 240px;">
-            <img src="${shop.images && shop.images[0] ? shop.images[0] : shop.image || 'images/default-placeholder.jpg'}" class="card-img-top" alt="${shop.shopName || 'Shop'}">
-            <div class="card-body">
-                <h5 class="card-title">${shop.shopName || 'Unnamed Shop'}</h5>
-                <p class="card-text">${(shop.address || 'no location')}</p>
-                <a href="shop.html?id=${shopId}" class="btn btn-outline-primary">Λεπτομέρειες</a>
-            </div>
-        </div>
+  <img src="${shop.images && shop.images[0] ? shop.images[0] : shop.image || 'images/default-placeholder.jpg'}" class="card-img-top" alt="${shop.shopName || 'Shop'}">
+  <div class="card-body">
+    <h5 class="card-title">
+      <i class="bi bi-shop me-2"></i>${shop.shopName || 'Unnamed Shop'}
+    </h5>
+    <p class="card-text">
+      <i class="bi bi-geo-alt me-2"></i>${shop.address || 'No location'}
+    </p>
+    <a href="shop.html?id=${shopId}" class="btn btn-outline-primary">
+      <i class="bi bi-box-arrow-up-right me-1"></i> Λεπτομέρειες
+    </a>
+  </div>
+</div>
+
     `;
 }
 const lightCursor = document.querySelector('.custom-cursor-light');
@@ -276,16 +283,23 @@ async function fetchLatestShops() {
     latestShopsContainer.innerHTML = latestShops
       .slice(0, 4) // Limit to 4 shops
       .map(shop => `
-        <div class="col-md-3">
-          <div class="card mb-4">
-            <img src="${shop.images && shop.images[0] ? shop.images[0] : shop.image || 'images/default-placeholder.jpg'}" class="card-img-top" alt="${shop.shopName || 'Shop'}">
-            <div class="card-body">
-              <h5 class="card-title">${shop.shopName}</h5>
-              <p class="card-text">${(shop.shopDescription || '').substring(0, 50)}...</p>
-              <a href="shop.html?id=${shop._id}" class="btn btn-primary">View Details</a>
-            </div>
-          </div>
-        </div>
+     <div class="col-md-3">
+  <div class="card mb-4">
+    <img src="${shop.images && shop.images[0] ? shop.images[0] : shop.image || 'images/default-placeholder.jpg'}" class="card-img-top" alt="${shop.shopName || 'Shop'}">
+    <div class="card-body">
+      <h5 class="card-title">
+        <i class="bi bi-shop me-2"></i>${shop.shopName || 'Unnamed Shop'}
+      </h5>
+      <p class="card-text">
+        <i class="bi bi-geo-alt me-2"></i>${(shop.address || '').substring(0, 50)}...
+      </p>
+      <a href="shop.html?id=${shop._id}" class="btn btn-primary">
+        <i class="bi bi-box-arrow-up-right me-1"></i> View Details
+      </a>
+    </div>
+  </div>
+</div>
+
       `)
       .join('');
   } catch (error) {

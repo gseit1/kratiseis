@@ -679,7 +679,7 @@ function displayReservations(reservations) {
                     <img src="${imageUrl}" alt="${shop.shopName}">
                     <div class="card-body">
                         <h5 class="card-title">${shop.shopName}</h5>
-                        <p class="card-text">${shop.shopDescription || 'No description available.'}</p>
+                        <p class="card-text">${shop.address || 'No description available.'}</p>
                         <a href="shop.html?id=${shop._id}" class="btn-view-details">View Details</a>
                     </div>
                     <button class="btn-remove" onclick="removeFromFavourites('${shop._id}')">-</button>
