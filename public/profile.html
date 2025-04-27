@@ -377,16 +377,17 @@
 
   <!-- Reservation History Section -->
   <section class="container reservation-history" aria-labelledby="historyHeader">
-    <h2 id="historyHeader" class="text-center">Reservation History</h2>
-    <div class="text-center">
-      <button class="filter-btn" onclick="filterReservations('all')">All</button>
-      <button class="filter-btn" onclick="filterReservations('completed')">Completed</button>
-      <button class="filter-btn" onclick="filterReservations('cancelled')">Cancelled</button>
-    </div>
-    <div id="reservationHistory" class="mt-3 text-center">
-      <p>Loading reservation history...</p>
-    </div>
-  </section>
+  <h2 id="historyHeader" class="text-center">Reservation History</h2>
+  <div class="text-center">
+    <button class="filter-btn" onclick="filterReservations('pending')">Pending</button>
+    <button class="filter-btn" onclick="filterReservations('accepted')">Active</button>
+    <button class="filter-btn" onclick="filterReservations('completed')">Completed</button>
+    <button class="filter-btn" onclick="filterReservations('notShown')">Not Shown</button>
+  </div>
+  <div id="reservationHistory" class="mt-3 text-center">
+    <p>Loading reservation history...</p>
+  </div>
+</section>
 
   <section class="container favourite-shops" aria-labelledby="favouritesHeader">
     <h2 id="favouritesHeader" class="text-center">Favourite Shops</h2>
@@ -442,51 +443,65 @@
         }
     }
 
-    async function fetchReservationHistory() {
-        try {
-            const response = await fetch('/api/user/reservationHistory', {
-                method: 'GET',
-                credentials: 'include', // Περιλαμβάνει cookies για αυθεντικοποίηση
-            });
+    async function fetchReservationHistory(stateFilter = 'pending') {
+  try {
+    // Λήψη όλων των κρατήσεων του χρήστη
+    const response = await fetch('/api/user/reservationHistory', {
+      method: 'GET',
+      credentials: 'include', // Περιλαμβάνει cookies για αυθεντικοποίηση
+    });
 
-            if (!response.ok) {
-                throw new Error('Failed to fetch reservation history');
-            }
-
-            const { reservationHistory } = await response.json();
-            console.log('Reservation History:', reservationHistory); // Debugging
-
-            const historyContainer = document.getElementById('reservationHistory');
-            historyContainer.innerHTML = ''; // Καθαρισμός του container
-
-            if (!reservationHistory || reservationHistory.length === 0) {
-                historyContainer.innerHTML = '<p class="text-warning">Δεν υπάρχει ιστορικό κρατήσεων.</p>';
-                return;
-            }
-
-            // Δημιουργία καρτών για κάθε κράτηση
-            reservationHistory.forEach(reservation => {
-                const hours = Math.floor(reservation.reservationTime);
-                const minutes = Math.round((reservation.reservationTime % 1) * 60);
-                const formattedTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-
-                historyContainer.innerHTML += `
-                    <div class="reservation-card">
-                        <h5>Reservation #${reservation._id}</h5>
-                        <p><strong>Shop:</strong> ${reservation.shopName || 'N/A'}</p>
-                        <p><strong>Date:</strong> ${new Date(reservation.reservationDate).toLocaleDateString()}</p>
-                        <p><strong>Time:</strong> ${formattedTime}</p>
-                        <p><strong>Seats:</strong> ${reservation.seats || 'N/A'}</p>
-                        <p><strong>Comment:</strong> ${reservation.commentFromUser || 'N/A'}</p>
-                    </div>
-                `;
-            });
-        } catch (error) {
-            console.error('Error fetching reservation history:', error);
-            const historyContainer = document.getElementById('reservationHistory');
-            historyContainer.innerHTML = '<p class="text-danger">Αποτυχία φόρτωσης ιστορικού κρατήσεων.</p>';
-        }
+    if (!response.ok) {
+      throw new Error('Failed to fetch reservation history');
     }
+
+    const { reservationHistory } = await response.json();
+
+    if (!reservationHistory || reservationHistory.length === 0) {
+      document.getElementById('reservationHistory').innerHTML = '<p class="text-warning">No reservations found.</p>';
+      return;
+    }
+
+    // Φιλτράρισμα κρατήσεων με βάση το state
+    const filteredReservations = reservationHistory.filter(reservation => 
+      stateFilter === 'all' || reservation.state === stateFilter
+    );
+
+    // Εμφάνιση των φιλτραρισμένων κρατήσεων
+    displayReservations(filteredReservations);
+  } catch (error) {
+    console.error('Error fetching reservation history:', error);
+    document.getElementById('reservationHistory').innerHTML = '<p class="text-danger">Failed to load reservation history.</p>';
+  }
+}
+
+function displayReservations(reservations) {
+  const historyContainer = document.getElementById('reservationHistory');
+  historyContainer.innerHTML = '';
+
+  if (!reservations || reservations.length === 0) {
+    historyContainer.innerHTML = '<p class="text-warning">No reservations found for this filter.</p>';
+    return;
+  }
+
+  reservations.forEach(reservation => {
+    const hours = Math.floor(reservation.reservationTime);
+    const minutes = Math.round((reservation.reservationTime % 1) * 60);
+    const formattedTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+
+    historyContainer.innerHTML += `
+      <div class="reservation-card">
+        <h5>Reservation #${reservation._id}</h5>
+        <p><strong>Shop:</strong> ${reservation.shopName || 'N/A'}</p>
+        <p><strong>Date:</strong> ${new Date(reservation.reservationDate).toLocaleDateString()}</p>
+        <p><strong>Time:</strong> ${formattedTime}</p>
+        <p><strong>Seats:</strong> ${reservation.seats || 'N/A'}</p>
+        <p><strong>State:</strong> ${reservation.state}</p>
+        <p><strong>Comment:</strong> ${reservation.commentFromUser || 'N/A'}</p>
+      </div>
+    `;
+  });
+}
 
     async function removeFromFavourites(shopId) {
         try {
@@ -572,22 +587,34 @@
     });
 
     document.addEventListener('DOMContentLoaded', async () => {
-        try {
-            // Ενημέρωση του navbar
-            const navbarState = sessionStorage.getItem('navbarState');
-            if (navbarState) {
-                applyNavbarStateFromSession();
-            } else {
-                await updateNavbarOnLogin();
-            }
+  try {
+    // Ενημέρωση του navbar
+    const navbarState = sessionStorage.getItem('navbarState');
+    if (navbarState) {
+      applyNavbarStateFromSession();
+    } else {
+      await updateNavbarOnLogin();
+    }
 
-            // Αρχικοποίηση του χρήστη
-            await initializeUser();
-            await fetchFavouriteShops();
-        } catch (error) {
-            console.error('Error during page initialization:', error);
-        }
-    });
+    // Αρχικοποίηση του χρήστη
+    await initializeUser();
+
+    // Φόρτωση των `pending` κρατήσεων κατά την αρχική φόρτωση
+    await fetchReservationHistory('pending');
+
+    // Φόρτωση αγαπημένων καταστημάτων
+    await fetchFavouriteShops();
+  } catch (error) {
+    console.error('Error during page initialization:', error);
+  }
+});
+
+    function filterReservations(state) {
+  fetchReservationHistory(state);
+}
+
+// Κάνε τη συνάρτηση διαθέσιμη στο global scope
+window.filterReservations = filterReservations;
 
     window.removeFromFavourites = removeFromFavourites;
   </script>
