@@ -6,7 +6,9 @@ const {
   editReservation, 
   deleteReservation, 
   getTotalReservations, 
-  getReservationById 
+  changeReservationState,
+  getReservationById,
+  filterReservationsByState
 } = require('../controllers/reservationController');
 const { verifyToken, isShopOwner ,isUser} = require('../middlewares/authMiddleware');
 
@@ -32,5 +34,9 @@ reservationRouter.get('/api/reservations/count', getTotalReservations);
 
 // Route for getting a reservation by ID
 reservationRouter.get('/api/reservations/:id', getReservationById);
+//
+reservationRouter.patch('/api/reservation/:id/state', verifyToken, isShopOwner, changeReservationState);
+
+reservationRouter.post('/api/reservations/filter', filterReservationsByState);
 
 module.exports = reservationRouter;

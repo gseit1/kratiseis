@@ -20,12 +20,10 @@ const reservationSchema = mongoose.Schema(
             type: String, // Όνομα χρήστη
             required: true,
         },
-
-        surname:{
-            type:String,
-            required:true,
+        surname: {
+            type: String,
+            required: true,
         },
-
         shopId: {
             type: mongoose.Schema.Types.ObjectId, // Αναφορά στο κατάστημα
             ref: 'Shop',
@@ -48,14 +46,17 @@ const reservationSchema = mongoose.Schema(
             default: '',
             maxlength: 200, // Μέγιστο μήκος σχολίου
         },
-
         seats: {
-            type:Number,
-            required:true,
+            type: Number,
+            required: true,
+        },
+        state: {
+            type: String,
+            enum: ['pending', 'accepted', 'notShown', 'completed'], // Επιτρεπτές τιμές
+            default: 'pending', // Προεπιλεγμένη τιμή
         },
     },
-
-
+    { timestamps: true } // Προσθήκη createdAt και updatedAt
 );
 
 // Προσθήκη index για βελτίωση αναζητήσεων

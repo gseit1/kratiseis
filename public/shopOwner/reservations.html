@@ -103,11 +103,31 @@
             <div id="content" class="col-md-9">
                 <section id="reservations" class="mt-5">
                     <div class="container">
-                        <h2>Reservations</h2>
-                        <!-- Scrollable list of days -->
-                        <div id="reservationsDaysList" class="list-group mb-3" style="max-height: 300px; overflow-y: auto;"></div>
-                        <!-- Container for reservations for the selected day -->
-                        <div id="reservationsList" class="row gy-3"></div>
+                      <h2>Reservations</h2>
+                      <!-- Bar επιλογών για φιλτράρισμα -->
+                      <ul class="nav nav-tabs mb-3" id="reservationTabs" role="tablist">
+  <li class="nav-item" role="presentation">
+    <button class="nav-link active" id="pending-tab" data-bs-toggle="tab" type="button" onclick="fetchReservations('pending')">Pending</button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="accepted-tab" data-bs-toggle="tab" type="button" onclick="fetchReservations('accepted')">Accepted</button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="completed-tab" data-bs-toggle="tab" type="button" onclick="fetchReservations('completed')">Completed</button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="notShown-tab" data-bs-toggle="tab" type="button" onclick="fetchReservations('notShown')">Not Shown</button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="all-tab" data-bs-toggle="tab" type="button" onclick="fetchReservations('all')">All</button>
+  </li>
+</ul>
+
+                      <!-- Scrollable list of days -->
+                      <div id="reservationsDaysList" class="list-group mb-3" style="max-height: 300px; overflow-y: auto;"></div>
+
+                      <!-- Container for reservations for the selected day -->
+                      <div id="reservationsList" class="row gy-3"></div>
                     </div>
                 </section>
             </div>
@@ -117,18 +137,23 @@
     <script>
         // Helper functions
         function groupReservationsByDate(reservationsArray) {
-            const grouped = {};
-            reservationsArray.forEach(reservation => {
-                if (reservation.reservationDate) {
-                    const dateKey = new Date(reservation.reservationDate).toISOString().split('T')[0];
-                    if (!grouped[dateKey]) {
-                        grouped[dateKey] = [];
-                    }
-                    grouped[dateKey].push(reservation);
-                }
-            });
-            return grouped;
-        }
+  if (!Array.isArray(reservationsArray)) {
+    console.error('Error: reservationsArray is not an array', reservationsArray);
+    return {};
+  }
+
+  const grouped = {};
+  reservationsArray.forEach(reservation => {
+    if (reservation.reservationDate) {
+      const dateKey = new Date(reservation.reservationDate).toISOString().split('T')[0];
+      if (!grouped[dateKey]) {
+        grouped[dateKey] = [];
+      }
+      grouped[dateKey].push(reservation);
+    }
+  });
+  return grouped;
+}
 
         function formatDate_dd_mm_yy(isoDateStr) {
             const dateObj = new Date(isoDateStr);
@@ -146,111 +171,145 @@
 
         // Render the scrollable list of reservation days
         function renderDaysList(groupedReservations) {
-            const daysListDiv = document.getElementById("reservationsDaysList");
-            daysListDiv.innerHTML = "";
+  const daysListDiv = document.getElementById("reservationsDaysList");
+  daysListDiv.innerHTML = "";
 
-            const sortedDates = Object.keys(groupedReservations).sort();
+  const sortedDates = Object.keys(groupedReservations).sort();
 
-            sortedDates.forEach(dateKey => {
-                // Ελέγχουμε αν η ημερομηνία έχει κρατήσεις
-                if (groupedReservations[dateKey].length > 0) {
-                    const formattedDate = formatDate_dd_mm_yy(dateKey);
-                    const dayOfWeek = getDayOfWeek(dateKey);
-                    const btn = document.createElement("button");
-                    btn.className = "list-group-item list-group-item-action";
-                    btn.textContent = `${formattedDate} - ${dayOfWeek}`;
-                    btn.onclick = function () {
-                        renderReservationsForDay(groupedReservations[dateKey]);
-                    };
-                    daysListDiv.appendChild(btn);
-                }
-            });
+  sortedDates.forEach(dateKey => {
+    if (groupedReservations[dateKey].length > 0) {
+      const formattedDate = formatDate_dd_mm_yy(dateKey);
+      const dayOfWeek = getDayOfWeek(dateKey);
+      const btn = document.createElement("button");
+      btn.className = "list-group-item list-group-item-action";
+      btn.textContent = `${formattedDate} - ${dayOfWeek}`;
+      btn.onclick = function () {
+        renderReservationsForDay(groupedReservations[dateKey]);
+      };
+      daysListDiv.appendChild(btn);
+    }
+  });
 
-            // Αν δεν υπάρχουν ημερομηνίες με κρατήσεις, εμφανίζουμε μήνυμα
-            if (daysListDiv.innerHTML === "") {
-                daysListDiv.innerHTML = "<p class='text-center'>No reservations available.</p>";
-                document.getElementById("reservationsList").innerHTML = "";
-            }
-        }
+  if (daysListDiv.innerHTML === "") {
+    daysListDiv.innerHTML = "<p class='text-center'>No reservations available.</p>";
+    document.getElementById("reservationsList").innerHTML = "";
+  }
+}
 
         // Render reservations for a specific day
         async function renderReservationsForDay(reservationsArray) {
-            const reservationsListDiv = document.getElementById("reservationsList");
-            reservationsListDiv.innerHTML = "";
+  const reservationsListDiv = document.getElementById("reservationsList");
+  reservationsListDiv.innerHTML = "";
 
-            if (reservationsArray.length === 0) {
-                reservationsListDiv.innerHTML = "<p class='text-center'>No reservations for this day.</p>";
-                return;
-            }
+  if (reservationsArray.length === 0) {
+    reservationsListDiv.innerHTML = "<p class='text-center'>No reservations for this day.</p>";
+    return;
+  }
 
-            for (const reservation of reservationsArray) {
-                let tableNumber = "N/A";
-                if (reservation.tableId) {
-                    try {
-                        const response = await fetch(`/api/table/${reservation.tableId}`);
-                        if (response.ok) {
-                            const table = await response.json();
-                            tableNumber = table.tableNumber || "N/A";
-                        }
-                    } catch (error) {
-                        console.error("Error fetching table details:", error);
-                    }
-                }
-
-                const hours = Math.floor(reservation.reservationTime);
-                const minutes = Math.round((reservation.reservationTime % 1) * 60);
-                const formattedTime = `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
-
-                reservationsListDiv.innerHTML += `
-                    <div class="col-md-4">
-                        <div class="card mb-3">
-                            <div class="card-header">Reservation #${reservation._id}</div>
-                            <div class="card-body">
-                                <p><strong>Name:</strong> ${reservation.name || "N/A"}</p>
-                                <p><strong>Surname:</strong> ${reservation.surname || "N/A"}</p>
-                                <p><strong>Table Number:</strong> ${tableNumber}</p>
-                                <p><strong>Date:</strong> ${reservation.reservationDate ? new Date(reservation.reservationDate).toLocaleDateString() : "N/A"}</p>
-                                <p><strong>Hour:</strong> ${formattedTime}</p>
-                                <p><strong>Seats:</strong> ${reservation.seats || "N/A"}</p>
-                                <p><strong>Comment:</strong> ${reservation.commentFromUser || "N/A"}</p>
-                                <button class="btn btn-danger btn-sm" onclick="deleteReservation('${reservation._id}')">Delete</button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
+  for (const reservation of reservationsArray) {
+    let tableNumber = "N/A";
+    if (reservation.tableId) {
+      try {
+        const response = await fetch(`/api/table/${reservation.tableId}`);
+        if (response.ok) {
+          const table = await response.json();
+          tableNumber = table.tableNumber || "N/A";
         }
+      } catch (error) {
+        console.error("Error fetching table details:", error);
+      }
+    }
+
+    const hours = Math.floor(reservation.reservationTime);
+    const minutes = Math.round((reservation.reservationTime % 1) * 60);
+    const formattedTime = `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
+
+    reservationsListDiv.innerHTML += `
+      <div class="col-md-4">
+        <div class="card mb-3">
+          <div class="card-header">Reservation #${reservation._id}</div>
+          <div class="card-body">
+            <p><strong>Name:</strong> ${reservation.name || "N/A"}</p>
+            <p><strong>Surname:</strong> ${reservation.surname || "N/A"}</p>
+            <p><strong>Table Number:</strong> ${tableNumber}</p>
+            <p><strong>Date:</strong> ${reservation.reservationDate ? new Date(reservation.reservationDate).toLocaleDateString() : "N/A"}</p>
+            <p><strong>Hour:</strong> ${formattedTime}</p>
+            <p><strong>Seats:</strong> ${reservation.seats || "N/A"}</p>
+            <p><strong>State:</strong> ${reservation.state}</p>
+            <p><strong>Comment:</strong> ${reservation.commentFromUser || "N/A"}</p>
+            ${reservation.state === 'pending' ? `
+              <button class="btn btn-success btn-sm" onclick="acceptReservation('${reservation._id}')">Accept</button>
+              <button class="btn btn-danger btn-sm" onclick="rejectReservation('${reservation._id}')">Reject</button>
+            ` : reservation.state === 'accepted' ? `
+              <button class="btn btn-secondary btn-sm" onclick="markAsCompleted('${reservation._id}')">Completed</button>
+              <button class="btn btn-warning btn-sm" onclick="markAsNotShown('${reservation._id}')">Not Shown</button>
+            ` : ''}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+}
 
         // Fetch reservations
-        async function fetchReservations() {
-            try {
-                const response = await fetch('/api/shop/reservationList');
-                if (!response.ok) throw new Error('Failed to fetch reservations');
-                const data = await response.json();
-                displayGroupedReservations(data.reservationList); // Χρησιμοποιούμε το `reservationList` από το response
-            } catch (error) {
-                console.error('Error fetching reservations:', error);
-            }
+        async function fetchReservations(stateFilter = 'all') {
+  try {
+    // Λήψη όλων των κρατήσεων
+    const allReservationsResponse = await fetch('/api/shop/reservationList');
+    if (!allReservationsResponse.ok) throw new Error('Failed to fetch all reservations');
+    const allReservationsData = await allReservationsResponse.json();
+
+    let reservationsToDisplay = [];
+
+    // Μετατροπή του αντικειμένου σε πίνακα
+    if (allReservationsData && typeof allReservationsData === 'object') {
+      Object.values(allReservationsData.reservationList).forEach(dateGroup => {
+        if (Array.isArray(dateGroup.reservations)) {
+          reservationsToDisplay = reservationsToDisplay.concat(dateGroup.reservations);
         }
+      });
+    } else {
+      console.error('Error: reservationList is not in the expected format', allReservationsData);
+    }
+
+    // Αν το stateFilter δεν είναι "all", φιλτράρουμε τις κρατήσεις
+    if (stateFilter !== 'all') {
+      const filterResponse = await fetch(`/api/reservations/filter?state=${stateFilter}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reservationList: reservationsToDisplay }),
+      });
+
+      if (!filterResponse.ok) throw new Error('Failed to filter reservations');
+      const filteredData = await filterResponse.json();
+      reservationsToDisplay = filteredData.filteredReservations;
+    }
+
+    displayGroupedReservations(reservationsToDisplay);
+  } catch (error) {
+    console.error('Error fetching reservations:', error);
+  }
+}
 
         // Display grouped reservations
-        function displayGroupedReservations(data) {
-            const grouped = {};
+        function displayGroupedReservations(reservationsArray) {
+  if (!Array.isArray(reservationsArray) || reservationsArray.length === 0) {
+    document.getElementById("reservationsList").innerHTML = "<p class='text-center'>No reservations found.</p>";
+    document.getElementById("reservationsDaysList").innerHTML = "<p class='text-center'>No reservations available.</p>";
+    return;
+  }
 
-            // Μετατροπή του response σε μορφή που περιμένει ο κώδικας
-            Object.keys(data).forEach(dateKey => {
-                grouped[dateKey] = data[dateKey].reservations;
-            });
+  const grouped = groupReservationsByDate(reservationsArray);
 
-            renderDaysList(grouped);
+  renderDaysList(grouped);
 
-            const sortedDates = Object.keys(grouped).sort();
-            if (sortedDates.length > 0) {
-                renderReservationsForDay(grouped[sortedDates[0]]);
-            } else {
-                document.getElementById("reservationsList").innerHTML = "<p class='text-center'>No reservations found.</p>";
-            }
-        }
+  const sortedDates = Object.keys(grouped).sort();
+  if (sortedDates.length > 0) {
+    renderReservationsForDay(grouped[sortedDates[0]]);
+  } else {
+    document.getElementById("reservationsList").innerHTML = "<p class='text-center'>No reservations found.</p>";
+  }
+}
 
         // Delete reservation
         async function deleteReservation(reservationId) {
@@ -276,8 +335,96 @@
             }
         }
 
-        // Fetch reservations on page load
-        fetchReservations();
+        // Accept reservation
+async function acceptReservation(reservationId) {
+  try {
+    const response = await fetch(`/api/reservation/${reservationId}/state`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ state: 'accepted' }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      alert(`Error accepting reservation: ${error.message}`);
+      return;
+    }
+
+    alert("Reservation accepted successfully!");
+    fetchReservations('pending'); // Ανανεώστε τη λίστα των pending κρατήσεων
+  } catch (error) {
+    console.error("Error accepting reservation:", error);
+    alert("Failed to accept reservation. Please try again later.");
+  }
+}
+
+async function rejectReservation(reservationId) {
+  if (confirm("Are you sure you want to reject this reservation?")) {
+    try {
+      const response = await fetch(`/api/reservation/${reservationId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        alert(`Error rejecting reservation: ${error.message}`);
+        return;
+      }
+
+      alert("Reservation rejected successfully!");
+      fetchReservations('pending'); // Ανανεώστε τη λίστα των pending κρατήσεων
+    } catch (error) {
+      console.error("Error rejecting reservation:", error);
+      alert("Failed to reject reservation. Please try again later.");
+    }
+  }
+}
+
+async function markAsCompleted(reservationId) {
+  try {
+    const response = await fetch(`/api/reservation/${reservationId}/state`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ state: 'completed' }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      alert(`Error marking reservation as completed: ${error.message}`);
+      return;
+    }
+
+    alert("Reservation marked as completed successfully!");
+    fetchReservations('accepted'); // Ανανεώστε τη λίστα των accepted κρατήσεων
+  } catch (error) {
+    console.error("Error marking reservation as completed:", error);
+    alert("Failed to mark reservation as completed. Please try again later.");
+  }
+}
+
+async function markAsNotShown(reservationId) {
+  try {
+    const response = await fetch(`/api/reservation/${reservationId}/state`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ state: 'notShown' }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      alert(`Error marking reservation as not shown: ${error.message}`);
+      return;
+    }
+
+    alert("Reservation marked as not shown successfully!");
+    fetchReservations('accepted'); // Ανανεώστε τη λίστα των accepted κρατήσεων
+  } catch (error) {
+    console.error("Error marking reservation as not shown:", error);
+    alert("Failed to mark reservation as not shown. Please try again later.");
+  }
+}
+        // Fetch pending κρατήσεις κατά την αρχική φόρτωση
+fetchReservations('pending');
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>

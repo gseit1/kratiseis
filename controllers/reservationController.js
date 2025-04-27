@@ -35,6 +35,9 @@ const addManualReservation = async (req, res) => {
     // Προσθέτουμε το tableId στο reservationData
     reservationData.tableId = bestTable._id;
 
+    // Ορίζουμε το state ως "accepted"
+    reservationData.state = 'accepted';
+
     // Δημιουργούμε την κράτηση
     const newReservation = await addReservationService(reservationData);
     console.log("✅ Manual reservation created:", newReservation);
@@ -290,6 +293,59 @@ const getTotalReservations = async (req, res) => {
 };
 
 
+// Νέα δυνατότητα: Αλλαγή κατάστασης κράτησης
+const changeReservationState = async (req, res) => {
+  try {
+    const { id } = req.params; // ID της κράτησης
+    const { state } = req.body; // Το νέο state
+
+    // Ελέγχουμε αν το state είναι έγκυρο
+    const validStates = ['accepted', 'notShown', 'completed'];
+    if (!validStates.includes(state)) {
+      return res.status(400).json({ success: false, message: 'Invalid state value' });
+    }
+
+    // Εύρεση της κράτησης
+    const reservation = await Reservation.findById(id);
+    if (!reservation) {
+      return res.status(404).json({ success: false, message: 'Reservation not found' });
+    }
+
+    // Ενημέρωση του state
+    reservation.state = state;
+    await reservation.save();
+
+    res.status(200).json({ success: true, message: 'Reservation state updated successfully', reservation });
+  } catch (error) {
+    console.error('Error updating reservation state:', error);
+    res.status(500).json({ success: false, message: 'Failed to update reservation state' });
+  }
+};
+
+const filterReservationsByState = async (req, res) => {
+  try {
+    const { state } = req.query; // Λήψη του state από το query string
+    const { reservationList } = req.body; // Λήψη της λίστας κρατήσεων από το body
+
+    if (!reservationList || !Array.isArray(reservationList)) {
+      return res.status(400).json({ message: 'Invalid reservation list provided' });
+    }
+
+    if (!state || state === 'all') {
+      // Αν δεν υπάρχει state ή είναι "all", επιστρέφουμε όλες τις κρατήσεις
+      return res.status(200).json({ filteredReservations: reservationList });
+    }
+
+    // Φιλτράρισμα κρατήσεων με βάση το state
+    const filteredReservations = reservationList.filter(reservation => reservation.state === state);
+
+    res.status(200).json({ filteredReservations });
+  } catch (error) {
+    console.error('Error filtering reservations:', error.message);
+    res.status(500).json({ message: 'Failed to filter reservations' });
+  }
+};
+
 
 module.exports = {
   addManualReservation,
@@ -299,4 +355,6 @@ module.exports = {
   deleteReservation,
   getTotalReservations,
   getReservationById,
+  changeReservationState,
+  filterReservationsByState
 };
