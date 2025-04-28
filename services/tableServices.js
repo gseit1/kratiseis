@@ -65,7 +65,7 @@ const calculateInitializeTableAvailability = (start, end, timeSlotSplit) => {
   const availability = [];
   let currentTime = start;
 
-  while (currentTime < end) {
+  while (currentTime <= end) {
     availability.push(currentTime);
     currentTime = +(currentTime + timeSlotSplit / 60).toFixed(2);
     if (currentTime % 1 === 0.6) {
@@ -155,14 +155,7 @@ const checkAvailability = async (req) => {
 
 
 
-// Utility Function to Add Minutes to a Time String (e.g., "09:00")
-const addMinutesToTime = (timeString, minutes) => {
-  const [hours, mins] = timeString.split(':').map(Number);
-  const totalMinutes = hours * 60 + mins + minutes;
-  const newHours = Math.floor(totalMinutes / 60).toString().padStart(2, '0');
-  const newMinutes = (totalMinutes % 60).toString().padStart(2, '0');
-  return `${newHours}:${newMinutes}`;
-};
+
 
 // Βοηθητική συνάρτηση για την εύρεση του τραπεζιού
 const findTableById = async (tableId) => {
@@ -298,7 +291,7 @@ const updateWhenReservationDelete = async (tableId, reservationDate, reservation
     
     // Re-add (or "restore") the hours within the deleted reservation block
     for (let hour = startTime; hour < endTime; hour += 0.5) {
-      if (hour <= bookingHours.bookingEnd) {
+      if (hour >= bookingHours.bookingStart && hour <= bookingHours.bookingEnd) {
         currentAvailability.add(hour);
       }
     }
@@ -414,7 +407,7 @@ const setAvailabilityForDay = async (tableId, day) => {
       return;
     }
 
-    // Calculate the new availability based on the booking hours and shop's timeSlotSplit.
+    // Calculate the new availability based on the booking hours and the shop's timeSlotSplit.
     const newAvailability = calculateInitializeTableAvailability(
       bookingHours.bookingStart,
       bookingHours.bookingEnd,
