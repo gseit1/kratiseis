@@ -532,7 +532,7 @@ body {
                 await updateNavbarOnLogin();
             } else {
                 // Αν ο χρήστης δεν είναι συνδεδεμένος, ανακατεύθυνση στη σελίδα σύνδεσης
-                window.location.href = 'registerLogin.html';
+                applyNavbarStateFromSession()
             }
 
             // Φόρτωση λεπτομερειών καταστήματος
@@ -695,12 +695,90 @@ document.getElementById('decrementPeople').addEventListener('click', () => {
 
     if (!authData.isAuthenticated) {
       // Εμφάνιση φόρμας για guest (χωρίς αλλαγές)
-      document.getElementById('availableTimes').innerHTML = `
-        <div class="alert alert-warning">
-          <p>You are not logged in. Please <a href="registerLogin.html">Login/Signup</a> or make a reservation as a guest.</p>
-        </div>
-      `;
-      return;
+       // Εμφάνιση πλαισίου για login/signup ή κράτηση ως guest
+       document.getElementById('availableTimes').innerHTML = `
+             <div class="alert alert-warning">
+               <p>You are not logged in. Please <a href="registerLogin.html">Login/Signup</a> or make a reservation as a guest.</p>
+             </div>
+             <form id="guestReservationForm">
+               <div class="mb-2">
+                 <label for="guestName" class="form-label">Name:</label>
+                 <input type="text" id="guestName" class="form-control" required>
+               </div>
+               <div class="mb-2">
+                 <label for="guestSurname" class="form-label">Surname:</label>
+                 <input type="text" id="guestSurname" class="form-control" required>
+               </div>
+               <div class="mb-2">
+                 <label for="guestEmail" class="form-label">Email:</label>
+                 <input type="email" id="guestEmail" class="form-control" required>
+               </div>
+               <div class="mb-2">
+                 <label for="guestComment" class="form-label">Comment:</label>
+                 <textarea id="guestComment" class="form-control"></textarea>
+               </div>
+               <div class="mb-2">
+                 <label for="guestReservationTime" class="form-label">Available Times:</label>
+                 <select id="guestReservationTime" class="form-control" required></select>
+               </div>
+               <button type="submit" class="btn btn-primary w-100">Submit Reservation</button>
+             </form>
+           `;
+ 
+           // Φόρτωση διαθέσιμων ωρών
+           const response = await fetch(`/api/availability?shopId=${shopId}&dateString=${reservationDate}&seats=${numberOfPeople}`);
+           const result = await response.json();
+           const availableTimes = result.availability;
+ 
+           if (availableTimes && availableTimes.length > 0) {
+             document.getElementById('guestReservationTime').innerHTML = availableTimes
+               .map(time => `<option value="${time}">${formatTime(time)}</option>`)
+               .join('');
+           } else {
+             document.getElementById('guestReservationTime').innerHTML = `<option disabled>No available times</option>`;
+           }
+ 
+           // Προσθήκη event listener για υποβολή κράτησης ως guest
+           document.getElementById('guestReservationForm').addEventListener('submit', async function (e) {
+   e.preventDefault();
+   const guestName = `guest ${document.getElementById('guestName').value}`;
+   const guestSurname = document.getElementById('guestSurname').value;
+   const guestEmail = document.getElementById('guestEmail').value;
+   const guestComment = document.getElementById('guestComment').value;
+   const guestReservationTime = document.getElementById('guestReservationTime').value;
+ 
+   const reservationData = {
+     shopId,
+     name: guestName,
+     surname: guestSurname,
+     email: guestEmail,
+     commentFromUser: guestComment,
+     reservationDate,
+     reservationTime: guestReservationTime,
+     seats: numberOfPeople,
+   };
+ 
+   try {
+     const response = await fetch('/api/reservation/guest', {
+       method: 'POST',
+       headers: { 'Content-Type': 'application/json' },
+       body: JSON.stringify(reservationData),
+     });
+ 
+     if (response.ok) {
+       alert('Reservation booked successfully!');
+       displayReservationDetails(reservationData); // Εμφάνιση του μηνύματος επιβεβαίωσης
+     } else {
+       const error = await response.json();
+       alert('Error booking reservation: ' + error.message);
+     }
+   } catch (error) {
+     console.error('Error booking reservation:', error);
+     alert('Error booking reservation');
+   }
+ });
+ 
+           return;
     }
 
     // Ενημέρωση των πεδίων για τον συνδεδεμένο χρήστη
