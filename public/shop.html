@@ -945,32 +945,35 @@ document.getElementById('decrementPeople').addEventListener('click', () => {
     }
 
     document.getElementById('addReviewForm').addEventListener('submit', async (event) => {
-      event.preventDefault();
+  event.preventDefault();
 
-      const urlParams = new URLSearchParams(window.location.search);
-      const shopId = urlParams.get('id');
-      const rating = document.getElementById('reviewRating').value;
-      const text = document.getElementById('reviewComment').value;
+  const urlParams = new URLSearchParams(window.location.search);
+  const shopId = urlParams.get('id');
+  const rating = document.getElementById('reviewRating').value;
+  const text = document.getElementById('reviewComment').value;
 
-      try {
-        const response = await fetch('/review', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ shopId, rating, text }),
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to submit review');
-        }
-
-        alert('Review submitted successfully!');
-        document.getElementById('addReviewForm').reset();
-        fetchReviews(); // Refresh the reviews list
-      } catch (error) {
-        console.error('Error submitting review:', error);
-        alert('Failed to submit review. Please try again later.');
-      }
+  try {
+    const response = await fetch('/review', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ shopId, rating, text }),
     });
+
+    if (!response.ok) {
+      const error = await response.json();
+      // Εμφάνιση του μηνύματος σφάλματος από τον middleware
+      alert(`Error: ${error.message}`);
+      return;
+    }
+
+    alert('Review submitted successfully!');
+    document.getElementById('addReviewForm').reset();
+    fetchReviews(); // Refresh the reviews list
+  } catch (error) {
+    console.error('Error submitting review:', error);
+    alert('Failed to submit review. Please try again later.');
+  }
+});
 
     document.addEventListener('DOMContentLoaded', fetchReviews);
   </script>

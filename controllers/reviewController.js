@@ -5,11 +5,13 @@ const {
     getAllReviewsService,
 } = require('../services/reviewServices');
 const { updateReviewList, updateReviewRatingAverage } = require('../services/shopServices');
+const User = require('../models/user'); // Εισαγωγή του μοντέλου User
 
 // Δημιουργία νέου review
 const addReview = async (req, res) => {
     try {
         const { shopId, ...reviewData } = req.body;
+        const userId = req.user.id; // Λήψη του userId από το `req.user` (μέσω του `verifyToken`)
 
         // Δημιουργία νέου review
         const newReview = await addReviewService({ shopId, ...reviewData });
@@ -19,6 +21,11 @@ const addReview = async (req, res) => {
 
         // Υπολογισμός του νέου μέσου όρου αξιολόγησης
         await updateReviewRatingAverage(shopId);
+
+        // Προσθήκη του review στον πίνακα reviews του χρήστη
+        await User.findByIdAndUpdate(userId, {
+            $push: { reviews: newReview._id },
+        });
 
         res.status(201).json({ success: true, message: 'Review added successfully', review: newReview });
     } catch (error) {

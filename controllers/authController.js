@@ -470,6 +470,46 @@ const toggleAppliedStatus = async (req, res) => {
 };
 
 
+const getUserReviews = async (req, res) => {
+  try {
+    // Ελέγξτε αν ο χρήστης είναι συνδεδεμένος
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({
+        message: 'Unauthorized: No authenticated user',
+      });
+    }
+
+    // Βρείτε τον χρήστη και φορτώστε τα reviews με το shopName
+    const user = await User.findById(req.user.id)
+      .populate({
+        path: 'reviews',
+        populate: {
+          path: 'shopId', // Αναφορά στο Shop
+          select: 'name', // Επιλέγουμε μόνο το πεδίο name
+        },
+      })
+      .select('reviews')
+      .lean();
+
+    if (!user) {
+      return res.status(404).json({
+        message: 'User not found',
+      });
+    }
+
+    // Επιστροφή του πίνακα reviews
+    res.status(200).json({
+      reviews: user.reviews || [],
+    });
+  } catch (error) {
+    console.error('Error fetching user reviews:', error.message);
+    res.status(500).json({
+      message: 'Error fetching user reviews',
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   signUp,
   login,
@@ -485,4 +525,5 @@ module.exports = {
   deleteFromFavourites,
   getFavouriteShops,
   toggleAppliedStatus,
+  getUserReviews,
 };

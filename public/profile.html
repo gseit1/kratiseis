@@ -396,6 +396,29 @@
   border-radius: 6px;
 }
 
+.user-reviews .card {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 15px;
+}
+
+.user-reviews .card-title {
+  font-size: 1rem;
+  font-weight: bold;
+  color: #6a11cb;
+}
+
+.user-reviews .card-text {
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.user-reviews .text-muted {
+  font-size: 0.8rem;
+  color: #888;
+}
+
   </style>
   
 </head>
@@ -505,6 +528,17 @@
     <div id="favouriteShopsContainer" class="scrollable-row d-flex overflow-auto">
         <!-- Favourite shop cards will be dynamically inserted here -->
     </div>
+</section>
+
+  <!-- Reviews Section -->
+<section class="container user-reviews" aria-labelledby="reviewsHeader">
+  <h2 id="reviewsHeader" class="text-center">My Reviews</h2>
+  <div class="text-center">
+    <button id="fetchReviewsBtn" class="btn btn-primary">Δες τις αξιολογήσεις σου</button>
+  </div>
+  <div id="userReviewsList" class="mt-4">
+    <!-- Reviews will be dynamically injected here -->
+  </div>
 </section>
 
   <!-- Footer -->
@@ -736,6 +770,44 @@ function displayReservations(reservations) {
 window.filterReservations = filterReservations;
 
     window.removeFromFavourites = removeFromFavourites;
+
+async function fetchUserReviews() {
+  try {
+    const response = await fetch('/api/user/reviews', { credentials: 'include' });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch user reviews');
+    }
+
+    const data = await response.json();
+    const reviewsList = document.getElementById('userReviewsList');
+
+    if (!data.reviews || data.reviews.length === 0) {
+      reviewsList.innerHTML = '<p class="text-warning">Δεν έχετε υποβάλει ακόμα αξιολογήσεις.</p>';
+      return;
+    }
+
+    reviewsList.innerHTML = data.reviews
+      .map(
+        (review) => `
+          <div class="card mb-3">
+            <div class="card-body">
+              <h6 class="card-title">Αξιολόγηση: ${review.rating} / 5</h6>
+              <p class="card-text">${review.text}</p>
+              <p class="text-muted small">Για το μαγαζί: ${review.shopId?.name || 'Άγνωστο'}</p>
+            </div>
+          </div>
+        `
+      )
+      .join('');
+  } catch (error) {
+    console.error('Error fetching user reviews:', error);
+    const reviewsList = document.getElementById('userReviewsList');
+    reviewsList.innerHTML = '<p class="text-danger">Αποτυχία φόρτωσης αξιολογήσεων. Παρακαλώ δοκιμάστε ξανά αργότερα.</p>';
+  }
+}
+
+document.getElementById('fetchReviewsBtn').addEventListener('click', fetchUserReviews);
   </script>
 </body>
 </html>

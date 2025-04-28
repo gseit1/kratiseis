@@ -1,7 +1,7 @@
 const express = require('express');
 const { verifyToken, isUser } = require('../middlewares/authMiddleware');
 const { check, validationResult } = require('express-validator');
-const { signUp, login, changeUserRole, deleteUser ,getUserRole,getUserDetails,getAllUsers,setUserShopId,filterByRole , getUserReservationHistory, addToFavourites, deleteFromFavourites ,  getFavouriteShops,toggleAppliedStatus} = require('../controllers/authController');
+const { signUp, login, changeUserRole, deleteUser ,getUserRole,getUserDetails,getAllUsers,setUserShopId,filterByRole , getUserReservationHistory, addToFavourites, deleteFromFavourites ,  getFavouriteShops,toggleAppliedStatus , getUserReviews} = require('../controllers/authController');
 const authRouter = express.Router();
 
 // Route για εγγραφή χρήστη
@@ -87,6 +87,8 @@ authRouter.post('/api/users/favourites', verifyToken,isUser, addToFavourites);
 authRouter.delete('/api/users/favourites', verifyToken, isUser, deleteFromFavourites);
 //
 authRouter.get('/api/users/favourites', verifyToken, isUser, getFavouriteShops);
+//
+authRouter.get('/api/user/reviews', verifyToken, getUserReviews);
 
 
 

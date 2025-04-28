@@ -44,6 +44,11 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false, // Αρχικοποιείται ως false
   },
+  reviews: [{ // Νέος πίνακας για τις κριτικές του χρήστη
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Review',
+    default: [],
+  }],
 });
 
 const User = mongoose.model('User', userSchema);
