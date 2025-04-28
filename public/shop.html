@@ -271,6 +271,8 @@ body {
         color: #ff6ec4;
         font-size: 1.2rem;
     }
+
+    
     
   </style>
 </head>
@@ -393,10 +395,16 @@ body {
       <strong>Address:</strong> <span id="shopAddress">N/A</span>
     </li>
   </ul>
-  <!-- Add the favourite button -->
-  <button class="btn btn-light position-absolute top-0 end-0 m-2 favourite-btn" title="Add to Favourites" onclick="handleAddToFavourites()">
-    <i class="bi bi-heart"></i>
-  </button>
+  <!-- Add the favourite button and review rating -->
+  <div class="d-flex align-items-center justify-content-between">
+    <button class="btn btn-light favourite-btn" title="Add to Favourites" onclick="handleAddToFavourites()">
+      <i class="bi bi-heart"></i>
+    </button>
+    <div class="d-flex align-items-center">
+      <span id="reviewStars" class="text-warning me-2"></span>
+      <span id="reviewAverage" class="text-muted"></span>
+    </div>
+  </div>
 </div>
   
   <!-- Opening Hours -->
@@ -587,6 +595,13 @@ document.getElementById('decrementPeople').addEventListener('click', () => {
     document.getElementById('shopPriceRange').textContent = shop.priceRange || 'N/A';
     document.getElementById('shopAddress').textContent = shop.address || 'N/A';
 
+    // Update review rating average
+    const reviewRatingAverage = shop.reviewRatingAverage !== -1 ? shop.reviewRatingAverage.toFixed(1) : 'No Reviews';
+    const stars = shop.reviewRatingAverage !== -1 ? '⭐'.repeat(Math.round(shop.reviewRatingAverage)) : '';
+
+    document.getElementById('reviewStars').textContent = stars;
+    document.getElementById('reviewAverage').textContent = reviewRatingAverage;
+
     // Update carousel images
     const carouselImages = document.getElementById('carouselImages');
     const carouselThumbnails = document.getElementById('carouselThumbnails');
@@ -724,12 +739,12 @@ document.getElementById('decrementPeople').addEventListener('click', () => {
                <button type="submit" class="btn btn-primary w-100">Submit Reservation</button>
              </form>
            `;
- 
+
            // Φόρτωση διαθέσιμων ωρών
            const response = await fetch(`/api/availability?shopId=${shopId}&dateString=${reservationDate}&seats=${numberOfPeople}`);
            const result = await response.json();
            const availableTimes = result.availability;
- 
+
            if (availableTimes && availableTimes.length > 0) {
              document.getElementById('guestReservationTime').innerHTML = availableTimes
                .map(time => `<option value="${time}">${formatTime(time)}</option>`)
@@ -737,7 +752,7 @@ document.getElementById('decrementPeople').addEventListener('click', () => {
            } else {
              document.getElementById('guestReservationTime').innerHTML = `<option disabled>No available times</option>`;
            }
- 
+
            // Προσθήκη event listener για υποβολή κράτησης ως guest
            document.getElementById('guestReservationForm').addEventListener('submit', async function (e) {
    e.preventDefault();
@@ -746,7 +761,7 @@ document.getElementById('decrementPeople').addEventListener('click', () => {
    const guestEmail = document.getElementById('guestEmail').value;
    const guestComment = document.getElementById('guestComment').value;
    const guestReservationTime = document.getElementById('guestReservationTime').value;
- 
+
    const reservationData = {
      shopId,
      name: guestName,
@@ -757,14 +772,14 @@ document.getElementById('decrementPeople').addEventListener('click', () => {
      reservationTime: guestReservationTime,
      seats: numberOfPeople,
    };
- 
+
    try {
      const response = await fetch('/api/reservation/guest', {
        method: 'POST',
        headers: { 'Content-Type': 'application/json' },
        body: JSON.stringify(reservationData),
      });
- 
+
      if (response.ok) {
        alert('Reservation booked successfully!');
        displayReservationDetails(reservationData); // Εμφάνιση του μηνύματος επιβεβαίωσης
@@ -777,7 +792,7 @@ document.getElementById('decrementPeople').addEventListener('click', () => {
      alert('Error booking reservation');
    }
  });
- 
+
            return;
     }
 

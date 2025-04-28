@@ -120,6 +120,7 @@
             <!-- Main Content -->
             <div class="col-md-9 col-lg-10">
              
+
                 <div class="d-flex justify-content-end align-items-center mb-3" style="padding-top: 70px; padding-right: 20px;">
                     <button id="smallCardsBtn" class="btn btn-outline-secondary me-2">
                         <i class="bi bi-grid-3x3-gap-fill"></i> 
@@ -220,106 +221,108 @@
             }
         }
         async function fetchShops(filters = {}) {
-    try {
-        let url = '/api/shop'; // Use the exact route
+  try {
+    let url = '/api/shop'; // Use the exact route
 
-        // If filters are provided, construct the filtered URL
-        if (filters.city && filters.region && filters.category) {
-            url = `/search/city/${filters.city}/region/${filters.region}/category/${filters.category}`;
-        } else if (filters.city && filters.region) {
-            url = `/search/city/${filters.city}/region/${filters.region}`;
-        } else if (filters.city && filters.category) {
-            url = `/search/city/${filters.city}/category/${filters.category}`;
-        } else if (filters.city) {
-            url = `/search/city/${filters.city}`;
-        }
+    // If filters are provided, construct the filtered URL
+    if (filters.city && filters.region && filters.category) {
+      url = `/search/city/${filters.city}/region/${filters.region}/category/${filters.category}`;
+    } else if (filters.city && filters.region) {
+      url = `/search/city/${filters.city}/region/${filters.region}`;
+    } else if (filters.city && filters.category) {
+      url = `/search/city/${filters.city}/category/${filters.category}`;
+    } else if (filters.city) {
+      url = `/search/city/${filters.city}`;
+    }
 
-        const response = await fetch(url);
+    const response = await fetch(url);
 
-        // Handle 404 response for no results
-        if (response.status === 404) {
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const shops = await response.json();
+
     const shopsContainer = document.getElementById('shopsContainer');
-    shopsContainer.innerHTML = `
-    <div class="col-12 d-flex justify-content-center align-items-center flex-column p-5">
-        <div class="no-results-box">
-            <h3><i class="bi bi-search"></i> No Shops Found</h3>
-            <p>Please try different filters or reset your search to explore all shops.</p>
-            <button class="btn btn-outline-primary mt-3" onclick="fetchShops()">Reset Filters</button>
+    shopsContainer.innerHTML = '';
+
+    if (shops.length === 0) {
+      shopsContainer.innerHTML = `
+        <div class="col-12 text-center">
+          <p class="text-muted">No shops found matching your criteria.</p>
         </div>
-    </div>
-`;
+      `;
+      return;
+    }
 
-    return;
-}
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
+    shops.forEach((shop) => {
+      const shopCard = document.createElement('div');
+      shopCard.className = 'col-md-4';
 
-        const shops = await response.json();
-
-        const shopsContainer = document.getElementById('shopsContainer');
-        shopsContainer.innerHTML = '';
-
-        if (shops.length === 0) {
-            // Display a message if no results are found
-            shopsContainer.innerHTML = `
-                <div class="col-12 text-center">
-                    <p class="text-muted">No shops found matching your criteria.</p>
-                </div>
-            `;
-            return;
-        }
-
-        shops.forEach(shop => {
-    const shopCard = document.createElement('div');
-    shopCard.className = 'col-md-4';
-
-    const shopId = shop.id || shop._id;
-    if (!shopId) {
+      const shopId = shop.id || shop._id;
+      if (!shopId) {
         console.error('Shop is missing an id:', shop);
         return;
-    }
+      }
 
-    shopCard.setAttribute('data-id', shopId);
+      shopCard.setAttribute('data-id', shopId);
 
-    let imageUrl = shop.image || (shop.images && shop.images.length > 0 ? shop.images[0] : '/images/default-placeholder.jpg');
-    if (!imageUrl || (!imageUrl.startsWith('http') && !imageUrl.startsWith('/'))) {
+      let imageUrl =
+        shop.image ||
+        (shop.images && shop.images.length > 0 ? shop.images[0] : '/images/default-placeholder.jpg');
+      if (!imageUrl || (!imageUrl.startsWith('http') && !imageUrl.startsWith('/'))) {
         imageUrl = '/images/default-placeholder.jpg';
-    } else if (imageUrl.startsWith('/')) {
+      } else if (imageUrl.startsWith('/')) {
         imageUrl = `http://localhost:300${imageUrl}`;
-    }
+      }
 
-    shopCard.innerHTML = `
+      // Format the reviewRatingAverage
+      const reviewRatingAverage =
+        shop.reviewRatingAverage && shop.reviewRatingAverage !== -1
+          ? shop.reviewRatingAverage.toFixed(1)
+          : 'No Reviews';
+
+      // Generate stars based on the rating
+      const stars =
+        shop.reviewRatingAverage && shop.reviewRatingAverage !== -1
+          ? '⭐'.repeat(Math.round(shop.reviewRatingAverage))
+          : '';
+
+      shopCard.innerHTML = `
         <div class="card mb-4 position-relative">
-            <img src="${imageUrl}" class="card-img-top" alt="${shop.shopName}">
-            <div class="card-body">
-                <h5 class="card-title">${shop.shopName}</h5>
-                <p class="card-text">${(shop.shopDescription || '').substring(0, 20)}...</p>
-                <a href="#" class="btn btn-primary view-details">Λεπτομέρειες</a>
+          <img src="${imageUrl}" class="card-img-top" alt="${shop.shopName}">
+          <div class="card-body">
+            <h5 class="card-title">${shop.shopName}</h5>
+            <p class="card-text">${(shop.shopDescription || '').substring(0, 20)}...</p>
+            <div class="d-flex align-items-center">
+              <span class="text-warning me-2">${stars}</span>
+              <span class="text-muted">${reviewRatingAverage}</span>
             </div>
-            <button class="btn btn-light position-absolute top-0 end-0 m-2 favourite-btn" title="Add to Favourites">
-                <i class="bi bi-heart"></i>
-            </button>
+            <a href="#" class="btn btn-primary view-details">Λεπτομέρειες</a>
+          </div>
+          <button class="btn btn-light position-absolute top-0 end-0 m-2 favourite-btn" title="Add to Favourites">
+            <i class="bi bi-heart"></i>
+          </button>
         </div>
-    `;
+      `;
 
-    shopsContainer.appendChild(shopCard);
+      shopsContainer.appendChild(shopCard);
 
-    // Προσθήκη event listener στο κουμπί "Add to Favourites"
-    const favouriteBtn = shopCard.querySelector('.favourite-btn');
-    favouriteBtn.addEventListener('click', async (event) => {
+      // Προσθήκη event listener στο κουμπί "Add to Favourites"
+      const favouriteBtn = shopCard.querySelector('.favourite-btn');
+      favouriteBtn.addEventListener('click', async (event) => {
         event.stopPropagation(); // Αποφυγή ενεργοποίησης άλλων events
         await handleAddToFavourites(shopId);
-    });
+      });
 
-    // Προσθήκη event listener για το κουμπί "Λεπτομέρειες"
-    shopCard.querySelector('.view-details').addEventListener('click', () => {
+      // Προσθήκη event listener για το κουμπί "Λεπτομέρειες"
+      shopCard.querySelector('.view-details').addEventListener('click', () => {
         window.location.href = `shop.html?id=${shopId}`;
+      });
     });
-});
-    } catch (error) {
-        console.error('Error fetching shops:', error);
-    }
+  } catch (error) {
+    console.error('Error fetching shops:', error);
+  }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
