@@ -1,0 +1,167 @@
+<nav id="menu" class="col-md-3 bg-light border-end">
+    <h4 class="text-center py-3 border-bottom">Dashboard Menu</h4>
+    <ul class="nav flex-column">
+        <!-- Reservations -->
+        <li class="nav-item">
+            <a href="reservations.html" class="nav-link d-flex align-items-center" id="reservationsTab">
+                <i class="bi bi-calendar-check me-2"></i> Κρατήσεις Μαγαζιού
+            </a>
+        </li>
+        <hr class="dropdown-divider">
+        <!-- Availability -->
+        <li class="nav-item">
+            <a href="availability.html" class="nav-link d-flex align-items-center" id="availabilityTab">
+                <i class="bi bi-calendar-range me-2"></i> Διαθεσιμότητα Κράτησης
+            </a>
+        </li>
+        <hr class="dropdown-divider">
+        <!-- Table Management -->
+        <li class="nav-item">
+            <a href="index.html" class="nav-link d-flex align-items-center" id="tableManagementTab">
+                <i class="bi bi-table me-2"></i> Διαχείριση Τραπεζιών
+            </a>
+        </li>
+        <hr class="dropdown-divider">
+        <!-- Photo Management -->
+        <li class="nav-item">
+            <a href="photoManagement.html" class="nav-link d-flex align-items-center" id="photoManagementTab">
+                <i class="bi bi-images me-2"></i> Διαχείριση Φωτογραφιών
+            </a>
+        </li>
+        <hr class="dropdown-divider">
+        <!-- General Shop Details -->
+        <li class="nav-item">
+            <a href="generalShopDetails.html" class="nav-link d-flex align-items-center" id="generalDetailsTab">
+                <i class="bi bi-shop me-2"></i> Πληροφορίες Καταστήματος
+            </a>
+        </li>
+        <hr class="dropdown-divider">
+        <!-- Booking Hours -->
+        <li class="nav-item">
+            <a href="bookingHours.html" class="nav-link d-flex align-items-center" id="bookingHoursTab">
+                <i class="bi bi-clock me-2"></i> Ωράριο Κρατήσεων
+            </a>
+        </li>
+        <hr class="dropdown-divider">
+        <!-- Charts -->
+        <li class="nav-item">
+            <a href="charts.html" class="nav-link d-flex align-items-center" id="chartsTab">
+                <i class="bi bi-bar-chart me-2"></i> Στατιστικά
+            </a>
+        </li>
+        <hr class="dropdown-divider">
+        <!-- Support -->
+        <li class="nav-item">
+            <a href="support.html" class="nav-link d-flex align-items-center" id="supportTab">
+                <i class="bi bi-life-preserver me-2"></i> Υποστήριξη
+            </a>
+        </li>
+        <hr class="dropdown-divider">
+        <!-- Help Guide -->
+        <li class="nav-item">
+            <a href="helpGuide.html" class="nav-link d-flex align-items-center" id="helpGuideTab">
+                <i class="bi bi-question-circle me-2"></i> Οδηγός Λειτουργίας Εφαρμογής
+            </a>
+        </li>
+        <hr class="dropdown-divider">
+        <!-- Owner Account -->
+        <li class="nav-item">
+            <a href="myProfile.html" class="nav-link d-flex align-items-center" id="myProfileTab">
+                <i class="bi bi-person-circle me-2"></i> Λογαριασμός Ιδιοκτήτη
+            </a>
+        </li>
+        <hr class="dropdown-divider">
+        <!-- Logout -->
+        <li class="nav-item">
+            <a href="../registerLogin.html" class="nav-link d-flex align-items-center text-danger" id="logoutBtn">
+                <i class="bi bi-box-arrow-right me-2"></i> Logout
+            </a>
+        </li>
+    </ul>
+</nav>
+
+<style>
+    /* Menu Container */
+    #menu {
+        background-color: #f8f9fa;
+        height: 100vh;
+        position: sticky;
+        top: 0;
+        padding-top: 20px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        font-family: 'Roboto', sans-serif;
+    }
+
+    #menu h4 {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #333;
+    }
+
+    /* Nav Links */
+    #menu .nav-link {
+        color: #495057;
+        padding: 12px 20px;
+        border-radius: 8px;
+        transition: background-color 0.3s, color 0.3s, box-shadow 0.3s, transform 0.3s;
+        display: flex;
+        align-items: center;
+        margin-bottom: 5px;
+    }
+
+    #menu .nav-link:hover {
+        background-color: #e9ecef;
+        color: #007bff;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        transform: scale(1.02);
+    }
+
+    #menu .nav-link.active {
+        background-color: #007bff;
+        color: #fff;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        transform: scale(1.05);
+    }
+
+    #menu .nav-link.active i {
+        color: #fff;
+        transform: scale(1.2);
+    }
+
+    #menu .nav-link i {
+        font-size: 1.4rem;
+        transition: color 0.3s, transform 0.3s;
+    }
+
+    /* Divider */
+    .dropdown-divider {
+        margin: 0.5rem 0;
+        border-top: 1px solid #dee2e6;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        #menu {
+            height: auto;
+            position: relative;
+        }
+
+        #menu .nav-link {
+            padding: 10px 15px;
+        }
+    }
+</style>
+
+<script>
+    // Highlight the active tab based on the current URL
+    document.addEventListener('DOMContentLoaded', () => {
+        const currentPath = window.location.pathname.split('/').pop();
+        const links = document.querySelectorAll('#menu .nav-link');
+
+        links.forEach(link => {
+            if (link.getAttribute('href') === currentPath) {
+                link.classList.add('active');
+            }
+        });
+    });
+</script>

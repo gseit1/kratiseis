@@ -48,57 +48,10 @@
     <div class="container-fluid">
         <div class="row">
             <!-- Left Menu -->
-            <nav id="menu" class="col-md-3 bg-light border-end">
-                <h4 class="text-center py-3 border-bottom">Dashboard Menu</h4>
-                <ul class="nav flex-column">
-                    <li class="nav-item">
-                        <a href="index.html" class="nav-link d-flex align-items-center">
-                            <i class="bi bi-table me-2"></i> Table Options
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="generalShopDetails.html" class="nav-link d-flex align-items-center">
-                            <i class="bi bi-shop me-2"></i> General Shop Details
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="bookingHours.html" class="nav-link d-flex align-items-center">
-                            <i class="bi bi-clock me-2"></i> Booking Hours
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="reservations.html" class="nav-link d-flex align-items-center">
-                            <i class="bi bi-calendar-check me-2"></i> Reservations
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="undefinedReservations.html" class="nav-link d-flex align-items-center">
-                            <i class="bi bi-exclamation-circle me-2"></i> Undefined Reservations
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="availability.html" class="nav-link d-flex align-items-center">
-                            <i class="bi bi-calendar-range me-2"></i> Availability
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="charts.html" class="nav-link d-flex align-items-center">
-                            <i class="bi bi-bar-chart me-2"></i> Reservations Chart
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="photoManagement.html" class="nav-link d-flex align-items-center">
-                            <i class="bi bi-images me-2"></i> Photo Management
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="../registerLogin.html" class="nav-link d-flex align-items-center text-danger" id="logoutBtn">
-                            <i class="bi bi-box-arrow-right me-2"></i> Logout
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-
+            <div id="menu-container" class="col-md-3">
+                <!-- Include the external menu -->
+                <div id="menu"></div>
+            </div>
             <!-- Right Content -->
             <div id="content" class="col-md-9">
                 <section id="reservations" class="mt-5">
@@ -135,6 +88,21 @@
     </div>
 
     <script>
+        // Load the external menu dynamically
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const menuContainer = document.getElementById('menu');
+                const response = await fetch('./components/menu.html');
+                if (response.ok) {
+                    menuContainer.innerHTML = await response.text();
+                } else {
+                    console.error('Failed to load menu:', response.status);
+                }
+            } catch (error) {
+                console.error('Error loading menu:', error);
+            }
+        });
+
         // Helper functions
         function groupReservationsByDate(reservationsArray) {
   if (!Array.isArray(reservationsArray)) {
