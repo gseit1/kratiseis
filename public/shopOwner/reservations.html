@@ -231,12 +231,18 @@
           <div class="card-body">
             <p><strong>Name:</strong> ${reservation.name || "N/A"}</p>
             <p><strong>Surname:</strong> ${reservation.surname || "N/A"}</p>
-            <p><strong>Table Number:</strong> ${tableNumber}</p>
-            <p><strong>Date:</strong> ${reservation.reservationDate ? new Date(reservation.reservationDate).toLocaleDateString() : "N/A"}</p>
-            <p><strong>Hour:</strong> ${formattedTime}</p>
-            <p><strong>Seats:</strong> ${reservation.seats || "N/A"}</p>
-            <p><strong>State:</strong> ${reservation.state}</p>
-            <p><strong>Comment:</strong> ${reservation.commentFromUser || "N/A"}</p>
+            <p><strong>Table Number:</strong> 
+    ${reservation.tableId ? tableNumber : `
+      <span class="text-danger" title="Η κράτηση δεν είναι δηλωμένη σε κάποιο τραπέζι">
+        N/A <i class="bi bi-exclamation-circle-fill"></i>
+      </span>
+    `}
+  </p>
+  <p><strong>Date:</strong> ${reservation.reservationDate ? new Date(reservation.reservationDate).toLocaleDateString() : "N/A"}</p>
+  <p><strong>Hour:</strong> ${formattedTime}</p>
+  <p><strong>Seats:</strong> ${reservation.seats || "N/A"}</p>
+  <p><strong>State:</strong> ${reservation.state}</p>
+  <p><strong>Comment:</strong> ${reservation.commentFromUser || "N/A"}</p>
             ${reservation.state === 'pending' ? `
               <button class="btn btn-success btn-sm" onclick="acceptReservation('${reservation._id}')">Accept</button>
               <button class="btn btn-danger btn-sm" onclick="rejectReservation('${reservation._id}')">Reject</button>
@@ -254,14 +260,12 @@
         // Fetch reservations
         async function fetchReservations(stateFilter = 'all') {
   try {
-    // Λήψη όλων των κρατήσεων
     const allReservationsResponse = await fetch('/api/shop/reservationList');
     if (!allReservationsResponse.ok) throw new Error('Failed to fetch all reservations');
     const allReservationsData = await allReservationsResponse.json();
 
     let reservationsToDisplay = [];
 
-    // Μετατροπή του αντικειμένου σε πίνακα
     if (allReservationsData && typeof allReservationsData === 'object') {
       Object.values(allReservationsData.reservationList).forEach(dateGroup => {
         if (Array.isArray(dateGroup.reservations)) {
@@ -283,6 +287,18 @@
       if (!filterResponse.ok) throw new Error('Failed to filter reservations');
       const filteredData = await filterResponse.json();
       reservationsToDisplay = filteredData.filteredReservations;
+    }
+
+    // Υπολογισμός κρατήσεων χωρίς tableId
+    const unassignedCount = reservationsToDisplay.filter(reservation => !reservation.tableId).length;
+
+    // Ενημέρωση του θαυμαστικού με το count
+    const stateTab = document.getElementById(`${stateFilter}-tab`);
+    if (stateTab) {
+      stateTab.innerHTML = `${stateFilter.charAt(0).toUpperCase() + stateFilter.slice(1)} 
+        ${unassignedCount > 0 ? `<span class="text-danger" title="${unassignedCount} κρατήσεις δεν έχουν τραπέζι">
+          <i class="bi bi-exclamation-circle-fill"></i> (${unassignedCount})
+        </span>` : ''}`;
     }
 
     displayGroupedReservations(reservationsToDisplay);
