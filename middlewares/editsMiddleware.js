@@ -67,13 +67,12 @@ const handleBookingHoursUpdate = async (req, res, next) => {
         if (dayReservations.length > 0) {
           // Set tableId for all these reservations to null.
           await setTableIdForReservations(dayReservations.map(reservation => reservation._id));
-          console.log("Set tableId to null for reservations:", dayReservations.map(reservation => reservation._id)); // Log τις κρατήσεις που ενημερώθηκαν
-
-          // Add each reservation to the undefinedReservationList.
-          for (const reservation of dayReservations) {
-            await addReservationToUndefinedList(reservation.shopId, reservation._id);
-            console.log("Added reservation to undefined list:", reservation._id); // Log την προσθήκη στη λίστα
-          }
+          console.log("Set tableId to null for reservations:", dayReservations.map(reservation => reservation._id));
+          // Αφαίρεση της προσθήκης στη λίστα undefined
+          // for (const reservation of dayReservations) {
+          //   await addReservationToUndefinedList(reservation.shopId, reservation._id);
+          //   console.log("Added reservation to undefined list:", reservation._id);
+          // }
         }
       }
 
@@ -143,9 +142,6 @@ const handleIsBookingAllowedUpdate = async (req, res, next) => {
 
         if (invalidReservations.length > 0) {
           await setTableIdForReservations(invalidReservations.map(reservation => reservation._id));
-          for (const reservation of invalidReservations) {
-            await addReservationToUndefinedList(reservation.shopId, reservation._id);
-          }
         }
       }
 
@@ -170,9 +166,10 @@ const handleTableDeletion = async (req, res, next) => {
 
     if (reservationsResult.success && reservationsResult.reservations.length > 0) {
       await setTableIdForReservations(reservationsResult.reservations.map(reservation => reservation._id));
-      for (const reservation of reservationsResult.reservations) {
-        await addReservationToUndefinedList(reservation.shopId, reservation._id);
-      }
+      // Αφαίρεση αυτής της λογικής
+      // for (const reservation of reservationsResult.reservations) {
+      //     await addReservationToUndefinedList(reservation.shopId, reservation._id);
+      // }
     }
 
     next();

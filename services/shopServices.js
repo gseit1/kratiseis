@@ -120,25 +120,7 @@ const addToReservationList = async (shopId, date, reservationId) => {
 
 
 // Συνάρτηση για την προσθήκη κράτησης στην undefinedReservationList
-const addReservationToUndefinedList = async (shopId, reservationId) => {
-    try {
-        const shop = await Shop.findById(shopId);
-        if (!shop) {
-            throw new Error('Shop not found');
-        }
 
-        // Προσθήκη της κράτησης στην undefinedReservationList
-        shop.undefinedReservationList.push(reservationId);
-
-        // Αποθήκευση του καταστήματος με την ενημερωμένη λίστα
-        await shop.save();
-
-        return { success: true, message: 'Reservation added to undefinedReservationList successfully' };
-    } catch (error) {
-        console.error('Error adding reservation to undefinedReservationList:', error.message);
-        throw error;
-    }
-};
 
 
 
@@ -244,8 +226,6 @@ module.exports = {
     getAllShopsService,
     getShopByIdService,
     getShopReservationList,
-    getUndefinedReservationList,
-    addReservationToUndefinedList, 
     addToReservationList,
     deleteToReservationList,
     updateReviewList,

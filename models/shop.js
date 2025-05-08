@@ -138,11 +138,7 @@ const shopSchema = mongoose.Schema({
   },
   
   
-  undefinedReservationList: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Reservation',
-    default: [],
-  }],
+ 
   
 
 reviewList:[{

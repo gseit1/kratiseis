@@ -260,49 +260,100 @@ const updateWhenReservationDelete = async (tableId, reservationDate, reservation
   try {
     reservationTime = parseFloat(reservationTime);
     const table = await findTableById(tableId);
-    
+
     // Build the dateKey using the reservationDate
     const dateKey = new Date(reservationDate).toISOString().split('T')[0];
     console.log("Using dateKey:", dateKey);
-    
+
     // Retrieve available hours as a plain object property
     let availableHours = table.availability[dateKey] || [];
     console.log(`Extracted availableHours for ${dateKey}:`, availableHours);
-    
+
     const estimatedReservationTime = table.estimatedReservationTime;
     const startTime = reservationTime - Math.ceil(estimatedReservationTime / 60);
     const endTime = reservationTime + Math.ceil(estimatedReservationTime / 60);
     console.log(`Updating availability for tableId: ${tableId} after reservation deletion`);
     console.log(`Date Key: ${dateKey}`);
     console.log(`Calculated startTime: ${startTime}, endTime: ${endTime}`);
-    
+
     // Build a Set from the current available hours
     const currentAvailability = new Set(availableHours);
     console.log(`Current availability for ${dateKey}:`, Array.from(currentAvailability));
-    
-    // Retrieve booking hours from the shop
+
+    // Retrieve all reservations for the same table and date
+    const overlappingReservations = await Reservation.find({
+      tableId,
+      reservationDate: new Date(reservationDate),
+    });
+
+    console.log(`Found overlapping reservations for ${dateKey}:`, overlappingReservations);
+
+    // Retrieve the shop to get booking hours
     const shop = await Shop.findById(table.shopId);
-    if (!shop) throw new Error('Shop not found');
-    
-    const dayOfWeek = new Date(reservationDate)
-      .toLocaleString('en-US', { weekday: 'long' })
-      .toLowerCase();
-    const bookingHours = shop.openingHours[dayOfWeek];
-    
+    if (!shop) {
+      throw new Error('Shop not found');
+    }
+
+    // Get the day of the week
+    const dayOfWeek = new Date(reservationDate).toLocaleString('en-US', { weekday: 'long' }).toLowerCase();
+    const bookingHours = shop.openingHours?.[dayOfWeek];
+
+    if (!bookingHours || !bookingHours.isOpen) {
+      console.log(`Shop is closed on ${dayOfWeek}. No availability to update.`);
+      return;
+    }
+
+    const bookingStart = bookingHours.bookingStart;
+    const bookingEnd = bookingHours.bookingEnd;
+
+    console.log(`Booking hours for ${dayOfWeek}: start=${bookingStart}, end=${bookingEnd}`);
+
+    // Add the boundary hours (bookingStart and bookingEnd) to the availability if they are not blocked
+    if (!overlappingReservations.some(reservation => {
+      const resTime = parseFloat(reservation.reservationTime);
+      const resStart = resTime - Math.ceil(estimatedReservationTime / 60);
+      const resEnd = resTime + Math.ceil(estimatedReservationTime / 60);
+      return bookingStart >= resStart && bookingStart < resEnd;
+    })) {
+      currentAvailability.add(bookingStart);
+    }
+
+    if (!overlappingReservations.some(reservation => {
+      const resTime = parseFloat(reservation.reservationTime);
+      const resStart = resTime - Math.ceil(estimatedReservationTime / 60);
+      const resEnd = resTime + Math.ceil(estimatedReservationTime / 60);
+      return bookingEnd > resStart && bookingEnd <= resEnd;
+    })) {
+      currentAvailability.add(bookingEnd);
+    }
+
     // Re-add (or "restore") the hours within the deleted reservation block
     for (let hour = startTime; hour < endTime; hour += 0.5) {
-      if (hour >= bookingHours.bookingStart && hour <= bookingHours.bookingEnd) {
+      // Check if this hour is within the booking hours
+      if (hour < bookingStart || hour >= bookingEnd) {
+        continue; // Skip hours outside the booking range
+      }
+
+      // Check if this hour is not blocked by another reservation
+      const isBlockedByOtherReservation = overlappingReservations.some((reservation) => {
+        const resTime = parseFloat(reservation.reservationTime);
+        const resStart = resTime - Math.ceil(estimatedReservationTime / 60);
+        const resEnd = resTime + Math.ceil(estimatedReservationTime / 60);
+        return hour > resStart && hour < resEnd;
+      });
+
+      if (!isBlockedByOtherReservation) {
         currentAvailability.add(hour);
       }
     }
-    
+
     console.log(`Updated availability for ${dateKey}:`, Array.from(currentAvailability));
-    
+
     // Save the updated availability back using standard object notation
     table.availability[dateKey] = Array.from(currentAvailability).sort((a, b) => a - b);
     table.markModified("availability");
     await table.save();
-    
+
     console.log('Table availability updated successfully after reservation deletion!');
   } catch (error) {
     console.error('Error updating table availability after reservation deletion:', error.message);
