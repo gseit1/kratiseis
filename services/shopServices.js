@@ -66,7 +66,7 @@ const getShopReservationList = async (shopId) => {
 };
 
 
-const getUndefinedReservationList = async (shopId) => {
+const  getUndefinedReservationList = async (shopId) => {
     const shop = await Shop.findById(shopId).populate('undefinedReservationList');
     if (!shop) {
         throw new Error('Shop not found');

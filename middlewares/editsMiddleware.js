@@ -131,10 +131,7 @@ const handleSeatsUpdate = async (req, res, next) => {
 
         // Ενημέρωση διαθεσιμότητας για τις κρατήσεις που επηρεάζονται
         for (const reservation of invalidReservations) {
-          await addReservationToUndefinedList(
-            reservation.shopId,
-            reservation._id
-          );
+          
           await updateWhenReservationDelete(
             id,
             reservation.reservationDate,

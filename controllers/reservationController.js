@@ -2,7 +2,7 @@ const Table = require('../models/table');
 const Reservation = require('../models/reservation');
 const { addReservationService, editReservationService, deleteReservationService } = require('../services/reservationServices');
 const { addToReservationList, deleteToReservationList } = require('../services/shopServices');
-const { findBestAvailableTable, updateTableAvailability } = require('../services/tableServices');
+const { findBestAvailableTable, updateTableAvailability,updateWhenReservationDelete} = require('../services/tableServices');
 const { addReservationToUserHistory, removeReservationFromUserHistory } = require('../services/userServices');
 const User = require('../models/user'); // Import User model
 
@@ -252,13 +252,29 @@ const editReservation = async (req, res) => {
     const { id } = req.params;
     const { tableId, reservationTime, commentFromUser } = req.body;
 
-    // Ενημερώνουμε μόνο τα πεδία που επιτρέπεται να αλλάξουν
-    const updatedData = { tableId, reservationTime, commentFromUser };
+    // Εύρεση της κράτησης
+    const reservation = await Reservation.findById(id);
+    if (!reservation) {
+      return res.status(404).json({ success: false, message: 'Reservation not found' });
+    }
 
-    // Επεξεργασία της κράτησης
-    const updatedReservation = await editReservationService(id, updatedData);
+    // Έλεγχος αν το state είναι `completed` ή `notShown`
+    if (['completed', 'notShown'].includes(reservation.state)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot edit tableId for reservations with state "completed" or "notShown".',
+      });
+    }
 
-    res.json({ success: true, message: 'Reservation updated successfully', reservation: updatedReservation });
+    // Ενημερώνουμε μόνο τα επιτρεπόμενα πεδία
+    if (tableId !== undefined) reservation.tableId = tableId;
+    if (reservationTime !== undefined) reservation.reservationTime = reservationTime;
+    if (commentFromUser !== undefined) reservation.commentFromUser = commentFromUser;
+
+    // Αποθήκευση της ενημερωμένης κράτησης
+    await reservation.save();
+
+    res.json({ success: true, message: 'Reservation updated successfully', reservation });
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: error.message });
@@ -331,21 +347,13 @@ const filterReservationsByState = async (req, res) => {
       return res.status(400).json({ message: 'Invalid reservation list provided' });
     }
 
-    if (!state || state === 'all') {
-      // Αν δεν υπάρχει state ή είναι "all", επιστρέφουμε όλες τις κρατήσεις
-      return res.status(200).json({ filteredReservations: reservationList });
-    }
-
-    // Φιλτράρισμα κρατήσεων με βάση το state
     const filteredReservations = reservationList.filter(reservation => reservation.state === state);
-
     res.status(200).json({ filteredReservations });
   } catch (error) {
     console.error('Error filtering reservations:', error.message);
     res.status(500).json({ message: 'Failed to filter reservations' });
   }
 };
-
 
 const findAndAssignTable = async (req, res) => {
   const { reservationId } = req.params;
@@ -362,6 +370,13 @@ const findAndAssignTable = async (req, res) => {
     const reservation = await Reservation.findById(reservationId);
     if (!reservation) {
       return res.status(404).json({ message: 'Reservation not found' });
+    }
+
+    // Έλεγχος αν το state είναι `completed` ή `notShown`
+    if (['completed', 'notShown'].includes(reservation.state)) {
+      return res.status(400).json({
+        message: 'Cannot assign table for reservations with state "completed" or "notShown".',
+      });
     }
 
     const table = await findBestAvailableTable(reservation.shopId, reservationDate, reservationTime, seats);
