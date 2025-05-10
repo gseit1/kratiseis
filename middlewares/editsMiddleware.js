@@ -91,27 +91,55 @@ const handleBookingHoursUpdate = async (req, res, next) => {
 // Middleware για την επεξεργασία των seats
 const handleSeatsUpdate = async (req, res, next) => {
   const { id } = req.params;
-  const { seats } = req.body;
+  const { seats, minimumSeats } = req.body; // Δέχεται και τα δύο πεδία
 
   try {
     const reservationsResult = await getReservationsForTable(id);
 
-    //Validation an ektelestei to edit logo seat input=0
-    if (seats == 0){
-      return res.status(400).json({ 
-        message: 'Seats must be >0' 
+    // Validation: Αν το `seats` ή το `minimumSeats` είναι 0, απορρίπτουμε το αίτημα
+    if (seats === 0 || minimumSeats === 0) {
+      return res.status(400).json({
+        message: 'Seats and Minimum Seats must be greater than 0',
       });
     }
 
-
     if (reservationsResult.success && reservationsResult.reservations.length > 0) {
-      const invalidReservations = await unvalidReservationsAfterSeatsEdit(reservationsResult.reservations.map(reservation => reservation._id), seats);
+      let invalidReservations = [];
+
+      // Έλεγχος για `seats`
+      if (seats !== undefined) {
+        invalidReservations = await unvalidReservationsAfterSeatsEdit(
+          reservationsResult.reservations.map((reservation) => reservation._id),
+          seats
+        );
+      }
+
+      // Έλεγχος για `minimumSeats`
+      if (minimumSeats !== undefined) {
+        invalidReservations = invalidReservations.concat(
+          reservationsResult.reservations.filter((reservation) => {
+            return reservation.seats < minimumSeats; // Κρατήσεις που δεν πληρούν το νέο `minimumSeats`
+          })
+        );
+      }
 
       if (invalidReservations.length > 0) {
-        await setTableIdForReservations(invalidReservations.map(reservation => reservation._id));
+        // Αλλαγή του `tableId` σε `null` για τις μη έγκυρες κρατήσεις
+        await setTableIdForReservations(
+          invalidReservations.map((reservation) => reservation._id)
+        );
+
+        // Ενημέρωση διαθεσιμότητας για τις κρατήσεις που επηρεάζονται
         for (const reservation of invalidReservations) {
-          await addReservationToUndefinedList(reservation.shopId, reservation._id);
-          await updateWhenReservationDelete(id,reservation.reservationDate, reservation.reservationTime);
+          await addReservationToUndefinedList(
+            reservation.shopId,
+            reservation._id
+          );
+          await updateWhenReservationDelete(
+            id,
+            reservation.reservationDate,
+            reservation.reservationTime
+          );
         }
       }
     }

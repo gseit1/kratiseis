@@ -133,6 +133,18 @@
               <button type="button" id="saveBookingAllowedBtn" class="btn btn-success">Save Booking Allowed</button>
             </form>
           </div>
+
+          <!-- Section 3: Minimum Seats -->
+          <div class="mb-4">
+            <h3>Minimum Seats</h3>
+            <form id="minimumSeatsForm">
+              <div class="mb-3">
+                <label for="minimumSeats" class="form-label">Minimum Seats</label>
+                <input type="number" id="minimumSeats" class="form-control" required min="1">
+              </div>
+              <button type="button" id="saveMinimumSeatsBtn" class="btn btn-success">Save Minimum Seats</button>
+            </form>
+          </div>
         </div>
       </div>
     </div>
@@ -169,6 +181,7 @@
         document.getElementById('tableNumber').value = table.tableNumber;
         document.getElementById('estimatedReservationTime').value = table.estimatedReservationTime;
         document.getElementById('seats').value = table.seats;
+        document.getElementById('minimumSeats').value = table.minimumSeats; // Προσθήκη για το minimumSeats
         ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].forEach(day => {
           document.getElementById(day).checked = table.bookingHours?.[day]?.isBookingAllowed || false;
         });
@@ -231,6 +244,22 @@
         alert("Booking allowed values updated successfully!");
       } catch (error) {
         console.error("Error updating booking allowed values:", error);
+      }
+    });
+
+    // Save minimum seats
+    document.getElementById('saveMinimumSeatsBtn').addEventListener('click', async () => {
+      const updatedMinimumSeats = { minimumSeats: Number(document.getElementById('minimumSeats').value) };
+      try {
+        const response = await fetch(`/api/table/${tableId}/seats`, { // Χρησιμοποιούμε το ίδιο endpoint
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(updatedMinimumSeats)
+        });
+        if (!response.ok) throw new Error('Failed to update minimum seats');
+        alert("Minimum seats updated successfully!");
+      } catch (error) {
+        console.error("Error updating minimum seats:", error);
       }
     });
   </script>

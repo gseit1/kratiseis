@@ -5,16 +5,17 @@ const Table = require('../models/table'); // Προσθήκη της εισαγ�
 
 //! Function για add table
 const addTable = async (req, res) => {
-  const { shopId, tableNumber, seats, estimatedReservationTime, bookingHours, availability } = req.body;
+  const { shopId, tableNumber, seats, minimumSeats, estimatedReservationTime, bookingHours, availability } = req.body;
 
   try {
     const tableData = {
       shopId,
       tableNumber,
       seats,
+      minimumSeats, // Προσθήκη του minimumSeats
       estimatedReservationTime,
       bookingHours,
-      availability
+      availability,
     };
 
     const newTable = await createTable(shopId, tableData);
@@ -39,17 +40,32 @@ const editTable = async (req, res) => {
   }
 };
 
-//! Function για edit seats
+//! Function για edit seats ή minimumSeats
 const editSeats = async (req, res) => {
   const { id } = req.params;
-  const { seats } = req.body;
+  const { seats, minimumSeats } = req.body; // Δέχεται και τα δύο πεδία
 
   try {
-    // Ενημερώνουμε τα seats του τραπεζιού
-    const updatedTable = await updateTable(id, { seats });
-    res.json(updatedTable);
+    // Ελέγχουμε ποιο πεδίο υπάρχει στο request
+    const updateData = {};
+    if (seats !== undefined) updateData.seats = seats;
+    if (minimumSeats !== undefined) updateData.minimumSeats = minimumSeats;
+
+    // Αν δεν υπάρχει κανένα από τα δύο, επιστρέφουμε σφάλμα
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ message: 'No valid fields provided (seats or minimumSeats)' });
+    }
+
+    // Ενημερώνουμε το τραπέζι
+    const updatedTable = await updateTable(id, updateData);
+
+    res.status(200).json({
+      success: true,
+      message: 'Table updated successfully',
+      updatedTable,
+    });
   } catch (error) {
-    console.error(error);
+    console.error("Error updating seats or minimumSeats:", error);
     res.status(500).json({ message: error.message || 'Server error' });
   }
 };

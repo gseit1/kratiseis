@@ -7,7 +7,7 @@ const createTable = async (shopId, tableData) => {
   const shop = await Shop.findById(shopId);
   if (!shop) throw new Error('Shop not found');
 
-  const newTable = new Table(tableData);
+  const newTable = new Table(tableData); // Περιλαμβάνει το minimumSeats
   await newTable.save();
 
   shop.tables.push(newTable._id);
@@ -26,7 +26,6 @@ const createTable = async (shopId, tableData) => {
     availabilityMap.set(dateString, availability);
   }
 
-  // Save the table with all the availability at once
   newTable.availability = availabilityMap;
   await newTable.save();
 
@@ -115,10 +114,6 @@ const checkAvailability = async (req) => {
       return { success: false, message: 'Shop not found', availability: [] };
     }
 
-  
-
-    
-
     const tables = await Table.find({ shopId });
     if (!tables || tables.length === 0) {
       return { success: false, message: 'No tables found for this shop', availability: [] };
@@ -127,8 +122,8 @@ const checkAvailability = async (req) => {
     const availableHoursSet = new Set();
 
     for (const table of tables) {
-      // Check seat capacity
-      if (table.seats >= seats) {
+      // Check seat capacity and minimum seats
+      if (table.seats >= seats && table.minimumSeats <= seats) {
         let availabilityForDate = [];
         if (table.availability instanceof Map) {
           availabilityForDate = table.availability.get(dateString) || [];
@@ -139,7 +134,6 @@ const checkAvailability = async (req) => {
         for (const hour of availabilityForDate) {
           availableHoursSet.add(hour);
         }
-
       }
     }
 
@@ -369,21 +363,22 @@ const findBestAvailableTable = async (shopId, reservationDate, reservationTime, 
   try {
     const dateKey = new Date(reservationDate).toISOString().split('T')[0];
     const parsedReservationTime = parseFloat(reservationTime);
-    
+
     // Custom query: find a table with at least the number of seats and whose availability for the date includes the reservation time.
     const table = await Table.findOne({
       shopId,
       seats: { $gte: numberOfPeople },
+      minimumSeats: { $lte: numberOfPeople }, // Έλεγχος για minimumSeats
       [`availability.${dateKey}`]: { $in: [parsedReservationTime] }
     }).sort({ seats: 1 });
-    
+
     if (!table) {
       throw new Error('No available table found');
     }
-    
+
     return table;
   } catch (error) {
-    console.error('Error in findBestAvailableTableCustomQuery:', error.message);
+    console.error('Error in findBestAvailableTable:', error.message);
     throw error;
   }
 };

@@ -8,7 +8,8 @@ const {
   getTotalReservations, 
   changeReservationState,
   getReservationById,
-  filterReservationsByState
+  filterReservationsByState,
+  findAndAssignTable
 } = require('../controllers/reservationController');
 const { verifyToken, isShopOwner ,isUser} = require('../middlewares/authMiddleware');
 
@@ -36,7 +37,10 @@ reservationRouter.get('/api/reservations/count', getTotalReservations);
 reservationRouter.get('/api/reservations/:id', getReservationById);
 //
 reservationRouter.patch('/api/reservation/:id/state', verifyToken, isShopOwner, changeReservationState);
-
+//
 reservationRouter.post('/api/reservations/filter', filterReservationsByState);
+//
+reservationRouter.post('/api/reservation/:reservationId/findTable', findAndAssignTable);
+
 
 module.exports = reservationRouter;

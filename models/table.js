@@ -17,6 +17,11 @@ const tableSchema = mongoose.Schema({
     required: true,
     min: [1, 'number of seats must be at least 1'],
   },
+  minimumSeats: {
+    type: Number,
+    required: true,
+    min: [1, 'minimum seats must be at least 1'],
+  },
   estimatedReservationTime: {
     type: Number, // Διάρκεια σε λεπτά (π.χ. 120 για 2 ώρες)
     required: true, // Default reservation time

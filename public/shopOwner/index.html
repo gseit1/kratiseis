@@ -181,12 +181,13 @@ async function fetchTables() {
     const item = document.createElement("div");
     item.className = "list-group-item";
 
-    // Create the table header with table number, seats, and estimated reservation time
+    // Create the table header with table number, seats, minimum seats, and estimated reservation time
     const tableHeader = `
       <div class="d-flex justify-content-between align-items-center">
         <div>
           <strong>Table:</strong> ${table.tableNumber} | 
           <strong>Seats:</strong> ${table.seats} | 
+          <strong>Minimum Seats:</strong> ${table.minimumSeats || "N/A"} | 
           <strong>Estimated Reservation Time:</strong> ${table.estimatedReservationTime || "N/A"} mins
         </div>
         <div>

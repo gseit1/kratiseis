@@ -2,7 +2,7 @@ const Table = require('../models/table');
 const Reservation = require('../models/reservation');
 const { addReservationService, editReservationService, deleteReservationService } = require('../services/reservationServices');
 const { addToReservationList, deleteToReservationList } = require('../services/shopServices');
-const { findBestAvailableTable, updateTableAvailability, updateWhenReservationDelete } = require('../services/tableServices');
+const { findBestAvailableTable, updateTableAvailability } = require('../services/tableServices');
 const { addReservationToUserHistory, removeReservationFromUserHistory } = require('../services/userServices');
 const User = require('../models/user'); // Import User model
 
@@ -347,6 +347,40 @@ const filterReservationsByState = async (req, res) => {
 };
 
 
+const findAndAssignTable = async (req, res) => {
+  const { reservationId } = req.params;
+  const { reservationDate, reservationTime, seats } = req.body;
+
+  console.log("Received request to find table for reservation:", {
+    reservationId,
+    reservationDate,
+    reservationTime,
+    seats,
+  });
+
+  try {
+    const reservation = await Reservation.findById(reservationId);
+    if (!reservation) {
+      return res.status(404).json({ message: 'Reservation not found' });
+    }
+
+    const table = await findBestAvailableTable(reservation.shopId, reservationDate, reservationTime, seats);
+    if (!table) {
+      return res.status(404).json({ message: 'No available table found' });
+    }
+
+    reservation.tableId = table._id;
+    await reservation.save();
+
+    await updateTableAvailability(table._id, reservationDate, reservationTime);
+
+    res.status(200).json({ success: true, tableNumber: table.tableNumber });
+  } catch (error) {
+    console.error("Error in findAndAssignTable:", error);
+    res.status(500).json({ message: error.message || 'Server error' });
+  }
+};
+
 module.exports = {
   addManualReservation,
   addUserReservation,
@@ -356,5 +390,6 @@ module.exports = {
   getTotalReservations,
   getReservationById,
   changeReservationState,
-  filterReservationsByState
+  filterReservationsByState,
+  findAndAssignTable,
 };

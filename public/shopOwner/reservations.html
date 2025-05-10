@@ -200,12 +200,15 @@
             <p><strong>Name:</strong> ${reservation.name || "N/A"}</p>
             <p><strong>Surname:</strong> ${reservation.surname || "N/A"}</p>
             <p><strong>Table Number:</strong> 
-    ${reservation.tableId ? tableNumber : `
-      <span class="text-danger" title="Η κράτηση δεν είναι δηλωμένη σε κάποιο τραπέζι">
-        N/A <i class="bi bi-exclamation-circle-fill"></i>
-      </span>
-    `}
-  </p>
+  ${reservation.tableId ? tableNumber : `
+    <span class="text-danger" title="Η κράτηση δεν είναι δηλωμένη σε κάποιο τραπέζι">
+      N/A <i class="bi bi-exclamation-circle-fill"></i>
+    </span>
+    <button class="btn btn-primary btn-sm" onclick="findAndAssignTable('${reservation._id}', '${reservation.reservationDate}', '${reservation.reservationTime}', ${reservation.seats})">
+      Find Table
+    </button>
+  `}
+</p>
   <p><strong>Date:</strong> ${reservation.reservationDate ? new Date(reservation.reservationDate).toLocaleDateString() : "N/A"}</p>
   <p><strong>Hour:</strong> ${formattedTime}</p>
   <p><strong>Seats:</strong> ${reservation.seats || "N/A"}</p>
@@ -409,6 +412,40 @@ async function markAsNotShown(reservationId) {
 }
         // Fetch pending κρατήσεις κατά την αρχική φόρτωση
 fetchReservations('pending');
+
+async function findAndAssignTable(reservationId, reservationDate, reservationTime, seats) {
+  try {
+    console.log("Sending data to find table:", {
+      reservationId,
+      reservationDate,
+      reservationTime,
+      seats,
+    });
+
+    const response = await fetch(`/api/reservation/${reservationId}/findTable`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reservationDate, reservationTime, seats }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      console.error("Error response from backend:", error);
+      alert(`Error finding table: ${error.message}`);
+      return;
+    }
+
+    const result = await response.json();
+    console.log("Table assigned successfully:", result);
+    alert(`Table assigned successfully! Table Number: ${result.tableNumber}`);
+
+    // Ανανεώνει τη λίστα κρατήσεων
+    fetchReservations();
+  } catch (error) {
+    console.error("Error finding and assigning table:", error);
+    alert("Failed to find and assign table. Please try again later.");
+  }
+}
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
