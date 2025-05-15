@@ -4,7 +4,7 @@ const Shop = require('../models/shop');
 // Αναζήτηση καταστημάτων με βάση την πόλη
 const searchShopsByCityService = async (cityId) => {
   try {
-    const shops = await Shop.find({ city: cityId }).select('_id shopName reviewRatingAverage images');
+    const shops = await Shop.find({ city: cityId }).select('_id shopName reviewRatingAverage  images');
     return shops.map(shop => ({
       id: shop._id,
       shopName: shop.shopName,

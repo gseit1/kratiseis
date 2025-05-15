@@ -14,8 +14,8 @@ document.querySelectorAll('.city-tile').forEach(tile => {
         localStorage.setItem('selectedCity', cityId);
         localStorage.setItem('selectedCategory', categoryId);
 
-        // Redirect to the filteredShops page
-        window.location.href = 'filteredShops.html';
+        // Redirect to the searchShops page
+        window.location.href = 'searchShops.html';
     });
 });
 
@@ -254,8 +254,8 @@ async function setupCityAndCategorySelection() {
                         localStorage.setItem('selectedCity', selectedCityId);
                         localStorage.setItem('selectedCategory', category.id);
 
-                        // Redirect to the filteredShops page
-                        window.location.href = 'filteredShops.html';
+                        // Redirect to the searchShops page
+                        window.location.href = 'searchShops.html';
                     });
                     cityGrid.appendChild(categoryTile);
                 });

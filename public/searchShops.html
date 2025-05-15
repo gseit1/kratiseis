@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Shops</title>
+    <link rel="stylesheet" href="/styles/filteredShops.css">
+    <link rel="stylesheet" href="/styles/searchShops.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top shadow-lg" id="navbar" style="background: rgba(30, 30, 40, 0.85); backdrop-filter: blur(8px); box-shadow: 0 4px 10px rgba(0,0,0,0.15);">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="index.html" style="font-weight:bold;font-size:1.5rem;color:#fff;">
+                <i class="bi bi-shop"></i> MyShop
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto" id="navbarLinks">
+                    <!-- Τα links θα γεμίζουν δυναμικά ανάλογα με το login -->
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <style>
+    #navbar .navbar-nav .nav-link {
+        color: #fff !important;
+        font-weight: 500;
+        transition: color 0.3s, transform 0.2s;
+    }
+    #navbar .navbar-nav .nav-link:hover,
+    #navbar .navbar-nav .nav-link:focus {
+        color: #ff6ec4 !important;
+        transform: scale(1.07);
+    }
+    #navbar .dropdown-menu {
+        background: rgba(30,30,40,0.97);
+    }
+    #navbar .dropdown-item:hover {
+        background: #ff6ec4;
+        color: #fff !important;
+    }
+    </style>
+
+    <!-- Filter Bar -->
+    <div id="filterBar" class="bg-light py-3 shadow-sm">
+        <div class="container d-flex flex-wrap justify-content-between align-items-center">
+            <div class="d-flex flex-column flex-md-row align-items-md-center gap-2">
+                <label for="cityFilter" class="form-label mb-0 me-2">Πόλη</label>
+                <select id="cityFilter" class="form-select">
+                    <option value="" disabled selected>Επιλέξτε πόλη</option>
+                </select>
+            </div>
+            <button id="searchButton" class="btn btn-primary">Αναζήτηση</button>
+        </div>
+    </div>
+
+    <!-- Split Screen -->
+    <div class="container-fluid px-0 mt-4">
+        <div class="row gx-0">
+            <!-- Πάνω Πλαίσιο -->
+            <div id="topFrame" class="col-12 mb-4" style="height: 50vh; background-color: #f8f9fa; display: flex; justify-content: flex-start; align-items: stretch; border-radius: 0; box-shadow: none; margin-bottom: 0; padding: 0;">
+                <div class="d-flex w-100 h-100 flex-row align-items-stretch" style="width:100%;height:100%;">
+                    <!-- Summary bar: εμφανίζει μόνο icons και count μέχρι την κόκκινη γραμμή -->
+                    <div id="categorySummaryContainer"
+                         class="summary-bar d-flex flex-column align-items-center justify-content-start py-3"
+                         style="width:80px; min-width:80px; max-width:80px; background:#f8f9fa; border-right:2px solid #e74c3c; height:100%; overflow-y:auto;">
+                        <!-- Summary γεμίζει δυναμικά -->
+                    </div>
+                    <!-- Map παίρνει όλο το υπόλοιπο πλάτος -->
+                    <div style="flex:1 1 0; height:100%; position:relative;">
+                        <div id="mapContainer" style="height: 100%; width: 100%; position:relative;"></div>
+                    </div>
+                </div>
+            </div>
+            <!-- Κάτω Πλαίσιο -->
+            <div id="bottomFrame" class="col-12">
+                <div id="categoriesContainer" class="categories-container px-0" style="border-radius:0; box-shadow:none; margin-top:0;">
+                    <!-- Οι κατηγορίες και τα καταστήματα θα φορτώνονται δυναμικά εδώ -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+    <script>
+        mapboxgl.accessToken = 'pk.eyJ1IjoicGFub3UyMSIsImEiOiJjbTlzcW9uYmkwM2k4MmpzYjc5dTF6M2ZtIn0.YBe_KPam5O4bdPh2xCpMdw';
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const cityFilter = document.getElementById('cityFilter');
+            const searchButton = document.getElementById('searchButton');
+            const topFrame = document.getElementById('topFrame');
+            const categoriesContainer = document.getElementById('categoriesContainer');
+            let categoryIcons = {};
+
+            // Populate cities in the filter bar
+            await populateCities();
+
+            // Event listener για το κουμπί "Αναζήτηση"
+            searchButton.addEventListener('click', async () => {
+                const cityId = cityFilter.value;
+
+                if (!cityId) {
+                    topFrame.innerHTML = '<h3 class="text-muted">Διάλεξε πόλη για να αναζητήσεις μαγαζιά</h3>';
+                    categoriesContainer.innerHTML = '';
+                    return;
+                }
+
+                // Ενημέρωση του χάρτη
+                await updateMap(cityId);
+
+                // Ενημέρωση κατηγοριών και καταστημάτων
+                await updateCategories(cityId);
+            });
+
+            async function populateCities() {
+                try {
+                    const response = await fetch('/city');
+                    if (!response.ok) throw new Error('Failed to fetch cities');
+                    const cities = await response.json();
+
+                    cityFilter.innerHTML = '<option value="" disabled selected>Επιλέξτε πόλη</option>';
+                    cities.forEach(city => {
+                        const option = document.createElement('option');
+                        option.value = city._id;
+                        option.textContent = city.name;
+                        cityFilter.appendChild(option);
+                    });
+                } catch (error) {
+                    console.error('Error populating cities:', error);
+                }
+            }
+
+            async function updateMap(cityId) {
+                try {
+                    // Fetch κατηγορίες για icons
+                    const categoriesResponse = await fetch('/category');
+                    if (!categoriesResponse.ok) throw new Error('Failed to fetch categories');
+                    let categories = await categoriesResponse.json();
+                    // Αν το response είναι object με property categories, πάρε το array
+                    if (categories.categories) categories = categories.categories;
+                    categoryIcons = {};
+                    categories.forEach(category => {
+                        categoryIcons[category._id] = category.image || '/images/default-placeholder.jpg';
+                    });
+
+                    const cityResponse = await fetch(`/city/${cityId}`);
+                    if (!cityResponse.ok) throw new Error('Failed to fetch city data');
+                    const { city } = await cityResponse.json();
+
+                    if (!city || !city.location || !city.location.coordinates || city.location.coordinates.length < 2) {
+                        alert('Η πόλη δεν έχει έγκυρες συντεταγμένες.');
+                        return;
+                    }
+
+                    const mapShopsResponse = await fetch(`/search/city/${cityId}/mapUse`);
+                    if (!mapShopsResponse.ok) throw new Error('Failed to fetch map shops data');
+                    const shops = await mapShopsResponse.json();
+
+                    // Υπολογισμός πλήθους μαγαζιών ανά κατηγορία
+                    const categoryCounts = {};
+                    shops.forEach(shop => {
+                        const categoryId = shop.category?._id || shop.category;
+                        if (!categoryCounts[categoryId]) {
+                            categoryCounts[categoryId] = { count: 0, name: '', image: '' };
+                        }
+                        categoryCounts[categoryId].count += 1;
+                        categoryCounts[categoryId].name = shop.category?.name || '';
+                        categoryCounts[categoryId].image = categoryIcons[categoryId] || shop.category?.image || '/images/default-placeholder.jpg';
+                    });
+
+                    // Εμφάνιση summary bar icons & count ΜΕΤΑ την αναζήτηση
+                    let summaryHtml = '';
+                    if (Object.keys(categoryCounts).length > 0) {
+                        Object.entries(categoryCounts).forEach(([categoryId, info]) => {
+                            summaryHtml += `
+                                <div class="summary-item">
+                                    <img src="${info.image}" alt="${info.name}">
+                                    <span class="badge">${info.count}</span>
+                                </div>
+                            `;
+                        });
+                    }
+
+                    // Εμφάνιση split: summary bar (αριστερά) + map (δεξιά)
+                    topFrame.innerHTML = `
+                        <div class="d-flex w-100 h-100 flex-row align-items-stretch" style="width:100%;height:100%;">
+                            <div id="categorySummaryContainer" class="summary-bar d-flex flex-column align-items-center justify-content-start py-3" style="width:80px; min-width:80px; max-width:80px; background:#f8f9fa; border-right:2px solid #e74c3c; height:100%; overflow-y:auto;">
+                                ${summaryHtml}
+                            </div>
+                            <div style="flex:1 1 0; height:100%; position:relative;">
+                                <div id="mapContainer" style="height: 100%; width: 100%; position:relative;"></div>
+                            </div>
+                        </div>
+                    `;
+
+                    const mapContainer = document.getElementById('mapContainer');
+
+                    // Δημιουργία Mapbox map με 3D, ωραία γωνία και επιλογή στυλ
+                    const map = new mapboxgl.Map({
+                        container: 'mapContainer',
+                        style: 'mapbox://styles/mapbox/streets-v12',
+                        center: [city.location.coordinates[0], city.location.coordinates[1]],
+                        zoom: 13,
+                        pitch: 60,
+                        bearing: -30,
+                        antialias: true,
+                        maxZoom: 20,
+                        minZoom: 5,
+                        maxPitch: 85,
+                        dragRotate: true,
+                        boxZoom: true,
+                        fadeDuration: 250
+                    });
+
+                    // Προσθήκη 3D κτιρίων
+                    map.on('style.load', () => {
+                        if (map.getLayer('3d-buildings')) return;
+                        map.addLayer({
+                            'id': '3d-buildings',
+                            'source': 'composite',
+                            'source-layer': 'building',
+                            'filter': ['==', 'extrude', 'true'],
+                            'type': 'fill-extrusion',
+                            'minzoom': 15,
+                            'paint': {
+                                'fill-extrusion-color': '#aaa',
+                                'fill-extrusion-height': [
+                                    "interpolate", ["linear"], ["zoom"],
+                                    15, 0,
+                                    15.05, ["get", "height"]
+                                ],
+                                'fill-extrusion-base': [
+                                    "interpolate", ["linear"], ["zoom"],
+                                    15, 0,
+                                    15.05, ["get", "min_height"]
+                                ],
+                                'fill-extrusion-opacity': 0.7
+                            }
+                        });
+                    });
+
+                    // Προσθήκη επιλογής στυλ (Street/Δορυφόρος)
+                    const styleSwitcher = document.createElement('div');
+                    styleSwitcher.className = 'mapboxgl-ctrl mapboxgl-ctrl-group';
+                    styleSwitcher.style.position = 'absolute';
+                    styleSwitcher.style.top = '10px';
+                    styleSwitcher.style.right = '10px';
+                    styleSwitcher.innerHTML = `
+                        <button id="streetStyleBtn" class="btn btn-light" title="Street View"><i class="bi bi-map"></i></button>
+                        <button id="satelliteStyleBtn" class="btn btn-light" title="Satellite View"><i class="bi bi-globe2"></i></button>
+                    `;
+                    mapContainer.appendChild(styleSwitcher);
+
+                    document.getElementById('streetStyleBtn').onclick = () => {
+                        map.setStyle('mapbox://styles/mapbox/streets-v12');
+                    };
+                    document.getElementById('satelliteStyleBtn').onclick = () => {
+                        map.setStyle('mapbox://styles/mapbox/satellite-streets-v12');
+                    };
+
+                    // Προσθήκη controls
+                    map.addControl(new mapboxgl.NavigationControl(), 'top-left');
+                    map.addControl(new mapboxgl.ScaleControl(), 'bottom-left');
+                    map.addControl(new mapboxgl.FullscreenControl(), 'top-left');
+
+                    // Προσθήκη markers
+                    shops.forEach(shop => {
+                        if (shop.location && shop.location.coordinates) {
+                            const categoryId = shop.category?._id || shop.category;
+                            const iconUrl = categoryIcons[categoryId] || '/images/default-placeholder.jpg';
+
+                            // Δημιούργησε custom marker element
+                            const markerEl = document.createElement('div');
+                            markerEl.className = 'custom-marker';
+                            markerEl.style.width = '50px';
+                            markerEl.style.height = '50px';
+                            markerEl.style.background = 'radial-gradient(circle, #000 60%, #222 100%)';
+                            markerEl.style.borderRadius = '50%';
+                            markerEl.style.display = 'flex';
+                            markerEl.style.alignItems = 'center';
+                            markerEl.style.justifyContent = 'center';
+                            markerEl.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.5)';
+
+                            const imgEl = document.createElement('img');
+                            imgEl.src = iconUrl;
+                            imgEl.alt = shop.shopName;
+                            imgEl.style.width = '40px';
+                            imgEl.style.height = '40px';
+                            imgEl.style.objectFit = 'cover';
+                            imgEl.style.borderRadius = '50%';
+                            imgEl.style.border = '2px solid #fff';
+                            markerEl.appendChild(imgEl);
+
+                            // Δημιουργία marker με animation
+                            const marker = new mapboxgl.Marker(markerEl)
+                                .setLngLat(shop.location.coordinates)
+                                .addTo(map);
+
+                            markerEl.style.transition = 'transform 0.3s ease';
+                            markerEl.style.transform = 'scale(0)';
+                            setTimeout(() => {
+                                markerEl.style.transform = 'scale(1)';
+                            }, 100);
+
+                            // Δημιουργία popup
+                            let imageUrl = shop.image || (shop.images && shop.images.length > 0 ? shop.images[0] : '/images/default-placeholder.jpg');
+                            if (imageUrl.startsWith('/')) {
+                                imageUrl = `http://localhost:300${imageUrl}`;
+                            }
+
+                            const popup = new mapboxgl.Popup({ offset: 25 })
+                                .setHTML(`
+                                    <div class="popup-card">
+                                        <img src="${imageUrl}" 
+                                             alt="${shop.shopName}" 
+                                             style="width: 100%; height: 120px; object-fit: cover; border-radius: 4px; margin-bottom: 8px;">
+                                        <h5 style="font-size: 16px; margin: 8px 0;">${shop.shopName}</h5>
+                                        <p style="font-size: 14px; color: #666; margin-bottom: 8px;">${shop.shopDescription || ''}</p>
+                                        <button onclick="window.location.href='shop.html?id=${shop._id}'" 
+                                                class="btn btn-primary btn-sm w-100">Λεπτομέρειες</button>
+                                    </div>
+                                `);
+
+                            marker.setPopup(popup);
+                        }
+                    });
+                } catch (error) {
+                    console.error('Error updating map:', error);
+                }
+            }
+
+            async function updateCategories(cityId) {
+                try {
+                    const categoriesResponse = await fetch('/category');
+                    if (!categoriesResponse.ok) throw new Error('Failed to fetch categories');
+                    let categories = await categoriesResponse.json();
+                    if (categories.categories) categories = categories.categories;
+
+                    // Φέρε τα πλήθη ανά κατηγορία για φθίνουσα ταξινόμηση
+                    const countsRes = await fetch(`/search/city/${cityId}/mapUse`);
+                    const shopsForCount = await countsRes.json();
+                    const catCounts = {};
+                    shopsForCount.forEach(shop => {
+                        const catId = shop.category?._id || shop.category;
+                        catCounts[catId] = (catCounts[catId] || 0) + 1;
+                    });
+
+                    // Ταξινόμηση κατηγοριών κατά φθίνουσα σειρά πλήθους
+                    categories.sort((a, b) => (catCounts[b._id] || 0) - (catCounts[a._id] || 0));
+
+                    categoriesContainer.innerHTML = '';
+                    for (const category of categories) {
+                        const categorySection = document.createElement('div');
+                        categorySection.className = 'category-section mb-4';
+
+                        categorySection.innerHTML = `
+                            <h5 class="category-title">${category.name}</h5>
+                            <div class="shops-horizontal-scroll d-flex overflow-auto"></div>
+                        `;
+
+                        categoriesContainer.appendChild(categorySection);
+
+                        // Fetch shops with full details for each shop (not just summary)
+                        const shopsResponse = await fetch(`/search/city/${cityId}/category/${category._id}?details=1`);
+                        if (!shopsResponse.ok) throw new Error(`Failed to fetch shops for category ${category.name}`);
+                        const shops = await shopsResponse.json();
+
+                        const shopsContainer = categorySection.querySelector('.shops-horizontal-scroll');
+                        if (shops.length === 0) {
+                            shopsContainer.innerHTML = '<p class="text-muted">Δεν υπάρχουν καταστήματα για αυτή την κατηγορία.</p>';
+                        } else {
+                            shops.forEach(shop => {
+                                const shopCard = document.createElement('div');
+                                shopCard.className = 'shop-card me-3';
+                                shopCard.style.width = '200px';
+
+                                // Αστέρια και μέσος όρος
+                                let rating = typeof shop.reviewRatingAverage === 'number' && shop.reviewRatingAverage >= 0
+                                    ? shop.reviewRatingAverage.toFixed(1)
+                                    : '—';
+                                let stars = '';
+                                if (typeof shop.reviewRatingAverage === 'number' && shop.reviewRatingAverage > 0) {
+                                    const rounded = Math.round(shop.reviewRatingAverage);
+                                    stars = '⭐'.repeat(rounded);
+                                }
+
+                                let imageUrl = shop.image || (shop.images && shop.images.length > 0 ? shop.images[0] : '/images/default-placeholder.jpg');
+                                if (!imageUrl || (!imageUrl.startsWith('http') && !imageUrl.startsWith('/'))) {
+                                    imageUrl = '/images/default-placeholder.jpg';
+                                } else if (imageUrl.startsWith('/')) {
+                                    imageUrl = `http://localhost:300${imageUrl}`;
+                                }
+
+                                shopCard.innerHTML = `
+                                    <div class="card mb-4 position-relative">
+                                        <img src="${imageUrl}" class="card-img-top" alt="${shop.shopName}">
+                                        <div class="card-body">
+                                            <h5 class="card-title">${shop.shopName}</h5>
+                                            <p class="card-text" style="min-height:60px;max-height:120px;overflow:auto;">${shop.shopDescription || ''}</p>
+                                            <div class="d-flex align-items-center mb-2">
+                                                <span class="text-warning me-2">${stars}</span>
+                                                <span class="text-muted">${rating}</span>
+                                            </div>
+                                            <a href="#" class="btn btn-primary btn-sm view-details">Λεπτομέρειες</a>
+                                        </div>
+                                        <button class="btn btn-light position-absolute top-0 end-0 m-2 favourite-btn" title="Add to Favourites">
+                                            <i class="bi bi-heart"></i>
+                                        </button>
+                                    </div>
+                                `;
+
+                                shopsContainer.appendChild(shopCard);
+
+                                // Προσθήκη event listener στο κουμπί "Add to Favourites"
+                                const favouriteBtn = shopCard.querySelector('.favourite-btn');
+                                favouriteBtn.addEventListener('click', async (event) => {
+                                    event.stopPropagation();
+                                    await handleAddToFavourites(shop._id || shop.id);
+                                });
+
+                                // Προσθήκη event listener για το κουμπί "Λεπτομέρειες"
+                                shopCard.querySelector('.view-details').addEventListener('click', (e) => {
+                                    e.preventDefault();
+                                    window.location.href = `shop.html?id=${shop._id || shop.id}`;
+                                });
+                            });
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error updating categories:', error);
+                }
+            }
+
+            // Navbar state logic (checkAuth, login/logout/profile)
+            async function checkAuth() {
+                try {
+                    const res = await fetch('/api/check-auth', { credentials: 'include' });
+                    if (!res.ok) return false;
+                    const data = await res.json();
+                    return !!data && !!data.isAuthenticated;
+                } catch {
+                    return false;
+                }
+            }
+
+            function renderNavbarLinks(auth) {
+                const navbarLinks = document.getElementById('navbarLinks');
+                navbarLinks.innerHTML = '';
+                navbarLinks.innerHTML += `
+                    <li class="nav-item">
+                        <a class="nav-link active" href="index.html">
+                            <i class="bi bi-house-door"></i> Αρχική
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="filteredShops.html">
+                            <i class="bi bi-shop-window"></i> Μαγαζιά
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="application.html">
+                            <i class="bi bi-pencil-square"></i> Κάνε αίτηση
+                        </a>
+                    </li>
+                `;
+                if (auth) {
+                    navbarLinks.innerHTML += `
+                        <li class="nav-item dropdown" id="profileDropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="profileDropdownMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-person-circle"></i> Ο λογαριασμός μου
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdownMenu">
+                                <li>
+                                    <a class="dropdown-item" href="profile.html">
+                                        <i class="bi bi-person"></i> Προφίλ
+                                    </a>
+                                </li>
+                                <li>
+                                    <hr class="dropdown-divider">
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#" id="logoutBtn">
+                                        <i class="bi bi-box-arrow-right"></i> Αποσύνδεση
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                    `;
+                } else {
+                    navbarLinks.innerHTML += `
+                        <li class="nav-item" id="registerLoginNavItem">
+                            <a class="nav-link" href="registerLogin.html">
+                                <i class="bi bi-person-plus"></i> Εγγραφή/Σύνδεση
+                            </a>
+                        </li>
+                    `;
+                }
+            }
+
+            async function setupNavbar() {
+                const auth = await checkAuth();
+                renderNavbarLinks(auth);
+
+                // Logout functionality
+                setTimeout(() => {
+                    const logoutBtn = document.getElementById('logoutBtn');
+                    if (logoutBtn) {
+                        logoutBtn.addEventListener('click', () => {
+                            localStorage.clear();
+                            sessionStorage.clear();
+                            fetch('/api/users/logout', { method: 'POST', credentials: 'include' }).finally(() => {
+                                window.location.href = 'registerLogin.html';
+                            });
+                        });
+                    }
+                }, 100);
+            }
+
+            // Add to Favourites logic (filteredShops style)
+            async function handleAddToFavourites(shopId) {
+                try {
+                    const auth = await checkAuth();
+                    if (!auth) {
+                        alert('Πρέπει να είστε συνδεδεμένος για να προσθέσετε καταστήματα στα αγαπημένα.');
+                        return;
+                    }
+                    const response = await fetch('/api/users/favourites', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ shopId }),
+                        credentials: 'include'
+                    });
+                    if (!response.ok) {
+                        const error = await response.json();
+                        alert(`Σφάλμα: ${error.message}`);
+                        return;
+                    }
+                    alert('Το κατάστημα προστέθηκε στα αγαπημένα σας!');
+                } catch (error) {
+                    alert('Σφάλμα κατά την προσθήκη στα αγαπημένα. Παρακαλώ δοκιμάστε ξανά.');
+                }
+            }
+
+            await setupNavbar();
+        });
+    </script>
+</body>
+</html>

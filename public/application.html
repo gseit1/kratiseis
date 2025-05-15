@@ -112,12 +112,30 @@
       pointer-events: auto;
       opacity: 1;
     }
+
+    #navbar .navbar-nav .nav-link {
+      color: #fff !important;
+      font-weight: 500;
+      transition: color 0.3s, transform 0.2s;
+    }
+    #navbar .navbar-nav .nav-link:hover,
+    #navbar .navbar-nav .nav-link:focus {
+      color: #ff6ec4 !important;
+      transform: scale(1.07);
+    }
+    #navbar .dropdown-menu {
+      background: rgba(30,30,40,0.97);
+    }
+    #navbar .dropdown-item:hover {
+      background: #ff6ec4;
+      color: #fff !important;
+    }
   </style>
 </head>
 <body>
-  <nav class="navbar navbar-expand-lg navbar-dark fixed-top shadow-lg" id="navbar">
+  <nav class="navbar navbar-expand-lg navbar-dark fixed-top shadow-lg" id="navbar" style="background: rgba(30, 30, 40, 0.85); backdrop-filter: blur(8px); box-shadow: 0 4px 10px rgba(0,0,0,0.15);">
     <div class="container-fluid">
-        <a class="navbar-brand" href="index.html">
+        <a class="navbar-brand" href="index.html" style="font-weight:bold;font-size:1.5rem;color:#fff;">
             <i class="bi bi-shop"></i> MyShop
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -131,7 +149,7 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="filteredShops.html">
+                    <a class="nav-link" href="searchShops.html">
                         <i class="bi bi-shop-window"></i> Μαγαζιά
                     </a>
                 </li>

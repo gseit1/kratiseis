@@ -29,7 +29,7 @@ searchShopsRouter.get('/search/city/:cityId/mapUse', async (req, res) => {
     const { cityId } = req.params;
 
     try {
-        const shops = await Shop.find({ city: cityId }).select('_id shopName shopDescription images location');
+        const shops = await Shop.find({ city: cityId }).select('_id shopName shopDescription images location category');
         res.status(200).json(shops);
     } catch (error) {
         console.error('Error fetching shops for map:', error);

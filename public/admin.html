@@ -286,6 +286,35 @@ img {
             </div>
         </section>
 
+           
+
+        <section id="recommendedManagement" class="mt-5">
+    <div class="container">
+        <h2>Recommended Shops Management</h2>
+
+        <!-- Δημιουργία νέας λίστας -->
+        <form id="addRecommendedForm" class="mb-4">
+            <div class="row">
+                <div class="col-md-6">
+                    <select id="recommendedCity" class="form-select" required>
+                        <option value="" disabled selected>Select a city</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <button type="submit" class="btn btn-primary w-100">Create Recommended List</button>
+                </div>
+            </div>
+        </form>
+
+        <!-- Λίστα Recommended Shops -->
+        <div id="recommendedLists" class="list-group">
+            <!-- Οι λίστες θα φορτώνονται δυναμικά εδώ -->
+        </div>
+    </div>
+</section>
+
+
+
 
                 <!-- User Management Section -->
                 <section id="userManagement" class="mt-5">

@@ -21,7 +21,7 @@ const addShopService = async (shopData) => {
 
 // Επιστροφή όλων των καταστημάτων
 const getAllShopsService = async () => {
-    const shops = await Shop.find();
+    const shops = await Shop.find().populate('category');
     return shops;
 };
 
