@@ -45,6 +45,12 @@
         background: #ff6ec4;
         color: #fff !important;
     }
+
+    .selected-category {
+        background: #e0e0e0 !important;
+        border-radius: 8px;
+        transition: background 0.2s;
+    }
     </style>
 
    <!-- 🔍 Filter Bar -->
@@ -56,7 +62,6 @@
         <option value="" disabled selected>Επιλέξτε πόλη</option>
       </select>
     </div>
-    <button id="searchButton" class="btn btn-danger px-4">Αναζήτηση</button>
   </div>
 </header>
 
@@ -98,31 +103,17 @@
 
         document.addEventListener('DOMContentLoaded', async () => {
             const cityFilter = document.getElementById('cityFilter');
-            const searchButton = document.getElementById('searchButton');
             const topFrame = document.getElementById('topFrame');
             const categoriesContainer = document.getElementById('categoriesContainer');
             let categoryIcons = {};
 
-            // Populate cities in the filter bar
-            await populateCities();
+            // --- ΝΕΟ: Ανάγνωση cityId από το query string ---
+            function getCityIdFromQuery() {
+                const params = new URLSearchParams(window.location.search);
+                return params.get('cityId') || '';
+            }
 
-            // Event listener για το κουμπί "Αναζήτηση"
-            searchButton.addEventListener('click', async () => {
-                const cityId = cityFilter.value;
-
-                if (!cityId) {
-                    topFrame.innerHTML = '<h3 class="text-muted">Διάλεξε πόλη για να αναζητήσεις μαγαζιά</h3>';
-                    categoriesContainer.innerHTML = '';
-                    return;
-                }
-
-                // Ενημέρωση του χάρτη
-                await updateMap(cityId);
-
-                // Ενημέρωση κατηγοριών και καταστημάτων
-                await updateCategories(cityId);
-            });
-
+            // --- Τροποποίηση populateCities ώστε να επιλέγει την πόλη που ήρθε από index ---
             async function populateCities() {
                 try {
                     const response = await fetch('/city');
@@ -136,13 +127,47 @@
                         option.textContent = city.name;
                         cityFilter.appendChild(option);
                     });
+
+                    // Έλεγχος αν το cityId από το query string υπάρχει στα cities
+                    const initialCityId = getCityIdFromQuery();
+                    let foundCity = cities.find(city => city._id === initialCityId);
+
+                    // Αν δεν βρεθεί, χρησιμοποίησε το default id
+                    let cityIdToUse = initialCityId;
+                    if (!foundCity) {
+                        cityIdToUse = '67ef5b1015e5f9c8a42e2e8b';
+                        foundCity = cities.find(city => city._id === cityIdToUse);
+                    }
+
+                    if (foundCity) {
+                        cityFilter.value = cityIdToUse;
+                        await updateMap(cityIdToUse);
+                        await updateCategories(cityIdToUse);
+                    }
+                    // Αν δεν βρεθεί ούτε το default, δεν κάνει τίποτα (μένει στο "Επιλέξτε πόλη")
                 } catch (error) {
                     console.error('Error populating cities:', error);
                 }
             }
 
+            // Αυτόματη φόρτωση όταν αλλάζει πόλη
+            cityFilter.addEventListener('change', async () => {
+                const cityId = cityFilter.value;
+                if (!cityId) {
+                    topFrame.innerHTML = '<h3 class="text-muted">Διάλεξε πόλη για να αναζητήσεις μαγαζιά</h3>';
+                    categoriesContainer.innerHTML = '';
+                    return;
+                }
+                await updateMap(cityId);
+                await updateCategories(cityId);
+            });
+
+           
+
             async function updateMap(cityId) {
                 try {
+                    console.log('updateMap cityId:', cityId);
+
                     // Fetch κατηγορίες για icons
                     const categoriesResponse = await fetch('/category');
                     if (!categoriesResponse.ok) throw new Error('Failed to fetch categories');
@@ -158,17 +183,19 @@
                     });
 
                     const cityResponse = await fetch(`/city/${cityId}`);
-                    if (!cityResponse.ok) throw new Error('Failed to fetch city data');
+                    console.log('cityResponse status:', cityResponse.status);
                     const { city } = await cityResponse.json();
+                    console.log('city:', city);
 
                     if (!city || !city.location || !city.location.coordinates || city.location.coordinates.length < 2) {
                         alert('Η πόλη δεν έχει έγκυρες συντεταγμένες.');
                         return;
                     }
 
-                    const mapShopsResponse = await fetch(`/search/city/${cityId}/mapUse`);
-                    if (!mapShopsResponse.ok) throw new Error('Failed to fetch map shops data');
+                    const mapShopsResponse = await fetch(`/search/city/${cityId}`);
+                    console.log('mapShopsResponse status:', mapShopsResponse.status);
                     const shops = await mapShopsResponse.json();
+                    console.log('shops:', shops);
 
                     // Υπολογισμός πλήθους μαγαζιών ανά κατηγορία
                     const categoryCounts = {};
@@ -187,7 +214,7 @@
                             const name = categoryNames[categoryId] || '';
                             const image = categoryIcons[categoryId] || '/images/default-placeholder.jpg';
                             summaryHtml += `
-                                <div class="summary-item d-flex flex-row align-items-center mb-3" style="width: 190px;">
+                                <div class="summary-item d-flex flex-row align-items-center mb-3" style="width: 190px;" data-category-id="${categoryId}">
                                     <span class="category-name text-start" style="font-size: 15px; font-weight: 500; color: #333; min-width: 90px; max-width: 110px; word-break: break-word; margin-right: 10px;">${name}</span>
                                     <div class="d-flex flex-column align-items-center">
                                         <img src="${image}" alt="${name}" title="${name}" style="width:48px;height:48px;object-fit:cover;border-radius:50%;border:2px solid #e74c3c;">
@@ -209,6 +236,158 @@
                             </div>
                         </div>
                     `;
+
+                    // --- Βάλε αυτή τη συνάρτηση έξω από την updateMap ---
+                    let currentMap = null;
+
+                    function renderMapWithShops(city, shops, categoryIcons) {
+                        const mapContainer = document.getElementById('mapContainer');
+                        if (currentMap) {
+                            currentMap.remove();
+                            currentMap = null;
+                        }
+                        mapContainer.innerHTML = '';
+
+                        const map = new mapboxgl.Map({
+                            container: 'mapContainer',
+                            style: 'mapbox://styles/mapbox/streets-v12',
+                            center: [city.location.coordinates[0], city.location.coordinates[1]],
+                            zoom: 13,
+                            pitch: 60,
+                            bearing: -30,
+                            antialias: true,
+                            maxZoom: 20,
+                            minZoom: 5,
+                            maxPitch: 85,
+                            dragRotate: true,
+                            boxZoom: true,
+                            fadeDuration: 250
+                        });
+                        currentMap = map;
+
+                        shops.forEach(shop => {
+                            console.log('shop:', shop);
+                            if (shop.location && shop.location.coordinates) {
+                                const categoryId = shop.category?._id || shop.category;
+                                const iconUrl = categoryIcons[categoryId] || '/images/default-placeholder.jpg';
+
+                                const markerEl = document.createElement('div');
+                                markerEl.className = 'custom-marker';
+                                markerEl.style.width = '50px';
+                                markerEl.style.height = '50px';
+                                markerEl.style.background = 'radial-gradient(circle, #000 60%, #222 100%)';
+                                markerEl.style.borderRadius = '50%';
+                                markerEl.style.display = 'flex';
+                                markerEl.style.alignItems = 'center';
+                                markerEl.style.justifyContent = 'center';
+                                markerEl.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.5)';
+
+                                const imgEl = document.createElement('img');
+                                imgEl.src = iconUrl;
+                                imgEl.alt = shop.shopName;
+                                imgEl.style.width = '40px';
+                                imgEl.style.height = '40px';
+                                imgEl.style.objectFit = 'cover';
+                                imgEl.style.borderRadius = '50%';
+                                imgEl.style.border = '2px solid #fff';
+                                markerEl.appendChild(imgEl);
+
+                                const marker = new mapboxgl.Marker(markerEl)
+                                    .setLngLat(shop.location.coordinates)
+                                    .addTo(map);
+
+                                markerEl.style.transition = 'transform 0.3s ease';
+                                markerEl.style.transform = 'scale(0)';
+                                setTimeout(() => {
+                                    markerEl.style.transform = 'scale(1)';
+                                }, 100);
+
+                                let imageUrl = shop.image || (shop.images && shop.images.length > 0 ? shop.images[0] : '/images/default-placeholder.jpg');
+                                if (imageUrl.startsWith('/')) {
+                                    imageUrl = `http://localhost:300${imageUrl}`;
+                                }
+
+                                const popup = new mapboxgl.Popup({ offset: 25 })
+                                    .setHTML(`
+                                        <div class="popup-card">
+                                            <img src="${imageUrl}" 
+                                                 alt="${shop.shopName}" 
+                                                 style="width: 100%; height: 120px; object-fit: cover; border-radius: 4px; margin-bottom: 8px;">
+                                            <h5 style="font-size: 16px; margin: 8px 0;">${shop.shopName}</h5>
+                                            <p style="font-size: 14px; color: #666; margin-bottom: 8px;">${shop.shopDescription || ''}</p>
+                                            <button onclick="window.location.href='shop.html?id=${shop._id}'" 
+                                                    class="btn btn-primary btn-sm w-100">Λεπτομέρειες</button>
+                                        </div>
+                                    `);
+
+                                marker.setPopup(popup);
+                            } else {
+                                console.warn('Shop χωρίς location:', shop);
+                            }
+                        });
+                    }
+
+                    document.querySelectorAll('#categorySummaryContainer .summary-item').forEach(item => {
+                        item.addEventListener('click', async function() {
+                            const categoryId = this.getAttribute('data-category-id');
+                            if (!categoryId) return;
+
+                            // Φέρε shops μόνο για αυτή την κατηγορία
+                            console.log('Επιλέχθηκε κατηγορία:', categoryId);
+
+                            const shopsRes = await fetch(`/search/city/${cityId}/category/${categoryId}`);
+                            console.log('shopsRes status:', shopsRes.status);
+                            const shops = await shopsRes.json();
+                            console.log('shops για κατηγορία:', shops);
+
+                            // Φόρτωσε το map ΜΟΝΟ με αυτά τα shops
+                            renderMapWithShops(city, shops, categoryIcons);
+
+                            // Εμφάνισε τα shops κάτω από το map (όχι grouped)
+                            categoriesContainer.innerHTML = '';
+                            if (shops.length === 0) {
+                                categoriesContainer.innerHTML = '<p class="text-muted">Δεν υπάρχουν καταστήματα για αυτή την κατηγορία.</p>';
+                            } else {
+                                shops.forEach(shop => {
+                                    const shopCard = document.createElement('div');
+                                    shopCard.className = 'shop-card me-3';
+                                    shopCard.style.width = '200px';
+                                    let rating = typeof shop.reviewRatingAverage === 'number' && shop.reviewRatingAverage >= 0
+                                        ? shop.reviewRatingAverage.toFixed(1)
+                                        : '—';
+                                    let stars = '';
+                                    if (typeof shop.reviewRatingAverage === 'number' && shop.reviewRatingAverage > 0) {
+                                        const rounded = Math.round(shop.reviewRatingAverage);
+                                        stars = '⭐'.repeat(rounded);
+                                    }
+                                    let imageUrl = shop.image || (shop.images && shop.images.length > 0 ? shop.images[0] : '/images/default-placeholder.jpg');
+                                    if (!imageUrl || (!imageUrl.startsWith('http') && !imageUrl.startsWith('/'))) {
+                                        imageUrl = '/images/default-placeholder.jpg';
+                                    } else if (imageUrl.startsWith('/')) {
+                                        imageUrl = `http://localhost:300${imageUrl}`;
+                                    }
+                                    shopCard.innerHTML = `
+                                        <div class="card mb-4 position-relative">
+                                            <img src="${imageUrl}" class="card-img-top" alt="${shop.shopName}">
+                                            <div class="card-body">
+                                                <h5 class="card-title">${shop.shopName}</h5>
+                                                <p class="card-text" style="min-height:30px;max-height:120px;overflow:auto;">${shop.address}</p>
+                                                <div class="d-flex align-items-center mb-2">
+                                                    <span class="text-warning me-2">${stars}</span>
+                                                    <span class="text-muted">${rating}</span>
+                                                </div>
+                                                <a href="#" class="btn btn-primary btn-sm view-details">Λεπτομέρειες</a>
+                                            </div>
+                                            <button class="btn btn-light position-absolute top-0 end-0 m-2 favourite-btn" title="Add to Favourites">
+                                                <i class="bi bi-heart"></i>
+                                            </button>
+                                        </div>
+                                    `;
+                                    categoriesContainer.appendChild(shopCard);
+                                });
+                            }
+                        });
+                    });
 
                     const mapContainer = document.getElementById('mapContainer');
 
@@ -354,7 +533,7 @@
                     if (categories.categories) categories = categories.categories;
 
                     // Φέρε τα πλήθη ανά κατηγορία για φθίνουσα ταξινόμηση
-                    const countsRes = await fetch(`/search/city/${cityId}/mapUse`);
+                    const countsRes = await fetch(`/search/city/${cityId}`);
                     const shopsForCount = await countsRes.json();
                     const catCounts = {};
                     shopsForCount.forEach(shop => {
@@ -565,7 +744,22 @@
                 }
             }
 
+            await populateCities();
             await setupNavbar();
+
+            // Event delegation για να δουλεύει και μετά από κάθε refresh του summary
+            document.addEventListener('click', function(e) {
+                const item = e.target.closest('.summary-item');
+                if (item && item.hasAttribute('data-category-id')) {
+                    // Αφαίρεσε το selected από όλα
+                    document.querySelectorAll('.summary-item.selected-category').forEach(el => {
+                        el.classList.remove('selected-category');
+                    });
+                    // Βάλε το selected στο τρέχον
+                    item.classList.add('selected-category');
+                    // ...εδώ βάλε το fetch και το render των markers για το category αν δεν υπάρχει ήδη...
+                }
+            });
         });
     </script>
 </body>

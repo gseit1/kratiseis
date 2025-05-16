@@ -181,18 +181,20 @@
     
             <!-- Category 2: Shops in Thessaloniki -->
             <div class="category-row mb-4">
-                <h3 class="mb-3">Καταστήματα Αθήνα</h3>
-                <div id="thessalonikiShopsContainer" class="scrollable-row d-flex overflow-auto">
-                    <!-- JavaScript will populate -->
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3 class="mb-0">Καταστήματα Αθήνα</h3>
+                    <button class="btn btn-outline-primary btn-sm" id="viewAllAthensBtn">View All</button>
                 </div>
+                <div id="athensShopsContainer" class="scrollable-row d-flex overflow-auto"></div>
             </div>
     
             <!-- Category 3: Shops in Athens -->
             <div class="category-row mb-4">
-                <h3 class="mb-3">Καταστήματα Θεσσαλονίκη</h3>
-                <div id="athensShopsContainer" class="scrollable-row d-flex overflow-auto">
-                    <!-- JavaScript will populate -->
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3 class="mb-0">Καταστήματα Θεσσαλονίκη</h3>
+                    <button class="btn btn-outline-primary btn-sm" id="viewAllThessBtn">View All</button>
                 </div>
+                <div id="thessalonikiShopsContainer" class="scrollable-row d-flex overflow-auto"></div>
             </div>
         </div>
     </section>
@@ -360,6 +362,26 @@
 
     // Προσθήκη event listener στο κουμπί Logout
     document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+
+    document.getElementById('cityDropdown').addEventListener('change', function() {
+      const cityId = this.value;
+      if (cityId) {
+        // Ανακατεύθυνση στη σελίδα αναζήτησης με το επιλεγμένο cityId
+        window.location.href = `searchShops.html?cityId=${cityId}`;
+      }
+    });
+
+    // IDs για τις πόλεις (βάλε τα σωστά cityId από τη βάση σου)
+const ATHENS_CITY_ID = '67ef5b2f15e5f9c8a42e2e91';
+const THESS_CITY_ID = '67ef5b2215e5f9c8a42e2e8e';
+
+document.getElementById('viewAllAthensBtn').addEventListener('click', () => {
+    window.location.href = `searchShops.html?cityId=${ATHENS_CITY_ID}`;
+});
+
+document.getElementById('viewAllThessBtn').addEventListener('click', () => {
+    window.location.href = `searchShops.html?cityId=${THESS_CITY_ID}`;
+});
 </script>
 </body>
 </html>
