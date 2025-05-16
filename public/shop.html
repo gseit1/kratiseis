@@ -179,7 +179,7 @@ body {
 
 /* Carousel Styling */
 .carousel-inner img {
-  height: 260px;
+  height: 360px;
   object-fit: cover;
   border-radius: 16px;
   transition: all 0.3s ease;
@@ -200,6 +200,8 @@ body {
   padding: 2rem;
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.2);
   transition: all 0.3s ease;
+  max-height: 80vh;      /* Add this line */
+  overflow-y: auto;      /* And this line */
 }
 
 .fixed-booking:hover {
@@ -271,7 +273,95 @@ body {
         color: #ff6ec4;
         font-size: 1.2rem;
     }
-
+.calendar-container {
+  background: rgba(255,255,255,0.03);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+}
+.calendar-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 8px;
+  text-align: center;
+}
+.calendar-table th {
+  color: #ff6ec4;
+  font-weight: 700;
+  padding-bottom: 0.5rem;
+}
+.calendar-table td {
+  background: rgba(255,255,255,0.07);
+  border-radius: 8px;
+  height: 48px;
+  vertical-align: top;
+  position: relative;
+}
+.calendar-table .available {
+  background: #22223b;
+  color: #fff;
+  font-weight: bold;
+}
+.calendar-table .menu-btn {
+  display: block;
+  margin: 4px auto 0 auto;
+  background: #ff6ec4;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.section-nav-bar {
+  font-size: 1.05rem;
+  gap: 0.5rem;
+  background: rgba(27, 26, 26, 1) !important;
+  border-radius: 12px;
+  padding: 0.5rem 0;
+  position: sticky;
+  top: 64px;
+  z-index: 1020;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+  /* Make sure it's always visible above content */
+}
+.section-link {
+  color: #ff6ec4;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 0.3rem 1.1rem;
+  border-radius: 8px;
+  transition: background 0.2s, color 0.2s;
+  background: rgba(255,255,255,0.08);
+  margin: 0 0.2rem;
+}
+.section-link:hover, .section-link.active {
+  background: #ff6ec4;
+  color: #fff;
+}
+@media (max-width: 991.98px) {
+  .section-nav-bar {
+    top: 56px;
+    font-size: 0.98rem;
+    padding: 0.3rem 0.2rem;
+  }
+  .section-link {
+    padding: 0.2rem 0.7rem;
+    font-size: 0.98rem;
+  }
+}
+.sticky-reservation {
+  position: sticky;
+  top: 112px; /* Height of navbar (64px) + section nav (48px) */
+  z-index: 19;
+}
+@media (max-width: 991.98px) {
+  .sticky-reservation {
+    position: static;
+    top: unset;
+  }
+}
     
     
   </style>
@@ -336,6 +426,15 @@ body {
         </div>
     </div>
 </nav>
+<!-- Section Navigation Bar -->
+<div id="sectionNavBar" class="section-nav-bar d-flex justify-content-center align-items-center mb-3" style="background:rgba(255,255,255,0.07);border-radius:12px;padding:0.5rem 0;position:sticky;top:64px;z-index:20;">
+  <a href="#carouselSection" class="section-link mx-2">Photos</a>
+  <a href="#shopDetailsSection" class="section-link mx-2">Details</a>
+  <a href="#openingHoursSection" class="section-link mx-2">Opening Hours</a>
+  <a href="#mapSection" class="section-link mx-2">Map</a>
+  <a href="#reviewsSection" class="section-link mx-2">Reviews</a>
+  <a href="#reservationSection" class="section-link mx-2">Reservation</a>
+</div>
   <!-- Main Content -->
   <div class="container mt-4">
     <div class="row g-3">
@@ -345,6 +444,7 @@ body {
         <h1 id="shopName" class="mb-2 text-primary font-weight-bold text-center"></h1>
 
         <!-- Carousel -->
+        <div id="carouselSection"></div>
         <div id="shopCarousel" class="carousel slide mb-3" data-bs-ride="carousel">
           <div class="carousel-inner" id="carouselImages">
             <!-- Images will be dynamically injected here -->
@@ -367,6 +467,7 @@ body {
         <!-- Shop Description -->
         <p id="shopDescription" class="mt-2 text text-center"></p>
 <!-- Shop Details -->
+<div id="shopDetailsSection"></div>
 <div class="shop-details">
   <h5><i class="bi bi-info-circle me-2"></i>Shop Details</h5>
   <ul>
@@ -409,6 +510,7 @@ body {
   
   <!-- Opening Hours -->
 <!-- Opening Hours -->
+<div id="openingHoursSection"></div>
 <div id="shopDetails" class="opening-hours">
   <!-- Opening hours will be dynamically injected here -->
 </div>
@@ -418,9 +520,11 @@ body {
         </a>
 
         <!-- Map -->
+        <div id="mapSection"></div>
         <div id="map" class="mt-3" style="height: 250px; border-radius: 8px;"></div>
 
         <!-- Reviews Section -->
+        <div id="reviewsSection"></div>
         <div class="reviews-section mt-4">
           <h5 class="text-primary mb-3"><i class="bi bi-chat-dots me-2"></i>Customer Reviews</h5>
 
@@ -455,60 +559,59 @@ body {
       </div>
 
       <!-- Right Side: Fixed Booking Section -->
-      <!-- Right Side: Fixed Booking Section -->
-<div class="col-lg-4">
-  <div class="shop-card fixed-booking">
-    <h5 class="text-primary mb-2 fw-bold text-center">Book a Reservation</h5>
-    <form id="searchForm">
-      <div class="mb-2">
-        <label for="numberOfPeople" class="form-label">People:</label>
-        <div class="input-group">
-          <button type="button" class="btn btn-outline-secondary" id="decrementPeople">-</button>
-          <input type="number" class="form-control text-center" id="numberOfPeople" name="numberOfPeople" value="1" min="1" required>
-          <button type="button" class="btn btn-outline-secondary" id="incrementPeople">+</button>
+      <div class="col-lg-4">
+        <div id="reservationSection"></div>
+        <div class="shop-card fixed-booking sticky-reservation">
+          <h5 class="text-primary mb-2 fw-bold text-center">Book a Reservation</h5>
+          <form id="searchForm">
+            <div class="mb-2">
+              <label for="numberOfPeople" class="form-label">People:</label>
+              <div class="input-group">
+                <button type="button" class="btn btn-outline-secondary" id="decrementPeople">-</button>
+                <input type="number" class="form-control text-center" id="numberOfPeople" name="numberOfPeople" value="1" min="1" required>
+                <button type="button" class="btn btn-outline-secondary" id="incrementPeople">+</button>
+              </div>
+            </div>
+            <div class="mb-2">
+              <label for="reservationDate" class="form-label">Date:</label>
+              <input type="date" class="form-control" id="reservationDate" name="reservationDate" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100 text-uppercase">Search Times</button>
+          </form>
+
+          <!-- Info Text -->
+          <p class="text mt-3 text-center" style="font-size: 0.9rem;">
+            Booking a table on our site is <strong>completely free</strong>. No hidden charges!
+          </p>
+
+          <!-- Available Times -->
+          <div id="availableTimes" class="calendar-container"></div>
+          <!-- Reservation Form -->
+          <form id="reservationForm" style="display: none;">
+            <div class="mb-2">
+              <label for="userName" class="form-label">Name:</label>
+              <input type="text" class="form-control" id="userName" name="userName" readonly>
+            </div>
+            <div class="mb-2">
+              <label for="userSurname" class="form-label">Surname:</label>
+              <input type="text" class="form-control" id="userSurname" name="userSurname" readonly>
+            </div>
+            <div class="mb-2">
+              <label for="userEmail" class="form-label">Email:</label>
+              <input type="email" class="form-control" id="userEmail" name="userEmail" readonly>
+            </div>
+            <div class="mb-2">
+              <label for="reservationTime" class="form-label">Time:</label>
+              <select class="form-control" id="reservationTime" name="reservationTime" required></select>
+            </div>
+            <div class="mb-2">
+              <label for="commentFromUser" class="form-label">Comments:</label>
+              <textarea class="form-control" id="commentFromUser" name="commentFromUser" maxlength="200"></textarea>
+            </div>
+            <button type="submit" class="btn btn-success w-100 text-uppercase">Book Reservation</button>
+          </form>
         </div>
       </div>
-      <div class="mb-2">
-        <label for="reservationDate" class="form-label">Date:</label>
-        <input type="date" class="form-control" id="reservationDate" name="reservationDate" required>
-      </div>
-      <button type="submit" class="btn btn-primary w-100 text-uppercase">Search Times</button>
-    </form>
-
-    <!-- Info Text -->
-    <p class="text mt-3 text-center" style="font-size: 0.9rem;">
-      Booking a table on our site is <strong>completely free</strong>. No hidden charges!
-    </p>
-
-    <!-- Available Times -->
-    <div id="availableTimes" class="mt-3"></div>
-
-    <!-- Reservation Form -->
-    <form id="reservationForm" style="display: none;">
-      <div class="mb-2">
-        <label for="userName" class="form-label">Name:</label>
-        <input type="text" class="form-control" id="userName" name="userName" readonly>
-      </div>
-      <div class="mb-2">
-        <label for="userSurname" class="form-label">Surname:</label>
-        <input type="text" class="form-control" id="userSurname" name="userSurname" readonly>
-      </div>
-      <div class="mb-2">
-        <label for="userEmail" class="form-label">Email:</label>
-        <input type="email" class="form-control" id="userEmail" name="userEmail" readonly>
-      </div>
-      <div class="mb-2">
-        <label for="reservationTime" class="form-label">Time:</label>
-        <select class="form-control" id="reservationTime" name="reservationTime" required></select>
-      </div>
-      <div class="mb-2">
-        <label for="commentFromUser" class="form-label">Comments:</label>
-        <textarea class="form-control" id="commentFromUser" name="commentFromUser" maxlength="200"></textarea>
-      </div>
-      <button type="submit" class="btn btn-success w-100 text-uppercase">Book Reservation</button>
-    </form>
-  </div>
-</div>
     </div>
   </div>
 
@@ -586,7 +689,6 @@ document.getElementById('decrementPeople').addEventListener('click', () => {
     const shop = await response.json();
 
     // Update shop details
-    document.getElementById('shopName').textContent = shop.shopName || 'N/A';
     document.getElementById('shopDescription').textContent = shop.shopDescription || 'N/A';
     document.getElementById('shopPhone').textContent = shop.phone || 'N/A';
     document.getElementById('shopCity').textContent = shop.city?.name || 'N/A';
@@ -605,6 +707,40 @@ document.getElementById('decrementPeople').addEventListener('click', () => {
     // Update carousel images
     const carouselImages = document.getElementById('carouselImages');
     const carouselThumbnails = document.getElementById('carouselThumbnails');
+    // Create the persistent shop name overlay (only once)
+    let shopNameOverlay = document.getElementById('shopNameOverlay');
+    // Calculate stars for overlay
+    const overlayStars = shop.reviewRatingAverage !== -1 ? '⭐'.repeat(Math.round(shop.reviewRatingAverage)) : '';
+    if (!shopNameOverlay) {
+      shopNameOverlay = document.createElement('div');
+      shopNameOverlay.id = 'shopNameOverlay';
+      shopNameOverlay.style.position = 'absolute';
+      shopNameOverlay.style.left = '0';
+      shopNameOverlay.style.bottom = '0';
+      shopNameOverlay.style.top = 'auto';
+      shopNameOverlay.style.right = 'auto';
+      shopNameOverlay.style.padding = '1.2rem 2rem';
+      shopNameOverlay.style.background = 'rgba(0,0,0,0.55)';
+      shopNameOverlay.style.borderBottomLeftRadius = '16px';
+      shopNameOverlay.style.borderTopRightRadius = '16px';
+      shopNameOverlay.style.maxWidth = '80%';
+      shopNameOverlay.style.zIndex = '10';
+      shopNameOverlay.innerHTML = `
+        <div style="display:flex;align-items:center;gap:1rem;">
+          <h1 class="text-white fw-bold m-0" style="text-shadow:0 2px 8px #000;font-size:2.2rem;line-height:1.1;">${shop.shopName || ''}</h1>
+          <span class="text-warning fs-3" style="text-shadow:0 2px 8px #000;">${overlayStars}</span>
+        </div>`;
+      // Insert overlay into carousel
+      const carousel = document.getElementById('shopCarousel');
+      carousel.style.position = 'relative';
+      carousel.appendChild(shopNameOverlay);
+    } else {
+      shopNameOverlay.innerHTML = `
+        <div style=\"display:flex;align-items:center;gap:1rem;\">
+          <h1 class=\"text-white fw-bold m-0\" style=\"text-shadow:0 2px 8px #000;font-size:2.2rem;line-height:1.1;\">${shop.shopName || ''}</h1>
+          <span class=\"text-warning fs-3\" style=\"text-shadow:0 2px 8px #000;\">${overlayStars}</span>
+        </div>`;
+    }
     if (carouselImages && shop.images && shop.images.length > 0) {
       carouselImages.innerHTML = shop.images
         .slice(0, 3) // Limit to 3 images
@@ -614,7 +750,7 @@ document.getElementById('decrementPeople').addEventListener('click', () => {
           </div>
         `)
         .join('');
-
+      // Update thumbnails
       carouselThumbnails.innerHTML = shop.images
         .slice(0, 3) // Limit to 3 images
         .map((image, index) => `
@@ -712,10 +848,11 @@ document.getElementById('decrementPeople').addEventListener('click', () => {
       // Εμφάνιση φόρμας για guest (χωρίς αλλαγές)
        // Εμφάνιση πλαισίου για login/signup ή κράτηση ως guest
        document.getElementById('availableTimes').innerHTML = `
-             <div class="alert alert-warning">
-               <p>You are not logged in. Please <a href="registerLogin.html">Login/Signup</a> or make a reservation as a guest.</p>
-             </div>
              <form id="guestReservationForm">
+               <div class="mb-2">
+                 <label for="guestReservationTime" class="form-label">Available Times:</label>
+                 <div id="guestReservationTime"></div>
+               </div>
                <div class="mb-2">
                  <label for="guestName" class="form-label">Name:</label>
                  <input type="text" id="guestName" class="form-control" required>
@@ -732,10 +869,6 @@ document.getElementById('decrementPeople').addEventListener('click', () => {
                  <label for="guestComment" class="form-label">Comment:</label>
                  <textarea id="guestComment" class="form-control"></textarea>
                </div>
-               <div class="mb-2">
-                 <label for="guestReservationTime" class="form-label">Available Times:</label>
-                 <select id="guestReservationTime" class="form-control" required></select>
-               </div>
                <button type="submit" class="btn btn-primary w-100">Submit Reservation</button>
              </form>
            `;
@@ -746,11 +879,28 @@ document.getElementById('decrementPeople').addEventListener('click', () => {
            const availableTimes = result.availability;
 
            if (availableTimes && availableTimes.length > 0) {
-             document.getElementById('guestReservationTime').innerHTML = availableTimes
-               .map(time => `<option value="${time}">${formatTime(time)}</option>`)
-               .join('');
+             // Replace select with buttons and a hidden input
+             const container = document.getElementById('guestReservationTime');
+             // Create a wrapper div for the buttons
+             let btnHtml = '<div id="guestTimesContainer">' + availableTimes
+               .map(time => `<button type="button" class="btn btn-outline-primary btn-sm m-1 guest-time-btn" data-time="${time}">${formatTime(time)}</button>`)
+               .join('') + '</div>';
+             // Add a hidden input to store the selected time
+             btnHtml += '<input type="hidden" id="guestReservationTimeHidden" name="guestReservationTime" required>';
+             container.outerHTML = btnHtml;
+
+             // Add click listeners to the new buttons
+             setTimeout(() => {
+               document.querySelectorAll('.guest-time-btn').forEach(btn => {
+                 btn.addEventListener('click', function() {
+                   document.querySelectorAll('.guest-time-btn').forEach(b => b.classList.remove('active'));
+                   this.classList.add('active');
+                   document.getElementById('guestReservationTimeHidden').value = this.getAttribute('data-time');
+                 });
+               });
+             }, 0);
            } else {
-             document.getElementById('guestReservationTime').innerHTML = `<option disabled>No available times</option>`;
+             document.getElementById('guestReservationTime').outerHTML = '<span class="text-danger">No available times</span>';
            }
 
            // Προσθήκη event listener για υποβολή κράτησης ως guest
@@ -760,7 +910,7 @@ document.getElementById('decrementPeople').addEventListener('click', () => {
    const guestSurname = document.getElementById('guestSurname').value;
    const guestEmail = document.getElementById('guestEmail').value;
    const guestComment = document.getElementById('guestComment').value;
-   const guestReservationTime = document.getElementById('guestReservationTime').value;
+   const guestReservationTime = document.getElementById('guestReservationTimeHidden').value;
 
    const reservationData = {
      shopId,
@@ -991,6 +1141,19 @@ document.getElementById('decrementPeople').addEventListener('click', () => {
 });
 
     document.addEventListener('DOMContentLoaded', fetchReviews);
+    // Smooth scroll for section links
+[...document.querySelectorAll('.section-link')].forEach(link => {
+  link.addEventListener('click', function(e) {
+    e.preventDefault();
+    const target = document.querySelector(this.getAttribute('href'));
+    if (target) {
+      window.scrollTo({
+        top: target.getBoundingClientRect().top + window.scrollY - 80,
+        behavior: 'smooth'
+      });
+    }
+  });
+});
   </script>
 </body>
 </html>

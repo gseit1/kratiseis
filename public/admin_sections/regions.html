@@ -1,0 +1,22 @@
+<!-- Region Management Section -->
+<section id="regionManagement" class="mt-5">
+    <div class="container">
+      <h2>Region Management</h2>
+      <form id="addRegionForm" class="mb-3">
+        <div class="row">
+          <div class="col-md-6">
+            <input type="text" id="regionName" class="form-control" placeholder="Enter region name" required>
+          </div>
+          <div class="col-md-4">
+            <select id="cityFilter" class="form-select" required>
+              <option value="" disabled selected>Select a city</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100">Add Region</button>
+          </div>
+        </div>
+      </form>
+      <div id="regionsList" class="list-group"></div>
+    </div>
+</section>

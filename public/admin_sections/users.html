@@ -1,0 +1,39 @@
+<!-- User Management Section -->
+<section id="userManagement" class="mt-5">
+    <div class="container">
+      <h2>User Management</h2>
+      <div class="btn-group mb-3" role="group" aria-label="Role Filter">
+        <button class="btn btn-primary" onclick="fetchUsersByRole('user')">Users</button>
+        <button class="btn btn-secondary" onclick="fetchUsersByRole('shopOwner')">Shop Owners</button>
+        <button class="btn btn-danger" onclick="fetchUsersByRole('admin')">Admins</button>
+      </div>
+      <div class="row">
+        <div class="col-md-4">
+          <div id="userList" class="list-group" style="max-height: 400px; overflow-y: auto;"></div>
+        </div>
+        <div class="col-md-8">
+          <div id="userDetails" style="display: none;">
+            <h3>User Details</h3>
+            <p><strong>Name:</strong> <span id="userName"></span></p>
+            <p><strong>Surname:</strong> <span id="userSurname"></span></p>
+            <p><strong>Email:</strong> <span id="userEmail"></span></p>
+            <p>
+              <strong>Role:</strong>
+              <select id="userRole" class="form-select">
+                <option value="user">User</option>
+                <option value="shopOwner">Shop Owner</option>
+                <option value="admin">Admin</option>
+              </select>
+              <button id="updateRoleButton" class="btn btn-primary mt-2">Update Role</button>
+            </p>
+            <p>
+              <strong>Shop ID:</strong>
+              <input type="text" id="userShopId" class="form-control" />
+              <button id="updateShopIdButton" class="btn btn-primary mt-2">Update Shop ID</button>
+            </p>
+            <p><strong>Reservation History:</strong> <span id="userReservationHistory"></span></p>
+          </div>
+        </div>
+      </div>
+    </div>
+</section>

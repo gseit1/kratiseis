@@ -1,0 +1,47 @@
+<!-- City Management Section -->
+<section id="cityManagement" class="mt-5">
+    <div class="container">
+      <h2>City Management</h2>
+      <form id="addCityForm" enctype="multipart/form-data">
+        <div class="mb-2">
+          <input type="text" id="cityName" class="form-control" placeholder="City Name" required>
+        </div>
+        <div class="mb-2">
+          <input type="text" id="cityLatitude" class="form-control" placeholder="Latitude" required>
+        </div>
+        <div class="mb-2">
+          <input type="text" id="cityLongitude" class="form-control" placeholder="Longitude" required>
+        </div>
+        <div class="mb-2">
+          <input type="file" id="cityImage" name="image" class="form-control" accept="image/*" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Add City</button>
+      </form>
+      <div id="citiesList" class="list-group"></div>
+    </div>
+</section>
+
+<!-- Edit City Section -->
+<div id="editCitySection" class="mt-5" style="display: none;">
+  <h2>Edit City</h2>
+  <form id="editCityForm" enctype="multipart/form-data">
+    <div class="mb-2">
+      <label for="editCityName" class="form-label">New City Name</label>
+      <input type="text" id="editCityName" class="form-control" placeholder="Enter new city name" required>
+    </div>
+    <div class="mb-2">
+      <label for="editCityLatitude" class="form-label">New Latitude</label>
+      <input type="text" id="editCityLatitude" class="form-control" placeholder="Enter new latitude" required>
+    </div>
+    <div class="mb-2">
+      <label for="editCityLongitude" class="form-label">New Longitude</label>
+      <input type="text" id="editCityLongitude" class="form-control" placeholder="Enter new longitude" required>
+    </div>
+    <div class="mb-2">
+      <label for="editCityImage" class="form-label">New City Image</label>
+      <input type="file" id="editCityImage" name="image" class="form-control" accept="image/*">
+    </div>
+    <button type="submit" class="btn btn-primary">Save Changes</button>
+    <button type="button" class="btn btn-secondary" onclick="cancelEditCity()">Cancel</button>
+  </form>
+</div>

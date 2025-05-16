@@ -1,0 +1,15 @@
+<!-- Applications Management Section -->
+<section id="applicationsManagement" class="mt-5">
+    <div class="container">
+      <h2>Applications Management</h2>
+      <div id="applicationsList" class="list-group"></div>
+      <div id="applicationDetails" class="mt-4" style="display: none;">
+        <h3>Application Details</h3>
+        <p><strong>Shop Name:</strong> <span id="appShopName"></span></p>
+        <p><strong>Description:</strong> <span id="appShopDescription"></span></p>
+        <p><strong>User:</strong> <span id="appUser"></span></p>
+        <button class="btn btn-success me-2" onclick="handleApplicationDecision('accept')">Accept</button>
+        <button class="btn btn-danger" onclick="handleApplicationDecision('reject')">Reject</button>
+      </div>
+    </div>
+</section>

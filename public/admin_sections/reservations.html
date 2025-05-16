@@ -1,0 +1,29 @@
+<!-- Reservations Management Section -->
+<section id="reservationsManagement" class="mt-5">
+    <div class="container">
+      <h2>Reservations Management</h2>
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <p><strong>Total Reservations:</strong> <span id="totalReservations">0</span></p>
+        </div>
+        <div class="col-md-6">
+          <form id="reservationSearchForm" class="d-flex">
+            <input type="text" id="reservationSearchInput" class="form-control me-2" placeholder="Search by Reservation ID" required>
+            <button type="submit" class="btn btn-primary">Search</button>
+          </form>
+        </div>
+      </div>
+      <div id="reservationDetails" class="card mt-3" style="display: none;">
+        <div class="card-body">
+          <h5 class="card-title">Reservation Details</h5>
+          <p><strong>Reservation ID:</strong> <span id="reservationId"></span></p>
+          <p><strong>Customer:</strong> <span id="reservationCustomer"></span></p>
+          <p><strong>Shop:</strong> <span id="reservationShop"></span></p>
+          <p><strong>Date:</strong> <span id="reservationDate"></span></p>
+          <p><strong>Time:</strong> <span id="reservationTime"></span></p>
+          <p><strong>Seats:</strong> <span id="reservationSeats"></span></p>
+          <p><strong>Status:</strong> <span id="reservationStatus"></span></p>
+        </div>
+      </div>
+    </div>
+</section>

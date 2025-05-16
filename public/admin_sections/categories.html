@@ -1,0 +1,33 @@
+<!-- Categories Section -->
+<div class="mb-4">
+    <h2>Categories</h2>
+    <form id="addCategoryForm" enctype="multipart/form-data">
+        <div class="mb-2">
+          <input type="text" id="categoryName" class="form-control" placeholder="Category Name" required>
+        </div>
+        <div class="mb-2">
+          <input type="file" id="categoryImage" name="image" class="form-control" accept="image/*" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Add Category</button>
+      </form>
+    <ul id="categoryList" class="list-group">
+        <!-- Categories will be dynamically inserted here -->
+    </ul>
+</div>
+
+<!-- Edit Category Section -->
+<div id="editCategorySection" class="mt-5" style="display: none;">
+  <h2>Edit Category</h2>
+  <form id="editCategoryForm" enctype="multipart/form-data">
+    <div class="mb-2">
+      <label for="editCategoryName" class="form-label">New Category Name</label>
+      <input type="text" id="editCategoryName" class="form-control" placeholder="Enter new category name" required>
+    </div>
+    <div class="mb-2">
+      <label for="editCategoryImage" class="form-label">New Category Image</label>
+      <input type="file" id="editCategoryImage" name="image" class="form-control" accept="image/*">
+    </div>
+    <button type="submit" class="btn btn-primary">Save Changes</button>
+    <button type="button" class="btn btn-secondary" onclick="cancelEditCategory()">Cancel</button>
+  </form>
+</div>
