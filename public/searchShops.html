@@ -47,45 +47,49 @@
     }
     </style>
 
-    <!-- Filter Bar -->
-    <div id="filterBar" class="bg-light py-3 shadow-sm">
-        <div class="container d-flex flex-wrap justify-content-between align-items-center">
-            <div class="d-flex flex-column flex-md-row align-items-md-center gap-2">
-                <label for="cityFilter" class="form-label mb-0 me-2">Πόλη</label>
-                <select id="cityFilter" class="form-select">
-                    <option value="" disabled selected>Επιλέξτε πόλη</option>
-                </select>
-            </div>
-            <button id="searchButton" class="btn btn-primary">Αναζήτηση</button>
-        </div>
+   <!-- 🔍 Filter Bar -->
+<header id="filterBar" class="bg-white shadow-sm py-3" style="margin-top: 50px;">
+  <div class="container d-flex flex-wrap gap-3 justify-content-between align-items-center">
+    <div class="d-flex align-items-center gap-2">
+      <label for="cityFilter" class="form-label mb-0 fw-semibold">Πόλη</label>
+      <select id="cityFilter" class="form-select rounded-2">
+        <option value="" disabled selected>Επιλέξτε πόλη</option>
+      </select>
     </div>
+    <button id="searchButton" class="btn btn-danger px-4">Αναζήτηση</button>
+  </div>
+</header>
 
-    <!-- Split Screen -->
-    <div class="container-fluid px-0 mt-4">
-        <div class="row gx-0">
-            <!-- Πάνω Πλαίσιο -->
-            <div id="topFrame" class="col-12 mb-4" style="height: 50vh; background-color: #f8f9fa; display: flex; justify-content: flex-start; align-items: stretch; border-radius: 0; box-shadow: none; margin-bottom: 0; padding: 0;">
-                <div class="d-flex w-100 h-100 flex-row align-items-stretch" style="width:100%;height:100%;">
-                    <!-- Summary bar: εμφανίζει μόνο icons και count μέχρι την κόκκινη γραμμή -->
-                    <div id="categorySummaryContainer"
-                         class="summary-bar d-flex flex-column align-items-center justify-content-start py-3"
-                         style="width:80px; min-width:80px; max-width:80px; background:#f8f9fa; border-right:2px solid #e74c3c; height:100%; overflow-y:auto;">
-                        <!-- Summary γεμίζει δυναμικά -->
-                    </div>
-                    <!-- Map παίρνει όλο το υπόλοιπο πλάτος -->
-                    <div style="flex:1 1 0; height:100%; position:relative;">
-                        <div id="mapContainer" style="height: 100%; width: 100%; position:relative;"></div>
-                    </div>
-                </div>
-            </div>
-            <!-- Κάτω Πλαίσιο -->
-            <div id="bottomFrame" class="col-12">
-                <div id="categoriesContainer" class="categories-container px-0" style="border-radius:0; box-shadow:none; margin-top:0;">
-                    <!-- Οι κατηγορίες και τα καταστήματα θα φορτώνονται δυναμικά εδώ -->
-                </div>
-            </div>
+<!-- 🖥️ Split Screen -->
+<main class="container mt-4">
+
+  <div class="row gx-0">
+    <!-- 🔝 Top: Summary + Map -->
+    <section id="topFrame" class="col-12" style="height: 50vh;">
+      <div class="d-flex h-100">
+        <!-- 🧭 Summary Bar -->
+        <aside id="categorySummaryContainer"
+               class="summary-bar d-flex flex-column align-items-center py-3 px-1 border-end"
+               style="width: 80px; background: #f9f9f9; overflow-y: auto;">
+          <!-- Dynamically inserted summary icons -->
+        </aside>
+
+        <!-- 🗺️ Map Area -->
+        <div class="flex-grow-1 position-relative">
+          <div id="mapContainer" class="h-100 w-100"></div>
         </div>
-    </div>
+      </div>
+    </section>
+
+    <!-- 🔽 Bottom: Categories + Shops -->
+    <section id="bottomFrame" class="col-12 bg-white pt-4">
+      <div id="categoriesContainer" class="categories-container container">
+        <!-- Categories & Shops loaded dynamically -->
+      </div>
+    </section>
+  </div>
+</main>
+
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
@@ -360,10 +364,17 @@
                         const categorySection = document.createElement('div');
                         categorySection.className = 'category-section mb-4';
 
-                        categorySection.innerHTML = `
-                            <h5 class="category-title">${category.name}</h5>
-                            <div class="shops-horizontal-scroll d-flex overflow-auto"></div>
-                        `;
+                       categorySection.innerHTML = `
+                        <div class="category-header-bar">
+                            <span class="category-title">${category.name}</span>
+                            <a href="#" class="see-more-link">SEE MORE</a>
+                            <div class="scroll-arrows">
+                                <button class="scroll-arrow left" aria-label="Scroll left">&lt;</button>
+                                <button class="scroll-arrow right" aria-label="Scroll right">&gt;</button>
+                            </div>
+                        </div>
+                        <div class="shops-horizontal-scroll"></div>
+                    `;
 
                         categoriesContainer.appendChild(categorySection);
 
@@ -403,7 +414,7 @@
                                         <img src="${imageUrl}" class="card-img-top" alt="${shop.shopName}">
                                         <div class="card-body">
                                             <h5 class="card-title">${shop.shopName}</h5>
-                                            <p class="card-text" style="min-height:60px;max-height:120px;overflow:auto;">${shop.shopDescription || ''}</p>
+                                            <p class="card-text" style="min-height:30px;max-height:120px;overflow:auto;">${shop.shopName }</p>
                                             <div class="d-flex align-items-center mb-2">
                                                 <span class="text-warning me-2">${stars}</span>
                                                 <span class="text-muted">${rating}</span>
