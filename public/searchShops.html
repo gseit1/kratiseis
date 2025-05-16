@@ -295,32 +295,6 @@
                                 const marker = new mapboxgl.Marker(markerEl)
                                     .setLngLat(shop.location.coordinates)
                                     .addTo(map);
-
-                                markerEl.style.transition = 'transform 0.3s ease';
-                                markerEl.style.transform = 'scale(0)';
-                                setTimeout(() => {
-                                    markerEl.style.transform = 'scale(1)';
-                                }, 100);
-
-                                let imageUrl = shop.image || (shop.images && shop.images.length > 0 ? shop.images[0] : '/images/default-placeholder.jpg');
-                                if (imageUrl.startsWith('/')) {
-                                    imageUrl = `http://localhost:300${imageUrl}`;
-                                }
-
-                                const popup = new mapboxgl.Popup({ offset: 25 })
-                                    .setHTML(`
-                                        <div class="popup-card">
-                                            <img src="${imageUrl}" 
-                                                 alt="${shop.shopName}" 
-                                                 style="width: 100%; height: 120px; object-fit: cover; border-radius: 4px; margin-bottom: 8px;">
-                                            <h5 style="font-size: 16px; margin: 8px 0;">${shop.shopName}</h5>
-                                            <p style="font-size: 14px; color: #666; margin-bottom: 8px;">${shop.shopDescription || ''}</p>
-                                            <button onclick="window.location.href='shop.html?id=${shop._id}'" 
-                                                    class="btn btn-primary btn-sm w-100">Λεπτομέρειες</button>
-                                        </div>
-                                    `);
-
-                                marker.setPopup(popup);
                             } else {
                                 console.warn('Shop χωρίς location:', shop);
                             }
@@ -352,8 +326,9 @@
                                 horizontalList.className = 'horizontal-shops-list';
                                 shops.forEach(shop => {
                                     const shopCard = document.createElement('div');
-                                    shopCard.className = 'shop-card';
-                                    shopCard.style.width = '220px';
+                                    shopCard.className = 'shop-card me-3';
+                                    shopCard.style.width = '200px';
+
                                     let rating = typeof shop.reviewRatingAverage === 'number' && shop.reviewRatingAverage >= 0
                                         ? shop.reviewRatingAverage.toFixed(1)
                                         : '—';
@@ -362,12 +337,14 @@
                                         const rounded = Math.round(shop.reviewRatingAverage);
                                         stars = '⭐'.repeat(rounded);
                                     }
+
                                     let imageUrl = shop.image || (shop.images && shop.images.length > 0 ? shop.images[0] : '/images/default-placeholder.jpg');
                                     if (!imageUrl || (!imageUrl.startsWith('http') && !imageUrl.startsWith('/'))) {
                                         imageUrl = '/images/default-placeholder.jpg';
                                     } else if (imageUrl.startsWith('/')) {
                                         imageUrl = `http://localhost:300${imageUrl}`;
                                     }
+
                                     shopCard.innerHTML = `
                                         <div class="card mb-4 position-relative">
                                             <img src="${imageUrl}" class="card-img-top" alt="${shop.shopName}">
@@ -386,6 +363,19 @@
                                         </div>
                                     `;
                                     horizontalList.appendChild(shopCard);
+
+                                    // Προσθήκη event listener στο κουμπί "Add to Favourites"
+                                    const favouriteBtn = shopCard.querySelector('.favourite-btn');
+                                    favouriteBtn.addEventListener('click', async (event) => {
+                                        event.stopPropagation();
+                                        await handleAddToFavourites(shop._id || shop.id);
+                                    });
+
+                                    // Προσθήκη event listener για το κουμπί "Λεπτομέρειες"
+                                    shopCard.querySelector('.view-details').addEventListener('click', (e) => {
+                                        e.preventDefault();
+                                        window.location.href = `shop.html?id=${shop._id || shop.id}`;
+                                    });
                                 });
                                 categoriesContainer.appendChild(horizontalList);
                             }
@@ -495,30 +485,49 @@
                                 .setLngLat(shop.location.coordinates)
                                 .addTo(map);
 
-                            markerEl.style.transition = 'transform 0.3s ease';
-                            markerEl.style.transform = 'scale(0)';
-                            setTimeout(() => {
-                                markerEl.style.transform = 'scale(1)';
-                            }, 100);
+                            // ΑΦΑΙΡΕΘΗΚΕ το animation:
+                            // markerEl.style.transition = 'transform 0.3s ease';
+                            // markerEl.style.transform = 'scale(0)';
+                            // setTimeout(() => {
+                            //     markerEl.style.transform = 'scale(1)';
+                            // }, 100);
 
                             // Δημιουργία popup
                             let imageUrl = shop.image || (shop.images && shop.images.length > 0 ? shop.images[0] : '/images/default-placeholder.jpg');
                             if (imageUrl.startsWith('/')) {
                                 imageUrl = `http://localhost:300${imageUrl}`;
                             }
+                            let rating = typeof shop.reviewRatingAverage === 'number' && shop.reviewRatingAverage >= 0
+                                ? shop.reviewRatingAverage.toFixed(1)
+                                : '—';
+                            let stars = '';
+                            if (typeof shop.reviewRatingAverage === 'number' && shop.reviewRatingAverage > 0) {
+                                const rounded = Math.round(shop.reviewRatingAverage);
+                                stars = '⭐'.repeat(rounded);
+                            }
 
-                            const popup = new mapboxgl.Popup({ offset: 25 })
-                                .setHTML(`
-                                    <div class="popup-card">
-                                        <img src="${imageUrl}" 
-                                             alt="${shop.shopName}" 
-                                             style="width: 100%; height: 120px; object-fit: cover; border-radius: 4px; margin-bottom: 8px;">
-                                        <h5 style="font-size: 16px; margin: 8px 0;">${shop.shopName}</h5>
-                                        <p style="font-size: 14px; color: #666; margin-bottom: 8px;">${shop.shopDescription || ''}</p>
-                                        <button onclick="window.location.href='shop.html?id=${shop._id}'" 
-                                                class="btn btn-primary btn-sm w-100">Λεπτομέρειες</button>
+                            const popup = new mapboxgl.Popup({
+                                offset: 25,
+                                closeButton: true,
+                                closeOnClick: true,
+                                anchor: 'right'
+                            }).setHTML(`
+                                <div class="popup-card">
+                                    <img src="${imageUrl}" 
+                                         alt="${shop.shopName}" 
+                                         style="width: 100%; height: 120px; object-fit: cover; border-radius: 8px; margin-bottom: 8px;">
+                                    <h5 style="font-size: 16px; margin: 8px 0;">${shop.shopName}</h5>
+                                    <p style="font-size: 14px; color: #666; margin-bottom: 8px; min-height:30px;max-height:60px;overflow:auto;">
+                                        ${shop.address || ''}
+                                    </p>
+                                    <div class="d-flex align-items-center mb-2">
+                                        <span class="text-warning me-2">${stars}</span>
+                                        <span class="text-muted">${rating}</span>
                                     </div>
-                                `);
+                                    <button onclick="window.location.href='shop.html?id=${shop._id || shop.id}'" 
+                                            class="btn btn-primary btn-sm w-100">Λεπτομέρειες</button>
+                                </div>
+                            `);
 
                             marker.setPopup(popup);
                         }

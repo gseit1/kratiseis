@@ -256,3 +256,10 @@ body {
     height: 140px;
     object-fit: cover;
 }
+
+.mapboxgl-popup-content .popup-card {
+    width: 300px !important;
+    max-width: 300px !important;
+    min-width: 300px !important;
+    box-sizing: border-box;
+}
