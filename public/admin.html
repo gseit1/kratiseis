@@ -6,36 +6,123 @@
     <link rel="stylesheet" href="../styles/admin.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel</title>
-    
-</head>
-<style>
-  /* General Styles */
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+      /* General Styles */
 body {
-  background: #0f0f10;
-  color: #fff;
+  background: linear-gradient(120deg, #181824 0%, #23233a 100%);
+  color: #f3f3f3;
   font-family: 'Poppins', 'Arial', sans-serif;
-  padding-top: 2.5rem;
+  padding-top: 0;
+  min-height: 100vh;
 }
 
-h1, h2, h3 {
-  color: #ff6ec4;
-  font-weight: 800;
-  letter-spacing: 0.5px;
+.admin-layout {
+  min-height: 100vh;
 }
 
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 24px 12px;
+.admin-sidebar {
+  min-width:220px;max-width:240px;height:100vh;position:fixed;left:0;top:0;background:rgba(27,26,26,0.98);z-index:1100;box-shadow:2px 0 18px rgba(40,38,60,0.13);
+  display:flex;flex-direction:column;align-items:center;
+}
+
+.admin-sidebar .brand {
+  display:flex;align-items:center;justify-content:center;gap:0.7rem;
+  font-size:1.6rem;font-weight:900;color:#ff6ec4;margin-bottom:2.2rem;margin-top:0.5rem;
+  letter-spacing:1px;
+}
+
+.admin-sidebar .brand i {
+  font-size:2.1rem;color:#7873f5;
+}
+
+.admin-sidebar .nav {
+  width:100%;
+}
+
+.admin-sidebar .nav-link {
+  display:flex;align-items:center;gap:0.8rem;
+  font-size:1.08rem;font-weight:600;padding:0.7rem 1.1rem;border-radius:12px;transition:background 0.18s, color 0.18s;
+  color:#fff;
+  position:relative;
+}
+
+.admin-sidebar .nav-link.active, .admin-sidebar .nav-link:focus {
+  background:linear-gradient(90deg,#ff6ec4 0,#7873f5 100%);
+  color:#fff;
+  box-shadow:0 2px 12px rgba(255,110,196,0.13);
+}
+
+.admin-sidebar .nav-link:hover {
+  background:rgba(255,110,196,0.13);
+  color:#ff6ec4;
+}
+
+.admin-sidebar .nav-link .fa-fw {
+  min-width:22px;text-align:center;
+}
+
+.admin-sidebar .logout {
+  margin-top:auto;margin-bottom:1.5rem;width:100%;
+}
+
+.admin-sidebar .logout .btn {
+  width:100%;border-radius:10px;font-weight:700;
+}
+
+.admin-main {
+  margin-left:240px;padding:2.5rem 1.5rem 1.5rem 1.5rem;min-height:100vh;transition:margin-left 0.2s;
+}
+
+.admin-topbar {
+  display:flex;align-items:center;justify-content:space-between;margin-bottom:2.2rem;
+  background:rgba(40,38,60,0.18);backdrop-filter:blur(8px);border-radius:16px;padding:1.1rem 1.5rem;box-shadow:0 2px 12px rgba(255,110,196,0.07);
+}
+
+.admin-topbar .page-title {
+  font-size:1.5rem;font-weight:800;color:#ff6ec4;letter-spacing:0.5px;
+}
+
+.admin-topbar .user-dropdown {
+  color:#fff;font-weight:600;cursor:pointer;position:relative;
+}
+
+.admin-topbar .user-dropdown i {
+  margin-right:0.5rem;color:#7873f5;
+}
+
+/* Loading spinner */
+#admin-loading-spinner {
+  display:none;justify-content:center;align-items:center;position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(27,26,26,0.55);z-index:2000;
+}
+
+#admin-loading-spinner .spinner-border {
+  width:3rem;height:3rem;color:#ff6ec4;
+}
+
+/* Responsive sidebar */
+@media (max-width: 900px) {
+  .admin-sidebar {position:fixed;left:-260px;transition:left 0.2s;}
+  .admin-sidebar.open {left:0;}
+  .admin-main {margin-left:0;}
+  .admin-topbar {padding:0.7rem 0.7rem;}
+}
+
+.sidebar-toggle-btn {
+  display:none;position:absolute;left:10px;top:10px;z-index:1200;background:rgba(40,38,60,0.18);border:none;border-radius:8px;padding:0.5rem 0.7rem;color:#ff6ec4;font-size:1.3rem;
+}
+
+@media (max-width: 900px) {
+  .sidebar-toggle-btn {display:block;}
 }
 
 .card, .shop-card, .list-group-item, form, section, .btn, .form-control {
-  background: rgba(255,255,255,0.05) !important;
-  backdrop-filter: blur(10px);
-  border-radius: 18px !important;
-  box-shadow: 0 8px 32px rgba(255,110,196,0.10);
+  background: rgba(255,255,255,0.04) !important;
+  backdrop-filter: blur(8px);
+  border-radius: 16px !important;
+  box-shadow: 0 8px 32px rgba(255,110,196,0.08);
   border: none !important;
-  color: #fff !important;
+  color: #f3f3f3 !important;
 }
 
 .card, .shop-card, .list-group-item {
@@ -76,7 +163,7 @@ h1, h2, h3 {
   transform: scale(1.04);
 }
 .btn-secondary {
-  background: #22223b;
+  background: #23233a;
   color: #ff6ec4;
   border: none;
   font-weight: 600;
@@ -119,47 +206,66 @@ section {
 
 ::-webkit-scrollbar {
   width: 8px;
-  background: #22223b;
+  background: #23233a;
 }
 ::-webkit-scrollbar-thumb {
   background: #ff6ec4;
   border-radius: 8px;
 }
 
-@media (max-width: 768px) {
-  .container {
-    padding: 8px 2px;
+@media (max-width: 991.98px) {
+  .admin-sidebar {
+    min-width: 100vw;
+    max-width: 100vw;
+    height: auto;
+    position: static;
+    box-shadow: none;
+    border-right: none;
+    padding-top: 1rem !important;
   }
-  .btn, .form-control {
-    border-radius: 8px !important;
-  }
-  section {
-    padding: 0.7rem 0.2rem;
-    border-radius: 10px;
+  .admin-main {
+    margin-left: 0;
+    padding: 1.2rem 0.5rem 1rem 0.5rem;
   }
 }
-</style>
 
+@media (max-width: 600px) {
+  .admin-sidebar h2 {
+    font-size: 1.3rem;
+    margin-bottom: 1.2rem;
+  }
+}
+    </style>
+</head>
 <body>
+  <button class="sidebar-toggle-btn" id="sidebarToggle"><i class="fas fa-bars"></i></button>
   <div class="admin-layout d-flex">
     <!-- Static Left Menu Bar -->
-    <nav class="admin-sidebar d-flex flex-column p-3" style="min-width:220px;max-width:240px;height:100vh;position:fixed;left:0;top:0;background:rgba(27,26,26,0.98);z-index:1100;box-shadow:2px 0 18px rgba(40,38,60,0.13);">
-      <h2 class="mb-4 text-center" style="color:#ff6ec4;letter-spacing:1px;">Admin</h2>
+    <nav class="admin-sidebar d-flex flex-column p-3" id="adminSidebar">
+      <div class="brand"><i class="fas fa-crown"></i> Admin</div>
       <ul class="nav nav-pills flex-column mb-auto gap-2">
-        <li><a href="#" class="nav-link text-white" data-section="categories">Categories</a></li>
-        <li><a href="#" class="nav-link text-white" data-section="cities">Cities</a></li>
-        <li><a href="#" class="nav-link text-white" data-section="regions">Regions</a></li>
-        <li><a href="#" class="nav-link text-white" data-section="attributes">Attributes</a></li>
-        <li><a href="#" class="nav-link text-white" data-section="applications">Applications</a></li>
-        <li><a href="#" class="nav-link text-white" data-section="recommended">Recommended</a></li>
-        <li><a href="#" class="nav-link text-white" data-section="users">Users</a></li>
-        <li><a href="#" class="nav-link text-white" data-section="reservations">Reservations</a></li>
-        <li><a href="#" class="nav-link text-white" data-section="shops">Shops</a></li>
+        <li><a href="#" class="nav-link text-white" data-section="categories"><i class="fa fa-list fa-fw"></i> Categories</a></li>
+        <li><a href="#" class="nav-link text-white" data-section="cities"><i class="fa fa-city fa-fw"></i> Cities</a></li>
+        <li><a href="#" class="nav-link text-white" data-section="regions"><i class="fa fa-map fa-fw"></i> Regions</a></li>
+        <li><a href="#" class="nav-link text-white" data-section="attributes"><i class="fa fa-tags fa-fw"></i> Attributes</a></li>
+        <li><a href="#" class="nav-link text-white" data-section="applications"><i class="fa fa-file-alt fa-fw"></i> Applications</a></li>
+        <li><a href="#" class="nav-link text-white" data-section="recommended"><i class="fa fa-star fa-fw"></i> Recommended</a></li>
+        <li><a href="#" class="nav-link text-white" data-section="users"><i class="fa fa-users fa-fw"></i> Users</a></li>
+        <li><a href="#" class="nav-link text-white" data-section="reservations"><i class="fa fa-calendar-check fa-fw"></i> Reservations</a></li>
+        <li><a href="#" class="nav-link text-white" data-section="shops"><i class="fa fa-store fa-fw"></i> Shops</a></li>
       </ul>
+      <div class="logout">
+        <button class="btn btn-danger"><i class="fa fa-sign-out-alt"></i> Logout</button>
+      </div>
     </nav>
     <!-- Main Content Area -->
-    <div class="admin-main flex-grow-1" style="margin-left:240px;padding:2.5rem 1.5rem 1.5rem 1.5rem;min-height:100vh;">
+    <div class="admin-main flex-grow-1 position-relative">
+      <div class="admin-topbar">
+        <span class="page-title" id="adminPageTitle">Categories</span>
+        <div class="user-dropdown"><i class="fa fa-user-circle"></i> Admin</div>
+      </div>
       <div id="adminSectionContent"></div>
+      <div id="admin-loading-spinner"><div class="spinner-border"></div></div>
     </div>
   </div>
   <script>
@@ -175,10 +281,28 @@ section {
       reservations: 'admin_sections/reservations.html',
       shops: 'admin_sections/shops.html',
     };
+    // Sidebar toggle for mobile
+    const sidebar = document.getElementById('adminSidebar');
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    sidebarToggle.addEventListener('click', () => {
+      sidebar.classList.toggle('open');
+    });
+    // Hide sidebar on main click (mobile)
+    document.querySelector('.admin-main').addEventListener('click', () => {
+      if(window.innerWidth < 900) sidebar.classList.remove('open');
+    });
+    // Loading spinner
+    function showSpinner() {
+      document.getElementById('admin-loading-spinner').style.display = 'flex';
+    }
+    function hideSpinner() {
+      document.getElementById('admin-loading-spinner').style.display = 'none';
+    }
     // Load section content
     async function loadSection(section) {
+      showSpinner();
       const file = sectionFiles[section];
-      if (!file) return;
+      if (!file) { hideSpinner(); return; }
       const res = await fetch(file);
       const html = await res.text();
       document.getElementById('adminSectionContent').innerHTML = html;
@@ -194,7 +318,21 @@ section {
           script.id = scriptId;
           document.body.appendChild(script);
         }
-      });
+        hideSpinner();
+      }).catch(()=>hideSpinner());
+      // Update page title
+      const titles = {
+        categories: 'Categories',
+        cities: 'Cities',
+        regions: 'Regions',
+        attributes: 'Attributes',
+        applications: 'Applications',
+        recommended: 'Recommended',
+        users: 'Users',
+        reservations: 'Reservations',
+        shops: 'Shops',
+      };
+      document.getElementById('adminPageTitle').textContent = titles[section] || 'Admin';
     }
     // Sidebar nav click
     document.querySelectorAll('.admin-sidebar .nav-link').forEach(link => {
@@ -206,6 +344,7 @@ section {
       });
     });
     // Load default section
+    document.querySelector('.admin-sidebar .nav-link[data-section="categories"]').classList.add('active');
     loadSection('categories');
   </script>
 </body>

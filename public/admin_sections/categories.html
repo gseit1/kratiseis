@@ -1,33 +1,60 @@
-<!-- Categories Section -->
-<div class="mb-4">
-    <h2>Categories</h2>
-    <form id="addCategoryForm" enctype="multipart/form-data">
-        <div class="mb-2">
-          <input type="text" id="categoryName" class="form-control" placeholder="Category Name" required>
+<div class="container-fluid">
+  <div class="row g-4">
+    <!-- Add Category Form -->
+    <div class="col-lg-4 col-md-5">
+      <div class="card p-4 h-100">
+        <div class="d-flex align-items-center mb-3">
+          <i class="fa fa-list fa-2x me-2 text-gradient"></i>
+          <h4 class="mb-0 flex-grow-1">Add Category</h4>
         </div>
-        <div class="mb-2">
-          <input type="file" id="categoryImage" name="image" class="form-control" accept="image/*" required>
+        <form id="addCategoryForm" enctype="multipart/form-data">
+          <div class="mb-2">
+            <input type="text" id="categoryName" class="form-control" placeholder="Category Name" required>
+          </div>
+          <div class="mb-2">
+            <input type="file" id="categoryImage" name="image" class="form-control" accept="image/*" required>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">Add Category</button>
+        </form>
+      </div>
+    </div>
+    <!-- Category List -->
+    <div class="col-lg-8 col-md-7">
+      <div class="card p-4 h-100">
+        <div class="d-flex align-items-center mb-3">
+          <i class="fa fa-list fa-lg me-2 text-gradient"></i>
+          <h4 class="mb-0 flex-grow-1">Categories</h4>
+          <input type="text" id="categorySearch" class="form-control ms-2" style="max-width:220px;" placeholder="Search categories...">
         </div>
-        <button type="submit" class="btn btn-primary">Add Category</button>
-      </form>
-    <ul id="categoryList" class="list-group">
-        <!-- Categories will be dynamically inserted here -->
-    </ul>
+        <ul id="categoryList" class="list-group" style="max-height: 350px; overflow-y: auto;"></ul>
+      </div>
+    </div>
+  </div>
 </div>
-
-<!-- Edit Category Section -->
-<div id="editCategorySection" class="mt-5" style="display: none;">
-  <h2>Edit Category</h2>
-  <form id="editCategoryForm" enctype="multipart/form-data">
-    <div class="mb-2">
-      <label for="editCategoryName" class="form-label">New Category Name</label>
-      <input type="text" id="editCategoryName" class="form-control" placeholder="Enter new category name" required>
+<!-- Edit Category Modal/Card -->
+<div id="editCategorySection" class="modal fade" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content card p-3">
+      <div class="modal-header border-0">
+        <h5 class="modal-title"><i class="fa fa-pen me-2"></i>Edit Category</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="cancelEditCategory()"></button>
+      </div>
+      <div class="modal-body">
+        <form id="editCategoryForm" enctype="multipart/form-data">
+          <div class="mb-2">
+            <label for="editCategoryName" class="form-label">New Category Name</label>
+            <input type="text" id="editCategoryName" class="form-control" placeholder="Enter new category name" required>
+          </div>
+          <div class="mb-2">
+            <label for="editCategoryImage" class="form-label">New Category Image</label>
+            <input type="file" id="editCategoryImage" name="image" class="form-control" accept="image/*">
+          </div>
+          <div class="d-flex gap-2 mt-3">
+            <button type="submit" class="btn btn-primary flex-grow-1">Save Changes</button>
+            <button type="button" class="btn btn-secondary flex-grow-1" data-bs-dismiss="modal" onclick="cancelEditCategory()">Cancel</button>
+          </div>
+        </form>
+      </div>
     </div>
-    <div class="mb-2">
-      <label for="editCategoryImage" class="form-label">New Category Image</label>
-      <input type="file" id="editCategoryImage" name="image" class="form-control" accept="image/*">
-    </div>
-    <button type="submit" class="btn btn-primary">Save Changes</button>
-    <button type="button" class="btn btn-secondary" onclick="cancelEditCategory()">Cancel</button>
-  </form>
+  </div>
 </div>

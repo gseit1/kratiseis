@@ -14,491 +14,470 @@
       margin: 0;
       padding: 0;
       font-family: 'Poppins', sans-serif;
-      background: linear-gradient(to right, #6a11cb, #2575fc);
-      color: #fff;
+      background: linear-gradient(120deg, #181824 0%, #23233a 100%);
+      color: #f3f3f3;
+      min-height: 100vh;
+      position: relative;
     }
-  
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      z-index: 0;
+      pointer-events: none;
+      background: radial-gradient(ellipse at 60% 20%, rgba(255,110,196,0.10) 0, transparent 60%),
+                  radial-gradient(ellipse at 20% 80%, rgba(120,115,245,0.10) 0, transparent 70%);
+      animation: bgmove 12s linear infinite alternate;
+    }
+    @keyframes bgmove {
+      0% { background-position: 60% 20%, 20% 80%; }
+      100% { background-position: 70% 30%, 10% 90%; }
+    }
     .hero-profile {
       display: flex;
       align-items: center;
       justify-content: center;
-      height: 50vh;
+      height: 44vh;
       background: url('index/img.jpg') no-repeat center center/cover;
       position: relative;
       text-align: center;
+      border-radius: 0 0 32px 32px;
+      box-shadow: 0 8px 32px rgba(120,115,245,0.13);
+      overflow: hidden;
     }
-  
     .hero-overlay {
       position: absolute;
       inset: 0;
-      background: rgba(0, 0, 0, 0.6);
+      background: rgba(27,26,26,0.68);
       z-index: 1;
+      backdrop-filter: blur(4px);
     }
-  
     .hero-content {
       position: relative;
       z-index: 2;
-      padding: 20px;
+      padding: 32px 20px 20px 20px;
       max-width: 800px;
       text-align: center;
+      color: #fff;
     }
-  
     .hero-content h1 {
-      font-size: 2.5rem;
-      font-weight: 600;
+      font-size: 2.7rem;
+      font-weight: 800;
       margin-bottom: 15px;
+      color: #ff6ec4;
+      text-shadow: 0 2px 12px rgba(120,115,245,0.13);
     }
-  
     .hero-content p {
-      font-size: 1rem;
-      margin-bottom: 20px;
+      font-size: 1.1rem;
+      margin-bottom: 22px;
+      color: #f3f3f3;
+      opacity: 0.92;
     }
-  
     .btn-primary,
     .edit-profile-btn,
     .filter-btn {
-      background: #ff6ec4;
+      background: linear-gradient(135deg, #ff6ec4, #7873f5);
       border: none;
-      padding: 10px 20px;
-      font-size: 1rem;
-      font-weight: 600;
+      padding: 12px 28px;
+      font-size: 1.08rem;
+      font-weight: 700;
       border-radius: 30px;
-      transition: 0.3s ease;
+      transition: 0.3s cubic-bezier(.4,2,.6,1);
       color: #fff;
+      box-shadow: 0 4px 18px rgba(255,110,196,0.13);
+      letter-spacing: 0.5px;
     }
-  
     .btn-primary:hover,
     .edit-profile-btn:hover,
     .filter-btn:hover {
-      background: #ff3e9e;
-      transform: scale(1.05);
+      background: linear-gradient(135deg, #7873f5, #ff6ec4);
+      transform: scale(1.06);
     }
-  
     .profile-container,
-    .reservation-history {
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 15px;
-      padding: 50px 20px;
-      margin-top: 50px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    .reservation-history,
+    .favourite-shops,
+    .user-reviews {
+      background: rgba(40,38,60,0.22);
+      border-radius: 22px;
+      padding: 48px 24px 32px 24px;
+      margin-top: 48px;
+      box-shadow: 0 4px 24px rgba(255,110,196,0.13);
       text-align: left;
+      position: relative;
+      z-index: 2;
     }
-  
     .profile-header,
-    .reservation-header {
-      font-size: 1.8rem;
-      font-weight: 600;
+    .reservation-header,
+    #favouritesHeader,
+    #reviewsHeader {
+      font-size: 2rem;
+      font-weight: 800;
       text-align: center;
       color: #ff6ec4;
-      margin-bottom: 20px;
+      margin-bottom: 28px;
+      letter-spacing: 0.5px;
+      text-shadow: 0 2px 12px rgba(120,115,245,0.13);
     }
-  
     .profile-item {
-      font-size: 1rem;
-      margin-bottom: 10px;
+      font-size: 1.08rem;
+      margin-bottom: 14px;
+      color: #f3f3f3;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
-  
     .profile-item strong {
       color: #ff6ec4;
+      font-weight: 700;
+      font-size: 1.1em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
-  
-    /* Styling for Reservation Card */
+    .profile-item strong::before {
+      content: '\f007';
+      font-family: 'Font Awesome 6 Free';
+      font-weight: 900;
+      margin-right: 6px;
+      color: #7873f5;
+    }
+    .profile-item strong[for="userSurname"]::before { content: '\f2bb'; }
+    .profile-item strong[for="userEmail"]::before { content: '\f0e0'; }
     .reservation-card {
-  background: #fff;
-  color: #333;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-  transition: all 0.3s ease;
-  height: 100%;
-}
-
-.reservation-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(0,0,0,0.25);
-}
-
-.reservation-card h5 {
-  font-size: 1.2rem;
-  font-weight: bold;
-  color: #6a11cb;
-  margin-bottom: 15px;
-  word-break: break-word;
-}
-
-.reservation-card p {
-  font-size: 0.95rem;
-  margin-bottom: 8px;
-}
-
-.badge-status {
-  display: inline-block;
-  padding: 5px 10px;
-  border-radius: 30px;
-  font-size: 0.75rem;
-  text-transform: capitalize;
-  background: #eee;
-  color: #555;
-}
-
-.badge-status.pending {
-  background: #ffc107;
-  color: #fff;
-}
-.badge-status.accepted {
-  background: #17a2b8;
-  color: #fff;
-}
-.badge-status.completed {
-  background: #28a745;
-  color: #fff;
-}
-.badge-status.notShown {
-  background: #dc3545;
-  color: #fff;
-}
-
-.comment {
-  margin-top: 15px;
-  font-size: 0.85rem;
-  color: #666;
-  background: #f8f9fa;
-  padding: 10px;
-  border-radius: 8px;
-}
-
-
-  
-    .filter-btn {
-      margin: 0 5px 10px;
+      background: rgba(255,255,255,0.97);
+      color: #23233a;
+      border-radius: 14px;
+      padding: 22px;
+      box-shadow: 0 6px 18px rgba(255,110,196,0.13);
+      transition: all 0.3s cubic-bezier(.4,2,.6,1);
+      height: 100%;
+      position: relative;
+      z-index: 1;
     }
-  
+    .reservation-card:hover {
+      transform: translateY(-5px) scale(1.03);
+      box-shadow: 0 10px 28px rgba(255,110,196,0.18);
+    }
+    .reservation-card h5 {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #6a11cb;
+      margin-bottom: 15px;
+      word-break: break-word;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .reservation-card p {
+      font-size: 1.01rem;
+      margin-bottom: 8px;
+      color: #23233a;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .badge-status {
+      display: inline-block;
+      padding: 6px 14px;
+      border-radius: 30px;
+      font-size: 0.85rem;
+      text-transform: capitalize;
+      font-weight: 700;
+      background: #eee;
+      color: #555;
+      box-shadow: 0 2px 8px rgba(255,110,196,0.10);
+    }
+    .badge-status.pending { background: #ffc107; color: #fff; }
+    .badge-status.accepted { background: #17a2b8; color: #fff; }
+    .badge-status.completed { background: #28a745; color: #fff; }
+    .badge-status.notShown { background: #dc3545; color: #fff; }
+    .comment {
+      margin-top: 15px;
+      font-size: 0.95rem;
+      color: #666;
+      background: #f8f9fa;
+      padding: 12px;
+      border-radius: 10px;
+      border-left: 4px solid #ff6ec4;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .favourite-shops {
+      background: rgba(40,38,60,0.22);
+      border-radius: 22px;
+      padding: 36px 18px 24px 18px;
+      margin-top: 48px;
+      box-shadow: 0 4px 24px rgba(255,110,196,0.13);
+    }
+    .scrollable-row {
+      display: flex;
+      gap: 1.2rem;
+      overflow-x: auto;
+      padding: 10px 0;
+    }
+    .scrollable-row::-webkit-scrollbar {
+      height: 8px;
+    }
+    .scrollable-row::-webkit-scrollbar-thumb {
+      background: #ff6ec4;
+      border-radius: 10px;
+    }
+    .scrollable-row::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.1);
+    }
+    .favourite-card {
+      min-width: 220px;
+      max-width: 220px;
+      background: rgba(40,38,60,0.28);
+      border-radius: 14px;
+      box-shadow: 0 2px 12px rgba(255,110,196,0.13);
+      overflow: hidden;
+      text-align: center;
+      position: relative;
+      color: #f3f3f3;
+      border: 2px solid #ff6ec4;
+      transition: box-shadow 0.2s, transform 0.2s;
+    }
+    .favourite-card:hover {
+      box-shadow: 0 6px 24px rgba(255,110,196,0.18);
+      transform: translateY(-4px) scale(1.03);
+    }
+    .favourite-card img {
+      width: 100%;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 14px 14px 0 0;
+      border-bottom: 2px solid #ff6ec4;
+    }
+    .favourite-card .card-body {
+      padding: 12px 8px 8px 8px;
+    }
+    .favourite-card .card-title {
+      font-size: 1.08rem;
+      font-weight: 700;
+      color: #ff6ec4;
+      margin-bottom: 5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .favourite-card .card-title::before {
+      content: '\f005';
+      font-family: 'Font Awesome 6 Free';
+      font-weight: 900;
+      color: #ff6ec4;
+      margin-right: 4px;
+    }
+    .favourite-card .card-text {
+      font-size: 0.95rem;
+      color: #fff;
+      margin-bottom: 10px;
+      text-shadow: 0 1px 8px rgba(40,38,60,0.18);
+    }
+    .favourite-card .btn-view-details {
+      background: linear-gradient(135deg, #ff6ec4, #7873f5);
+      color: #fff;
+      font-size: 0.95rem;
+      padding: 7px 16px;
+      border-radius: 20px;
+      text-decoration: none;
+      transition: background 0.3s, transform 0.2s;
+      font-weight: 700;
+      box-shadow: 0 2px 8px rgba(255,110,196,0.10);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .favourite-card .btn-view-details::before {
+      content: '\f06e';
+      font-family: 'Font Awesome 6 Free';
+      font-weight: 900;
+      margin-right: 4px;
+    }
+    .favourite-card .btn-view-details:hover {
+      background: linear-gradient(135deg, #7873f5, #ff6ec4);
+      transform: scale(1.04);
+    }
+    .favourite-card .btn-remove {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: #ff3e9e;
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 28px;
+      height: 28px;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.3s;
+      z-index: 2;
+      box-shadow: 0 2px 8px rgba(255,110,196,0.10);
+    }
+    .favourite-card .btn-remove:hover {
+      background: #ff1e7e;
+    }
+    .user-reviews .card {
+      background: rgba(255,255,255,0.97);
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(255,110,196,0.10);
+      padding: 18px;
+      color: #23233a;
+    }
+    .user-reviews .card-title {
+      font-size: 1.08rem;
+      font-weight: bold;
+      color: #6a11cb;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .user-reviews .card-title::before {
+      content: '\f005';
+      font-family: 'Font Awesome 6 Free';
+      font-weight: 900;
+      color: #ff6ec4;
+      margin-right: 4px;
+    }
+    .user-reviews .card-text {
+      font-size: 0.97rem;
+      color: #555;
+    }
+    .user-reviews .text-muted {
+      font-size: 0.85rem;
+      color: #888;
+    }
     footer {
-      background: rgba(0, 0, 0, 0.8);
+      background: rgba(30, 30, 40, 0.85);
       color: #fff;
       text-align: center;
-      padding: 15px 0;
-      margin-top: 50px;
+      padding: 18px 0 12px 0;
+      margin-top: 60px;
+      border-radius: 18px 18px 0 0;
+      box-shadow: 0 -2px 12px rgba(255,110,196,0.10);
+      font-size: 1.01rem;
+      letter-spacing: 0.2px;
     }
-
-    .favourite-shops {
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 15px;
-        padding: 30px 20px;
-        margin-top: 50px;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    .total-reservations-card {
+      background: linear-gradient(135deg, #ff6ec4 0%, #7873f5 100%);
+      color: #fff;
+      border-radius: 22px;
+      box-shadow: 0 4px 24px rgba(255,110,196,0.18);
+      padding: 32px 18px 22px 18px;
+      margin-bottom: 18px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 140px;
+      transition: box-shadow 0.2s, transform 0.2s;
     }
-
-    .scrollable-row {
-        display: flex;
-        gap: 1rem;
-        overflow-x: auto;
-        padding: 10px 0;
+    .total-reservations-card:hover {
+      box-shadow: 0 8px 32px rgba(120,115,245,0.22);
+      transform: scale(1.03);
     }
-
-    .scrollable-row::-webkit-scrollbar {
-        height: 8px;
+    .total-reservations-card .icon-bg {
+      font-size: 2.6rem;
+      background: rgba(255,255,255,0.13);
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 10px;
+      color: #fff;
+      box-shadow: 0 2px 12px rgba(120,115,245,0.13);
     }
-
-    .scrollable-row::-webkit-scrollbar-thumb {
-        background: #ff6ec4;
-        border-radius: 10px;
+    .total-reservations-card .total-label {
+      font-size: 1.1rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+      color: #fff;
+      opacity: 0.92;
     }
-
-    .scrollable-row::-webkit-scrollbar-track {
-        background: rgba(255, 255, 255, 0.1);
+    .total-reservations-card .total-count {
+      font-size: 2.3rem;
+      font-weight: 900;
+      color: #fff;
+      text-shadow: 0 2px 12px rgba(120,115,245,0.13);
     }
-
-    .favourite-card {
-        min-width: 220px;
-        max-width: 220px;
-        background: rgba(0, 0, 0, 0.6); /* Σκούρο φόντο αντί για λευκό θαμπωμα */
-        border-radius: 8px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-        overflow: hidden;
-        text-align: center;
-        position: relative; /* Για το κουμπί αφαίρεσης */
+    .section-divider {
+      width: 100%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #ff6ec4 40%, #7873f5 60%, transparent);
+      margin: 48px 0 32px 0;
+      border-radius: 2px;
+      opacity: 0.18;
     }
-
-    .favourite-card img {
-        width: 100%;
-        height: 120px; /* Μικρότερο ύψος εικόνας */
-        object-fit: cover;
+    .filter-btn.all-btn {
+      background: linear-gradient(135deg, #7873f5, #ff6ec4);
+      color: #fff;
+      font-weight: 700;
+      border: 2px solid #fff;
+      margin-left: 8px;
     }
-
-    .favourite-card .card-body {
-        padding: 10px;
+    .filter-btn.all-btn:hover {
+      background: linear-gradient(135deg, #ff6ec4, #7873f5);
+      color: #fff;
+      border: 2px solid #fff;
     }
-
-    .favourite-card .card-title {
-        font-size: 1rem;
-        font-weight: 600;
-        color: #ff6ec4;
-        margin-bottom: 5px;
-    }
-
-    .favourite-card .card-text {
-        font-size: 0.85rem;
-        color: #ddd;
-        margin-bottom: 10px;
-    }
-
-    .favourite-card .btn-view-details {
-        background: #ff6ec4;
-        color: #fff;
-        font-size: 0.85rem;
-        padding: 5px 10px;
-        border-radius: 20px;
-        text-decoration: none;
-        transition: background 0.3s ease;
-    }
-
-    .favourite-card .btn-view-details:hover {
-        background: #ff3e9e;
-    }
-
-    .favourite-card .btn-remove {
-        position: absolute;
-        top: 5px;
-        right: 5px;
-        background: #ff3e9e;
-        color: #fff;
-        border: none;
-        border-radius: 50%;
-        width: 25px;
-        height: 25px;
-        font-size: 1rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: background 0.3s ease;
-    }
-
-    .favourite-card .btn-remove:hover {
-        background: #ff1e7e;
-    }
-  
     @media (max-width: 768px) {
-      .hero-content h1 {
-        font-size: 2rem;
+      .total-reservations-card {
+        padding: 22px 8px 14px 8px;
+        min-height: 100px;
       }
-  
-      .hero-content p,
-      .profile-item,
-      .reservation-card p {
-        font-size: 0.9rem;
-      }
-  
-      .profile-header,
-      .reservation-header {
-        font-size: 1.5rem;
-      }
-  
-      .reservation-card h5 {
-        font-size: 1rem;
-      }
-  
-      .btn-primary,
-      .edit-profile-btn,
-      .filter-btn {
-        font-size: 0.9rem;
-        padding: 8px 16px;
+      .section-divider {
+        margin: 32px 0 18px 0;
       }
     }
-  
-    @media (max-width: 576px) {
-      .hero-content h1 {
-        font-size: 1.6rem;
-      }
-  
-      .hero-content p,
-      .profile-item,
-      .reservation-card p {
-        font-size: 0.8rem;
-      }
-  
-      .profile-header,
-      .reservation-header {
-        font-size: 1.2rem;
-      }
-  
-      .reservation-card h5 {
-        font-size: 0.9rem;
-      }
-  
-      .btn-primary,
-      .edit-profile-btn,
-      .filter-btn {
-        font-size: 0.8rem;
-        padding: 6px 12px;
-      }
-    }
-    .history-wrapper {
-  max-height: 80vh; /* Limit the height to 80% of viewport */
-  overflow-y: auto;
-  padding-right: 10px;
-  margin-top: 20px;
-}
-
-/* Hide the ugly default scrollbar, optional */
-.history-wrapper::-webkit-scrollbar {
-  width: 8px;
-}
-.history-wrapper::-webkit-scrollbar-thumb {
-  background-color: #c1c1c1;
-  border-radius: 4px;
-}
-.history-wrapper::-webkit-scrollbar-track {
-  background: #f0f0f0;
-}
-
-.reservation-card {
-  background: #fff;
-  color: #333;
-  border-radius: 10px;
-  padding: 16px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  height: 100%;
-}
-
-.reservation-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 16px rgba(0,0,0,0.2);
-}
-
-.reservation-card h5 {
-  font-size: 1.1rem;
-  margin-bottom: 10px;
-}
-
-.reservation-card p {
-  font-size: 0.9rem;
-  margin-bottom: 6px;
-  color: #555;
-}
-
-.badge-status {
-  display: inline-block;
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-.comment {
-  background-color: #f8f8f8;
-  border-left: 4px solid #6a11cb;
-  padding: 10px;
-  font-size: 0.85rem;
-  margin-top: 10px;
-  border-radius: 6px;
-}
-
-.user-reviews .card {
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  padding: 15px;
-}
-
-.user-reviews .card-title {
-  font-size: 1rem;
-  font-weight: bold;
-  color: #6a11cb;
-}
-
-.user-reviews .card-text {
-  font-size: 0.9rem;
-  color: #555;
-}
-
-.user-reviews .text-muted {
-  font-size: 0.8rem;
-  color: #888;
-}
-
-#navbar .navbar-nav .nav-link {
-    color: #fff !important;
-    font-weight: 500;
-    transition: color 0.3s, transform 0.2s;
-}
-#navbar .navbar-nav .nav-link:hover,
-#navbar .navbar-nav .nav-link:focus {
-    color: #ff6ec4 !important;
-    transform: scale(1.07);
-}
-#navbar .dropdown-menu {
-    background: rgba(30,30,40,0.97);
-}
-#navbar .dropdown-item:hover {
-    background: #ff6ec4;
-    color: #fff !important;
-}
   </style>
-  
 </head>
 <body>
-  <nav class="navbar navbar-expand-lg navbar-dark fixed-top shadow-lg" id="navbar" style="background: rgba(30, 30, 40, 0.85); backdrop-filter: blur(8px); box-shadow: 0 4px 10px rgba(0,0,0,0.15);">
+  <nav class="navbar navbar-expand-lg navbar-dark fixed-top shadow-lg" id="navbar" style="background: rgba(30, 30, 40, 0.92); backdrop-filter: blur(10px); box-shadow: 0 4px 18px rgba(255,110,196,0.13); border-radius: 0 0 24px 24px;">
     <div class="container-fluid">
-        <a class="navbar-brand" href="index.html" style="font-weight:bold;font-size:1.5rem;color:#fff;">
-            <i class="bi bi-shop"></i> MyShop
-        </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item">
-                    <a class="nav-link active" href="index.html">
-                        <i class="bi bi-house-door"></i> Αρχική
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="filteredShops.html">
-                        <i class="bi bi-shop-window"></i> Μαγαζιά
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="application.html">
-                        <i class="bi bi-pencil-square"></i> Κάνε αίτηση
-                    </a>
-                </li>
-                <li class="nav-item" id="registerLoginNavItem">
-                    <a class="nav-link" href="registerLogin.html">
-                        <i class="bi bi-person-plus"></i> Εγγραφή/Σύνδεση
-                    </a>
-                </li>
-                <li class="nav-item d-none" id="dashboardNavItem">
-                    <a class="nav-link" href="shopOwnerDashboard.html">
-                        <i class="bi bi-speedometer2"></i> Dashboard
-                    </a>
-                </li>
-                <li class="nav-item dropdown d-none" id="profileDropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="profileDropdownMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-person-circle"></i> My Account
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdownMenu">
-                        <li>
-                            <a class="dropdown-item" href="profile.html">
-                                <i class="bi bi-person"></i> View Profile
-                            </a>
-                        </li>
-                        <li>
-                            <hr class="dropdown-divider">
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="#" id="logoutBtn">
-                                <i class="bi bi-box-arrow-right"></i> Logout
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-            </ul>
-        </div>
+      <a class="navbar-brand d-flex align-items-center gap-2" href="index.html" style="font-weight:bold;font-size:1.5rem;color:#fff;">
+        <i class="bi bi-shop"></i> MyShop
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#profileNavbarNav" aria-controls="profileNavbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="profileNavbarNav">
+        <ul class="navbar-nav ms-auto gap-2">
+          <li class="nav-item">
+            <a class="nav-link active" href="#profileSection" onclick="scrollToSection('profileSection')"><i class="bi bi-person-circle"></i> Profile</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#reservationHistoryWrapper" onclick="scrollToSection('reservationHistoryWrapper')"><i class="bi bi-calendar-check"></i> Reservations</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#favouriteShopsContainer" onclick="scrollToSection('favouriteShopsContainer')"><i class="bi bi-heart-fill"></i> Favourites</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#userReviewsList" onclick="scrollToSection('userReviewsList')"><i class="bi bi-star-fill"></i> Reviews</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="index.html"><i class="bi bi-house-door"></i> Home</a>
+          </li>
+        </ul>
+      </div>
     </div>
-</nav>
+  </nav>
+  <script>
+    function scrollToSection(id) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+  </script>
 
   <!-- Hero Section -->
   <section class="hero-profile" role="banner">
@@ -518,19 +497,33 @@
         <p class="profile-item"><strong>Surname:</strong> <span id="userSurname">Loading...</span></p>
         <p class="profile-item"><strong>Email:</strong> <span id="userEmail">Loading...</span></p>
     </div>
-    <div class="text-center mt-3">
+    <div class="text-center mt-3 mb-4">
         <button id="editProfileBtn" class="btn btn-primary">Edit Profile</button>
     </div>
+    <!-- Total Reservations Card -->
+    <div class="row justify-content-center mb-2">
+      <div class="col-12 col-md-6">
+        <div class="total-reservations-card text-center">
+          <div class="icon-bg"><i class="bi bi-calendar-check"></i></div>
+          <div class="total-label">Total Reservations</div>
+          <div id="totalReservationsCount" class="total-count">0</div>
+        </div>
+      </div>
+    </div>
   </section>
+
+  <!-- Section Divider -->
+  <div class="section-divider"></div>
 
   <!-- Reservation History Section -->
   <section class="container reservation-history" aria-labelledby="historyHeader">
   <h2 id="historyHeader" class="text-center">Reservation History</h2>
-  <div class="text-center">
+  <div class="text-center mb-3">
     <button class="filter-btn" onclick="filterReservations('pending')">Pending</button>
     <button class="filter-btn" onclick="filterReservations('accepted')">Active</button>
     <button class="filter-btn" onclick="filterReservations('completed')">Completed</button>
     <button class="filter-btn" onclick="filterReservations('notShown')">Not Shown</button>
+    <button class="filter-btn all-btn" onclick="filterReservations('all')">All</button>
   </div>
   <div id="reservationHistoryWrapper" class="history-wrapper">
     <div id="reservationHistory" class="row g-3">
@@ -540,12 +533,18 @@
   
 </section>
 
+  <!-- Section Divider -->
+  <div class="section-divider"></div>
+
   <section class="container favourite-shops" aria-labelledby="favouritesHeader">
     <h2 id="favouritesHeader" class="text-center">Favourite Shops</h2>
     <div id="favouriteShopsContainer" class="scrollable-row d-flex overflow-auto">
         <!-- Favourite shop cards will be dynamically inserted here -->
     </div>
 </section>
+
+  <!-- Section Divider -->
+  <div class="section-divider"></div>
 
   <!-- Reviews Section -->
 <section class="container user-reviews" aria-labelledby="reviewsHeader">
@@ -567,6 +566,8 @@
   <!-- Script -->
   <script type="module">
     import { handleLogout, updateNavbarOnLogin, applyNavbarStateFromSession } from './authUtils.js';
+
+    let allReservations = [];
 
     async function initializeUser() {
         try {
@@ -618,6 +619,10 @@
     }
 
     const { reservationHistory } = await response.json();
+
+    // Store all reservations for total count
+    allReservations = reservationHistory || [];
+    document.getElementById('totalReservationsCount').textContent = allReservations.length;
 
     if (!reservationHistory || reservationHistory.length === 0) {
       document.getElementById('reservationHistory').innerHTML = '<p class="text-warning">No reservations found.</p>';
