@@ -348,10 +348,12 @@
                             if (shops.length === 0) {
                                 categoriesContainer.innerHTML = '<p class="text-muted">Δεν υπάρχουν καταστήματα για αυτή την κατηγορία.</p>';
                             } else {
+                                const horizontalList = document.createElement('div');
+                                horizontalList.className = 'horizontal-shops-list';
                                 shops.forEach(shop => {
                                     const shopCard = document.createElement('div');
-                                    shopCard.className = 'shop-card me-3';
-                                    shopCard.style.width = '200px';
+                                    shopCard.className = 'shop-card';
+                                    shopCard.style.width = '220px';
                                     let rating = typeof shop.reviewRatingAverage === 'number' && shop.reviewRatingAverage >= 0
                                         ? shop.reviewRatingAverage.toFixed(1)
                                         : '—';
@@ -383,8 +385,9 @@
                                             </button>
                                         </div>
                                     `;
-                                    categoriesContainer.appendChild(shopCard);
+                                    horizontalList.appendChild(shopCard);
                                 });
+                                categoriesContainer.appendChild(horizontalList);
                             }
                         });
                     });
