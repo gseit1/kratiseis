@@ -122,7 +122,11 @@
                 <select id="cityDropdown" class="form-select">
                   <option value="">-- πόλη --</option>
                 </select>
-              </div>
+                <select id="categoryDropdown" class="form-select ms-2" style="display:none;">
+      <option value="">-- κατηγορία --</option>
+    </select>
+    <button id="viewAllBtn" class="btn btn-primary ms-2" style="display:none;">View All Categories</button>
+            </div>
             <div class="city-grid"> </div>
    
       
@@ -363,13 +367,7 @@
     // Προσθήκη event listener στο κουμπί Logout
     document.getElementById('logoutBtn').addEventListener('click', handleLogout);
 
-    document.getElementById('cityDropdown').addEventListener('change', function() {
-      const cityId = this.value;
-      if (cityId) {
-        // Ανακατεύθυνση στη σελίδα αναζήτησης με το επιλεγμένο cityId
-        window.location.href = `searchShops.html?cityId=${cityId}`;
-      }
-    });
+    
 
     // IDs για τις πόλεις (βάλε τα σωστά cityId από τη βάση σου)
 const ATHENS_CITY_ID = '67ef5b2f15e5f9c8a42e2e91';
@@ -381,6 +379,60 @@ document.getElementById('viewAllAthensBtn').addEventListener('click', () => {
 
 document.getElementById('viewAllThessBtn').addEventListener('click', () => {
     window.location.href = `searchShops.html?cityId=${THESS_CITY_ID}`;
+});
+
+// --- ΝΕΟ: City & Category Dropdown Logic ---
+const cityDropdown = document.getElementById('cityDropdown');
+const categoryDropdown = document.getElementById('categoryDropdown');
+const viewAllBtn = document.getElementById('viewAllBtn');
+
+// Φόρτωσε κατηγορίες (μόνο όταν επιλεγεί πόλη)
+async function loadCategories() {
+  try {
+    const res = await fetch('/category');
+    let categories = await res.json();
+    if (categories.categories) categories = categories.categories;
+    categoryDropdown.innerHTML = '<option value="">-- κατηγορία --</option>';
+    categories.forEach(cat => {
+      const opt = document.createElement('option');
+      opt.value = cat._id;
+      opt.textContent = cat.name;
+      categoryDropdown.appendChild(opt);
+    });
+    categoryDropdown.style.display = '';
+  } catch {}
+}
+
+cityDropdown.addEventListener('change', function() {
+  const cityId = this.value;
+  if (cityId) {
+    viewAllBtn.style.display = '';
+    viewAllBtn.textContent = 'View All Categories';
+    categoryDropdown.value = '';
+    loadCategories();
+  } else {
+    viewAllBtn.style.display = 'none';
+    categoryDropdown.style.display = 'none';
+  }
+});
+
+categoryDropdown.addEventListener('change', function() {
+  if (this.value) {
+    viewAllBtn.style.display = '';
+    viewAllBtn.textContent = 'View Shops in Category';
+  } else {
+    viewAllBtn.textContent = 'View All Categories';
+  }
+});
+
+viewAllBtn.addEventListener('click', function() {
+  const cityId = cityDropdown.value;
+  const categoryId = categoryDropdown.value;
+  if (cityId && categoryId) {
+    window.location.href = `searchShops.html?cityId=${cityId}&categoryId=${categoryId}`;
+  } else if (cityId) {
+    window.location.href = `searchShops.html?cityId=${cityId}`;
+  }
 });
 </script>
 </body>

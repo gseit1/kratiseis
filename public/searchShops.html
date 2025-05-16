@@ -772,6 +772,21 @@
                     // ...εδώ βάλε το fetch και το render των markers για το category αν δεν υπάρχει ήδη...
                 }
             });
+
+            // Μετά το await setupNavbar();
+
+const params = new URLSearchParams(window.location.search);
+const categoryIdFromQuery = params.get('categoryId');
+if (categoryIdFromQuery) {
+  // Περίμενε να φορτώσει το summary bar
+  setTimeout(() => {
+    const summaryItem = document.querySelector(`.summary-item[data-category-id="${categoryIdFromQuery}"]`);
+    if (summaryItem) {
+      summaryItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      summaryItem.click();
+    }
+  }, 800);
+}
         });
     </script>
 </body>
