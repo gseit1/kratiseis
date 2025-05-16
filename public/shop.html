@@ -187,7 +187,7 @@ body {
 
 .carousel-control-prev-icon,
 .carousel-control-next-icon {
-  filter: invert(1);
+  filter: brightness(0) invert(1) !important;
 }
 
 /* Fixed Booking Section */
@@ -362,7 +362,22 @@ body {
     top: unset;
   }
 }
-    
+.shop-section-bg {
+  background: rgba(255, 255, 255, 0.05); /* ίδιο με .shop-details */
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Εντονότερο λευκό περίγραμμα για το ενεργό thumbnail */
+.carousel-thumbnail.active-thumbnail {
+  border: 1px solid #fff !important;
+  box-shadow: 0 0 0 1px #fff, 0 2px 12px rgba(0,0,0,0.18);
+  filter: brightness(0.75);
+  z-index: 2;
+}
     
   </style>
 </head>
@@ -458,6 +473,8 @@ body {
             <span class="visually-hidden">Next</span>
           </button>
         </div>
+        <!-- Index Display -->
+        <div class="text-center text-white mb-2" id="carouselIndex"></div>
 
         <!-- Thumbnails -->
         <div class="d-flex justify-content-center mb-3" id="carouselThumbnails">
@@ -465,10 +482,11 @@ body {
         </div>
 
         <!-- Shop Description -->
-        <p id="shopDescription" class="mt-2 text text-center"></p>
+        <p id="shopDescription" class="mt-2 text text-center shop-section-bg"></p>
+
 <!-- Shop Details -->
 <div id="shopDetailsSection"></div>
-<div class="shop-details">
+<div class="shop-details shop-section-bg">
   <h5><i class="bi bi-info-circle me-2"></i>Shop Details</h5>
   <ul>
     <li>
@@ -511,7 +529,7 @@ body {
   <!-- Opening Hours -->
 <!-- Opening Hours -->
 <div id="openingHoursSection"></div>
-<div id="shopDetails" class="opening-hours">
+<div id="shopDetails" class="opening-hours shop-section-bg">
   <!-- Opening hours will be dynamically injected here -->
 </div>
         <!-- Google Maps Button -->
@@ -525,7 +543,7 @@ body {
 
         <!-- Reviews Section -->
         <div id="reviewsSection"></div>
-        <div class="reviews-section mt-4">
+        <div class="reviews-section mt-4 shop-section-bg">
           <h5 class="text-primary mb-3"><i class="bi bi-chat-dots me-2"></i>Customer Reviews</h5>
 
           <!-- Reviews List -->
@@ -561,7 +579,7 @@ body {
       <!-- Right Side: Fixed Booking Section -->
       <div class="col-lg-4">
         <div id="reservationSection"></div>
-        <div class="shop-card fixed-booking sticky-reservation">
+        <div class="shop-card fixed-booking sticky-reservation shop-section-bg">
           <h5 class="text-primary mb-2 fw-bold text-center">Book a Reservation</h5>
           <form id="searchForm">
             <div class="mb-2">
@@ -600,10 +618,11 @@ body {
               <label for="userEmail" class="form-label">Email:</label>
               <input type="email" class="form-control" id="userEmail" name="userEmail" readonly>
             </div>
-            <div class="mb-2">
+            <!-- ΑΦΑΙΡΕΣΕ το select για ώρα -->
+            <!-- <div class="mb-2">
               <label for="reservationTime" class="form-label">Time:</label>
               <select class="form-control" id="reservationTime" name="reservationTime" required></select>
-            </div>
+            </div> -->
             <div class="mb-2">
               <label for="commentFromUser" class="form-label">Comments:</label>
               <textarea class="form-control" id="commentFromUser" name="commentFromUser" maxlength="200"></textarea>
@@ -743,26 +762,41 @@ document.getElementById('decrementPeople').addEventListener('click', () => {
     }
     if (carouselImages && shop.images && shop.images.length > 0) {
       carouselImages.innerHTML = shop.images
-        .slice(0, 3) // Limit to 3 images
         .map((image, index) => `
           <div class="carousel-item ${index === 0 ? 'active' : ''}">
             <img src="${image}" class="d-block w-100 shop-img" alt="Shop Image ${index + 1}">
           </div>
         `)
         .join('');
-      // Update thumbnails
+      // Thumbnails
       carouselThumbnails.innerHTML = shop.images
-        .slice(0, 3) // Limit to 3 images
         .map((image, index) => `
           <img 
             src="${image}" 
             class="img-thumbnail mx-2 carousel-thumbnail ${index === 0 ? 'active-thumbnail' : ''}" 
             alt="Thumbnail ${index + 1}" 
             style="width: 80px; height: 80px; object-fit: cover; cursor: pointer;" 
-            onclick="document.querySelector('#shopCarousel .carousel-item:nth-child(${index + 1})').scrollIntoView({ behavior: 'smooth' });"
+            data-bs-slide-to="${index}"
           >
         `)
         .join('');
+
+      // Add click listeners to thumbnails
+      setTimeout(() => {
+        const carousel = document.getElementById('shopCarousel');
+        const bsCarousel = bootstrap.Carousel.getOrCreateInstance(carousel);
+        document.querySelectorAll('.carousel-thumbnail').forEach((thumb, idx) => {
+          thumb.addEventListener('click', () => {
+            bsCarousel.to(idx);
+          });
+        });
+        // Highlight active thumbnail on slide
+        carousel.addEventListener('slide.bs.carousel', function (e) {
+          document.querySelectorAll('.carousel-thumbnail').forEach((thumb, i) => {
+            thumb.classList.toggle('active-thumbnail', i === e.to);
+          });
+        });
+      }, 0);
     } else {
       // Fallback for no images
       carouselImages.innerHTML = `
@@ -819,6 +853,28 @@ document.getElementById('decrementPeople').addEventListener('click', () => {
       document.getElementById('openInMaps').href = googleMapsLink;
     } else {
       document.getElementById('openInMaps').style.display = 'none';
+    }
+
+    if (shop.images && shop.images.length > 0) {
+      document.body.style.backgroundImage = `url('${shop.images[0]}')`;
+      document.body.style.backgroundSize = 'cover';
+      document.body.style.backgroundPosition = 'center center';
+      document.body.style.backgroundAttachment = 'fixed';
+      document.body.style.backgroundRepeat = 'no-repeat';
+      // Προσθέτουμε ένα overlay για να διαβάζεται το περιεχόμενο
+      if (!document.getElementById('bgOverlay')) {
+        const overlay = document.createElement('div');
+        overlay.id = 'bgOverlay';
+        overlay.style.position = 'fixed';
+        overlay.style.top = 0;
+        overlay.style.left = 0;
+        overlay.style.width = '100vw';
+        overlay.style.height = '100vh';
+        overlay.style.background = 'rgba(15,15,16,0.82)';
+        overlay.style.zIndex = 0;
+        overlay.style.pointerEvents = 'none';
+        document.body.prepend(overlay);
+      }
     }
   } catch (error) {
     console.error('Error fetching shop details:', error);
@@ -958,11 +1014,28 @@ document.getElementById('decrementPeople').addEventListener('click', () => {
 
     const availableTimesDiv = document.getElementById('availableTimes');
     if (availableTimes && availableTimes.length > 0) {
-      availableTimesDiv.innerHTML = `<p class="fw-bold">Available Times:</p>
-        <p>${availableTimes.map(time => formatTime(time)).join(', ')}</p>`;
-      const reservationTimeSelect = document.getElementById('reservationTime');
-      reservationTimeSelect.innerHTML = availableTimes.map(time => `<option value="${time}">${formatTime(time)}</option>`).join('');
+      // Εμφάνιση ως κουμπιά όπως στον guest
+      let btnHtml = '<div id="userTimesContainer">' + availableTimes
+        .map(time => `<button type="button" class="btn btn-outline-primary btn-sm m-1 user-time-btn" data-time="${time}">${formatTime(time)}</button>`)
+        .join('') + '</div>';
+      btnHtml += '<input type="hidden" id="userReservationTimeHidden" name="reservationTime" required>';
+      availableTimesDiv.innerHTML = `<p class="fw-bold">Available Times:</p>${btnHtml}`;
       document.getElementById('reservationForm').style.display = 'block';
+
+      // ΑΦΑΙΡΕΣΕ το select (αν υπάρχει)
+      const reservationTimeSelect = document.getElementById('reservationTime');
+      if (reservationTimeSelect) reservationTimeSelect.remove();
+
+      // Προσθήκη event listeners στα κουμπιά
+      setTimeout(() => {
+        document.querySelectorAll('.user-time-btn').forEach(btn => {
+          btn.addEventListener('click', function() {
+            document.querySelectorAll('.user-time-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            document.getElementById('userReservationTimeHidden').value = this.getAttribute('data-time');
+          });
+        });
+      }, 0);
     } else {
       availableTimesDiv.innerHTML = `<p class="text-danger">No available times for the selected date and number of people.</p>`;
       document.getElementById('reservationForm').style.display = 'none';
@@ -984,19 +1057,21 @@ document.getElementById('decrementPeople').addEventListener('click', () => {
       reservationData.shopId = shopId;
       reservationData.reservationDate = document.getElementById('reservationDate').value;
       reservationData.seats = document.getElementById('numberOfPeople').value;
-      reservationData.surname = document.getElementById('userName').value.split(' ')[1] || ''; // Extract surname from full name
+      reservationData.surname = document.getElementById('userName').value.split(' ')[1] || '';
+      // Πάρε το time από το hidden input
+      reservationData.reservationTime = document.getElementById('userReservationTimeHidden').value;
 
       try {
-        const response = await fetch('/api/reservation/user', { // Use userReservation endpoint
+        const response = await fetch('/api/reservation/user', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(reservationData),
-          credentials: 'include', // Include session cookies
+          credentials: 'include',
         });
         const result = await response.json();
         if (response.ok) {
           alert('Reservation booked successfully!');
-          displayReservationDetails(reservationData); // Show the new form
+          displayReservationDetails(reservationData);
         } else {
           alert('Error booking reservation: ' + result.message);
         }
