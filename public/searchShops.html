@@ -150,8 +150,11 @@
                     // Αν το response είναι object με property categories, πάρε το array
                     if (categories.categories) categories = categories.categories;
                     categoryIcons = {};
+                    // Δημιούργησε map για εύκολη αναζήτηση ονόματος κατηγορίας
+                    const categoryNames = {};
                     categories.forEach(category => {
                         categoryIcons[category._id] = category.image || '/images/default-placeholder.jpg';
+                        categoryNames[category._id] = category.name;
                     });
 
                     const cityResponse = await fetch(`/city/${cityId}`);
@@ -172,21 +175,24 @@
                     shops.forEach(shop => {
                         const categoryId = shop.category?._id || shop.category;
                         if (!categoryCounts[categoryId]) {
-                            categoryCounts[categoryId] = { count: 0, name: '', image: '' };
+                            categoryCounts[categoryId] = { count: 0 };
                         }
                         categoryCounts[categoryId].count += 1;
-                        categoryCounts[categoryId].name = shop.category?.name || '';
-                        categoryCounts[categoryId].image = categoryIcons[categoryId] || shop.category?.image || '/images/default-placeholder.jpg';
                     });
 
                     // Εμφάνιση summary bar icons & count ΜΕΤΑ την αναζήτηση
                     let summaryHtml = '';
                     if (Object.keys(categoryCounts).length > 0) {
                         Object.entries(categoryCounts).forEach(([categoryId, info]) => {
+                            const name = categoryNames[categoryId] || '';
+                            const image = categoryIcons[categoryId] || '/images/default-placeholder.jpg';
                             summaryHtml += `
-                                <div class="summary-item">
-                                    <img src="${info.image}" alt="${info.name}">
-                                    <span class="badge">${info.count}</span>
+                                <div class="summary-item d-flex flex-row align-items-center mb-3" style="width: 190px;">
+                                    <span class="category-name text-start" style="font-size: 15px; font-weight: 500; color: #333; min-width: 90px; max-width: 110px; word-break: break-word; margin-right: 10px;">${name}</span>
+                                    <div class="d-flex flex-column align-items-center">
+                                        <img src="${image}" alt="${name}" title="${name}" style="width:48px;height:48px;object-fit:cover;border-radius:50%;border:2px solid #e74c3c;">
+                                        <span class="badge bg-danger mt-1 mb-1">${info.count}</span>
+                                    </div>
                                 </div>
                             `;
                         });
@@ -195,7 +201,7 @@
                     // Εμφάνιση split: summary bar (αριστερά) + map (δεξιά)
                     topFrame.innerHTML = `
                         <div class="d-flex w-100 h-100 flex-row align-items-stretch" style="width:100%;height:100%;">
-                            <div id="categorySummaryContainer" class="summary-bar d-flex flex-column align-items-center justify-content-start py-3" style="width:80px; min-width:80px; max-width:80px; background:#f8f9fa; border-right:2px solid #e74c3c; height:100%; overflow-y:auto;">
+                            <div id="categorySummaryContainer" class="summary-bar d-flex flex-column align-items-start justify-content-start py-3" style="width:210px; min-width:210px; max-width:250px; background:#f8f9fa; border-right:2px solid #e74c3c; height:100%; overflow-y:auto;">
                                 ${summaryHtml}
                             </div>
                             <div style="flex:1 1 0; height:100%; position:relative;">
@@ -401,7 +407,7 @@
                                     const rounded = Math.round(shop.reviewRatingAverage);
                                     stars = '⭐'.repeat(rounded);
                                 }
-
+                                
                                 let imageUrl = shop.image || (shop.images && shop.images.length > 0 ? shop.images[0] : '/images/default-placeholder.jpg');
                                 if (!imageUrl || (!imageUrl.startsWith('http') && !imageUrl.startsWith('/'))) {
                                     imageUrl = '/images/default-placeholder.jpg';
@@ -414,7 +420,7 @@
                                         <img src="${imageUrl}" class="card-img-top" alt="${shop.shopName}">
                                         <div class="card-body">
                                             <h5 class="card-title">${shop.shopName}</h5>
-                                            <p class="card-text" style="min-height:30px;max-height:120px;overflow:auto;">${shop.shopName }</p>
+                                            <p class="card-text" style="min-height:30px;max-height:120px;overflow:auto;">${shop.address }</p>
                                             <div class="d-flex align-items-center mb-2">
                                                 <span class="text-warning me-2">${stars}</span>
                                                 <span class="text-muted">${rating}</span>

@@ -16,7 +16,7 @@ const searchShopsByCityService = async (cityId) => {
   }
 };
 
-// Αναζήτηση καταστημάτων με βάση την πόλη και την περιοχή
+//* Αναζήτηση καταστημάτων με βάση την πόλη και την περιοχή
 const searchShopsByCityAndRegionService = async (cityId, regionId) => {
   try {
     const shops = await Shop.find({ city: cityId, region: regionId }).select('_id shopName reviewRatingAverage images');
@@ -34,12 +34,13 @@ const searchShopsByCityAndRegionService = async (cityId, regionId) => {
 // Αναζήτηση καταστημάτων με βάση την πόλη και την κατηγορία
 const searchShopsByCityAndCategoryService = async (cityId, categoryId) => {
   try {
-    const shops = await Shop.find({ city: cityId, category: categoryId }).select('_id shopName reviewRatingAverage images');
+    const shops = await Shop.find({ city: cityId, category: categoryId }).select('_id shopName  address reviewRatingAverage images');
     return shops.map(shop => ({
       id: shop._id,
       shopName: shop.shopName,
       reviewRatingAverage: shop.reviewRatingAverage,
       image: shop.images[0] || null,
+      address:shop.address,
     }));
   } catch (error) {
     throw new Error('Error fetching shops by city and category: ' + error.message);
