@@ -396,35 +396,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 // --- CITIES SECTION ---
-document.addEventListener('DOMContentLoaded', async () => {
-  const citiesGrid = document.getElementById('citiesGrid');
-  if (citiesGrid) {
-    try {
-      const res = await fetch('/city');
-      const cities = await res.json();
-      citiesGrid.innerHTML = '';
-      cities.forEach(city => {
-        const col = document.createElement('div');
-        col.className = 'col';
-        const card = document.createElement('div');
-        card.className = 'city-card h-100';
-        card.innerHTML = `
-          <img src="${city.image || '/images/default-city.jpg'}" class="city-card-img" alt="${city.name}">
-          <div class="city-card-title">${city.name}</div>
-        `;
-        card.addEventListener('click', () => {
-          window.location.href = `searchShops.html?cityId=${city._id}`;
-        });
-        col.appendChild(card);
-        citiesGrid.appendChild(col);
-      });
-    } catch (err) {
-      citiesGrid.innerHTML = '<div class="text-center text-muted">No cities found.</div>';
-    }
-  }
-});
-
-// --- Homepage City Cards Section ---
+// --- Enhanced Homepage City Cards Section ---
 async function renderHomepageCityCards() {
   const row = document.getElementById('cityCardsRow');
   if (!row) return;
@@ -434,16 +406,22 @@ async function renderHomepageCityCards() {
     row.innerHTML = '';
     cities.forEach(city => {
       const card = document.createElement('div');
-      card.className = 'col-md-4';
+      card.className = 'col-12 col-sm-6 col-md-4 col-lg-3';
       card.innerHTML = `
-        <div class="feature-card">
-          <img src="${city.image || '/images/default-city.jpg'}" alt="${city.name}" class="feature-card-img">
-          <div class="feature-card-body">
-            <h3 class="feature-card-title">${city.name}</h3>
-            <p class="feature-card-desc">${city.description || 'Discover the best shops and restaurants in ' + city.name + '.'}</p>
-            <a href="searchShops.html?cityId=${city._id}" class="feature-card-link">Δες τα μαγαζιά</a>
+        <a href="searchShops.html?cityId=${city._id}" class="city-card-link">
+          <div class="city-card city-card-glass">
+            <div class="city-card-img-wrap">
+              <img src="${city.image || '/images/default-city.jpg'}" alt="${city.name}" class="city-card-img">
+              <div class="city-card-gradient"></div>
+              <div class="city-card-content">
+                <span class="city-card-pin"><i class="bi bi-geo-alt-fill"></i></span>
+                <h3 class="city-card-title">${city.name}</h3>
+                <p class="city-card-desc">${city.description || 'Explore the best of ' + city.name}</p>
+                <span class="city-card-btn">View Shops <i class="bi bi-arrow-right"></i></span>
+              </div>
+            </div>
           </div>
-        </div>
+        </a>
       `;
       row.appendChild(card);
     });

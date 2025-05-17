@@ -1596,3 +1596,128 @@ opacity: 0.8;
 }
 /* --- End Homepage Feature Cards Section --- */
 
+/* --- Next-level Explore Cities Section --- */
+.city-explore-section {
+  position: relative;
+  z-index: 1;
+  padding-bottom: 48px;
+}
+
+.city-section-subtitle {
+  color: #555;
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.01em;
+}
+.city-card-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  height: 100%;
+  transition: transform 0.13s cubic-bezier(.4,2,.6,1), box-shadow 0.18s;
+}
+.city-card-link:focus-visible .city-card,
+.city-card-link:hover .city-card {
+  transform: translateY(-6px) scale(1.035);
+  box-shadow: 0 8px 32px 0 rgba(0,0,0,0.18);
+  z-index: 2;
+}
+.city-card {
+  background: rgba(255,255,255,0.18);
+  border-radius: 22px;
+  box-shadow: 0 4px 24px 0 rgba(0,0,0,0.08);
+  overflow: hidden;
+  position: relative;
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  transition: box-shadow 0.18s, transform 0.13s;
+}
+.city-card-img-wrap {
+  position: relative;
+  width: 100%;
+  height: 320px;
+  overflow: hidden;
+  border-radius: 22px;
+  display: flex;
+  align-items: flex-end;
+}
+.city-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.18s;
+}
+.city-card-link:hover .city-card-img {
+  transform: scale(1.06);
+}
+.city-card-gradient {
+  position: absolute;
+  left: 0; right: 0; bottom: 0; height: 70%;
+  background: linear-gradient(0deg, rgba(30,30,40,0.82) 0%, rgba(30,30,40,0.18) 100%);
+  z-index: 1;
+}
+.city-card-content {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  z-index: 2;
+  color: #fff;
+  padding: 32px 18px 22px 18px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+}
+.city-card-pin {
+  font-size: 1.5rem;
+  color: #ffb347;
+  margin-bottom: 6px;
+  filter: drop-shadow(0 2px 6px #0008);
+}
+.city-card-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+  letter-spacing: 0.01em;
+  text-shadow: 0 2px 8px #0006;
+}
+.city-card-desc {
+  font-size: 1.01rem;
+  font-weight: 400;
+  margin-bottom: 18px;
+  color: #eaeaea;
+  text-shadow: 0 1px 4px #0005;
+}
+.city-card-btn {
+  display: inline-block;
+  background: linear-gradient(90deg, #00b4d7 0%, #008067 100%);
+  color: #fff;
+  font-weight: 600;
+  border-radius: 18px;
+  padding: 8px 22px;
+  font-size: 1.01rem;
+  box-shadow: 0 2px 8px #00806733;
+  transition: background 0.18s, box-shadow 0.18s;
+  cursor: pointer;
+}
+.city-card-link:hover .city-card-btn {
+  background: linear-gradient(90deg, #008067 0%, #00b4d7 100%);
+  box-shadow: 0 4px 16px #00806744;
+}
+@media (max-width: 991px) {
+  .city-card-img-wrap { height: 220px; }
+  .city-card { min-height: 220px; }
+}
+@media (max-width: 767px) {
+  .city-card-img-wrap { height: 160px; }
+  .city-card { min-height: 160px; }
+  .city-card-content { padding: 18px 8px 12px 8px; }
+  .city-card-title { font-size: 1.08rem; }
+  .city-card-desc { font-size: 0.93rem; }
+  .city-card-btn { font-size: 0.93rem; padding: 7px 14px; }
+}
+/* --- End Next-level Explore Cities Section --- */
+
