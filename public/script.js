@@ -431,3 +431,36 @@ async function renderHomepageCityCards() {
 }
 
 document.addEventListener('DOMContentLoaded', renderHomepageCityCards);
+
+// --- Draggable Collapse/Expand Map Logic ---
+document.addEventListener('DOMContentLoaded', function() {
+  const splitLayout = document.getElementById('splitLayout');
+  const mapSection = document.getElementById('mapSection');
+  const categoriesPanel = document.getElementById('categoriesPanel');
+  const toggleMapBtn = document.getElementById('toggleMapBtn');
+  const toggleMapIcon = document.getElementById('toggleMapIcon');
+  let isMapHidden = false;
+
+  // Remove previous event listeners if any
+  if (toggleMapBtn) {
+    toggleMapBtn.replaceWith(toggleMapBtn.cloneNode(true));
+  }
+  const newToggleBtn = document.getElementById('toggleMapBtn');
+
+  // Toggle button click (for accessibility/mobile)
+  newToggleBtn.addEventListener('click', function() {
+    if (!isMapHidden) {
+      mapSection.style.display = 'none';
+      categoriesPanel.style.width = '100%';
+      categoriesPanel.classList.add('expanded-panel');
+      isMapHidden = true;
+      toggleMapIcon.className = 'bi bi-chevron-right';
+    } else {
+      mapSection.style.display = '';
+      categoriesPanel.style.width = '';
+      categoriesPanel.classList.remove('expanded-panel');
+      isMapHidden = false;
+      toggleMapIcon.className = 'bi bi-chevron-left';
+    }
+  });
+});

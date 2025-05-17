@@ -62,34 +62,44 @@
         <option value="" disabled selected>Επιλέξτε πόλη</option>
       </select>
     </div>
-    <button id="toggleMapBtn" class="btn btn-light ms-2" aria-label="Collapse map" style="z-index:20;box-shadow:0 2px 8px #0002;border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;">
-      <i id="toggleMapIcon" class="bi bi-chevron-left" style="font-size:1.5rem;"></i>
-    </button>
   </div>
 </header>
 
-<!-- 🖥️ Modern Layout -->
-<main class="container-fluid px-0" style="background:#f7f8fa;min-height:100vh;height:100vh;">
-  <div id="splitLayout" class="d-flex flex-row flex-nowrap w-100" style="height:100vh;min-height:100vh;">
-    <section id="mapSection" class="position-relative flex-grow-1" style="min-width:0;transition:width 0.3s;height:100vh;max-height:100vh;">
-      <div id="mapContainer" class="w-100 h-100 position-relative" style="border-radius:0 0 32px 32px;overflow:hidden;height:100vh;max-height:100vh;"></div>
-      <aside id="categorySummaryContainer"
-             class="summary-bar-glass position-absolute top-0 ms-5 m-3 p-2 d-flex flex-column align-items-center"
-             style="z-index:10;min-width:90px;max-width:220px;">
-        <!-- Dynamically inserted summary icons -->
-      </aside>
-    </section>
-    <section id="categoriesPanel" class="flex-grow-1 bg-transparent pt-4" style="min-width:0;transition:width 0.3s;height:100vh;max-height:100vh;overflow-y:auto;">
-      <div id="categoryContextHeader"
-           style="display:none;font-size:1.1rem;font-weight:600;color:#7873f5;margin:18px 0 8px 0;min-height:28px;">
-        <!-- Εδώ θα μπαίνει το context header -->
+<!-- 🖥️ Split Screen -->
+<main class="container mt-4">
+  <div class="row gx-0">
+    <!-- 🔝 Top: Summary + Map -->
+    <section id="topFrame" class="col-12" style="height: 50vh;">
+      <div class="d-flex h-100">
+        <!-- 🧭 Summary Bar -->
+        <aside id="categorySummaryContainer"
+               class="summary-bar d-flex flex-column align-items-center py-3 px-1 border-end"
+               style="width: 80px; background: #f9f9f9; overflow-y: auto;">
+          <!-- Dynamically inserted summary icons -->
+        </aside>
+
+        <!-- 🗺️ Map Area -->
+        <div class="flex-grow-1 position-relative">
+          <div id="mapContainer" class="h-100 w-100"></div>
+        </div>
       </div>
+    </section>
+
+    <!-- ΕΔΩ ΒΑΛΕ ΤΟ CONTEXT HEADER -->
+    <div id="categoryContextHeader"
+         style="display:none;font-size:1.1rem;font-weight:600;color:#7873f5;margin:18px 0 8px 0;min-height:28px;">
+      <!-- Εδώ θα μπαίνει το context header -->
+    </div>
+
+    <!-- 🔽 Bottom: Categories + Shops -->
+    <section id="bottomFrame" class="col-12 bg-white pt-4">
       <div id="categoriesContainer" class="categories-container container">
         <!-- Categories & Shops loaded dynamically -->
       </div>
     </section>
   </div>
 </main>
+
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
@@ -98,7 +108,7 @@
 
         document.addEventListener('DOMContentLoaded', async () => {
             const cityFilter = document.getElementById('cityFilter');
-            const topFrame = document.getElementById('mapSection');
+            const topFrame = document.getElementById('topFrame');
             const categoriesContainer = document.getElementById('categoriesContainer');
             let categoryIcons = {};
 
@@ -220,9 +230,17 @@
                         });
                     }
 
-                    // Εμφάνιση split: summary bar (floating) + map (full width)
-                    const summaryContainer = document.getElementById('categorySummaryContainer');
-                    summaryContainer.innerHTML = summaryHtml;
+                    // Εμφάνιση split: summary bar (αριστερά) + map (δεξιά)
+                    topFrame.innerHTML = `
+                        <div class="d-flex w-100 h-100 flex-row align-items-stretch" style="width:100%;height:100%;">
+                            <div id="categorySummaryContainer" class="summary-bar d-flex flex-column align-items-start justify-content-start py-3" style="width:210px; min-width:210px; max-width:250px; background:#f8f9fa; border-right:2px solid #e74c3c; height:100%; overflow-y:auto;">
+                                ${summaryHtml}
+                            </div>
+                            <div style="flex:1 1 0; height:100%; position:relative;">
+                                <div id="mapContainer" style="height: 100%; width: 100%; position:relative;"></div>
+                            </div>
+                        </div>
+                    `;
 
                     // --- Βάλε αυτή τη συνάρτηση έξω από την updateMap ---
                     let currentMap = null;
@@ -350,7 +368,7 @@
                                 const pinSvg = document.createElement('div');
                                 pinSvg.innerHTML = `
                                   <svg width="24" height="24" viewBox="0 0 24 24" style="display:block;margin:0 auto;">
-                                    <path d="M12 2C10.067 2 8.5 3.567 8.5 5.5c0 2.485 2.5 6.5 2.5 6.5s2.5-4.015 2.5-6.5C15.5 3.567 13.933 2 12 2zm0 3a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm0 17c-4.418 0-8-3.582-8-8 0-2.21 1.79-4 4-4h8c2.21 0 4 1.79 4 4 0 4.418-3.582-8-8-8z" fill="#e74c3c"/>
+                                    <path d="M12 2C10.067 2 8.5 3.567 8.5 5.5c0 2.485 2.5 6.5 2.5 6.5s2.5-4.015 2.5-6.5C15.5 3.567 13.933 2 12 2zm0 3a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm0 17c-4.418 0-8-3.582-8-8 0-2.21 1.79-4 4-4h8c2.21 0 4 1.79 4 4 0 4.418-3.582 8-8 8z" fill="#e74c3c"/>
                                     <circle cx="12" cy="5.5" r="1.5" fill="#fff"/>
                                   </svg>
                                 `;
@@ -601,7 +619,7 @@
                             const pinSvg = document.createElement('div');
                             pinSvg.innerHTML = `
                               <svg width="24" height="24" viewBox="0 0 24 24" style="display:block;margin:0 auto;">
-                                <path d="M12 2C10.067 2 8.5 3.567 8.5 5.5c0 2.485 2.5 6.5 2.5 6.5s2.5-4.015 2.5-6.5C15.5 3.567 13.933 2 12 2zm0 3a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm0 17c-4.418 0-8-3.582-8-8 0-2.21 1.79-4 4-4h8c2.21 0 4 1.79 4 4 0 4.418-3.582-8-8-8z" fill="#e74c3c"/>
+                                <path d="M12 2C10.067 2 8.5 3.567 8.5 5.5c0 2.485 2.5 6.5 2.5 6.5s2.5-4.015 2.5-6.5C15.5 3.567 13.933 2 12 2zm0 3a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm0 17c-4.418 0-8-3.582-8-8 0-2.21 1.79-4 4-4h8c2.21 0 4 1.79 4 4 0 4.418-3.582 8-8 8z" fill="#e74c3c"/>
                                 <circle cx="12" cy="5.5" r="1.5" fill="#fff"/>
                               </svg>
                             `;
@@ -978,32 +996,6 @@ document.addEventListener('click', function(e) {
         ctx.style.display = 'block';
       }
     }
-  }
-});
-
-document.addEventListener('DOMContentLoaded', function() {
-  const splitLayout = document.getElementById('splitLayout');
-  const mapSection = document.getElementById('mapSection');
-  const categoriesPanel = document.getElementById('categoriesPanel');
-  const toggleMapBtn = document.getElementById('toggleMapBtn');
-  const toggleMapIcon = document.getElementById('toggleMapIcon');
-  let isMapHidden = false;
-
-  if (toggleMapBtn) {
-    toggleMapBtn.addEventListener('click', function() {
-      isMapHidden = !isMapHidden;
-      if (isMapHidden) {
-        splitLayout.classList.add('collapsed-map');
-        categoriesPanel.classList.add('expanded-panel');
-        toggleMapIcon.className = 'bi bi-chevron-right';
-        toggleMapBtn.setAttribute('aria-label', 'Expand map');
-      } else {
-        splitLayout.classList.remove('collapsed-map');
-        categoriesPanel.classList.remove('expanded-panel');
-        toggleMapIcon.className = 'bi bi-chevron-left';
-        toggleMapBtn.setAttribute('aria-label', 'Collapse map');
-      }
-    });
   }
 });
         });
