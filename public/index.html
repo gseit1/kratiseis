@@ -119,18 +119,18 @@
             <p class="hero-subtitle">Εξερεύνησε την πόλη σου μέσα από vibes και γεύσεις!</p>
             <div class="city-selection">
                 <label for="cityDropdown">Διάλεξε πόλη:</label>
-                <select id="cityDropdown" class="form-select">
+                <span id="cityIconPreview" style="vertical-align:middle;margin-right:10px;"></span>
+                <select id="cityDropdown" class="form-select" style="display:inline-block;width:auto;">
                   <option value="">-- πόλη --</option>
                 </select>
-                <select id="categoryDropdown" class="form-select ms-2" style="display:none;">
-      <option value="">-- κατηγορία --</option>
-    </select>
-    <button id="viewAllBtn" class="btn btn-primary ms-2" style="display:none;">View All Categories</button>
+                <span id="categoryIconPreview" style="vertical-align:middle;margin-left:12px;"></span>
+                <select id="categoryDropdown" class="form-select ms-2" style="display:none;width:auto;">
+                  <option value="">-- κατηγορία --</option>
+                </select>
+                <button id="viewAllBtn" class="btn btn-primary ms-2" style="display:none;">View All Categories</button>
             </div>
-            <div class="city-grid"> </div>
-   
-      
-      
+          </div>
+        </div>
       </section>
       
             
@@ -386,14 +386,36 @@ const cityDropdown = document.getElementById('cityDropdown');
 const categoryDropdown = document.getElementById('categoryDropdown');
 const viewAllBtn = document.getElementById('viewAllBtn');
 
-// Φόρτωσε κατηγορίες (μόνο όταν επιλεγεί πόλη)
+let cityImages = {};
+let categoryImages = {};
+
+// Φόρτωσε πόλεις με εικόνες
+async function loadCities() {
+  try {
+    const res = await fetch('/city');
+    const cities = await res.json();
+    cityDropdown.innerHTML = '<option value="">-- πόλη --</option>';
+    cityImages = {};
+    cities.forEach(city => {
+      cityImages[city._id] = city.image || '/images/default-city.jpg';
+      const opt = document.createElement('option');
+      opt.value = city._id;
+      opt.textContent = city.name;
+      cityDropdown.appendChild(opt);
+    });
+  } catch {}
+}
+
+// Φόρτωσε κατηγορίες με εικόνες
 async function loadCategories() {
   try {
     const res = await fetch('/category');
     let categories = await res.json();
     if (categories.categories) categories = categories.categories;
     categoryDropdown.innerHTML = '<option value="">-- κατηγορία --</option>';
+    categoryImages = {};
     categories.forEach(cat => {
+      categoryImages[cat._id] = cat.image || '/images/default-placeholder.jpg';
       const opt = document.createElement('option');
       opt.value = cat._id;
       opt.textContent = cat.name;
@@ -403,8 +425,16 @@ async function loadCategories() {
   } catch {}
 }
 
+// Εμφάνισε το εικονίδιο της πόλης όταν αλλάζει επιλογή
 cityDropdown.addEventListener('change', function() {
   const cityId = this.value;
+  const icon = document.getElementById('cityIconPreview');
+  if (cityId && cityImages[cityId]) {
+    icon.innerHTML = `<img src="${cityImages[cityId]}" alt="" style="width:48px;height:48px;object-fit:cover;border-radius:50%;border:2.5px solid #fff;box-shadow:0 2px 8px #0002;">`;
+  } else {
+    icon.innerHTML = '';
+  }
+  const categoryId = categoryDropdown.value;
   if (cityId) {
     viewAllBtn.style.display = '';
     viewAllBtn.textContent = 'View All Categories';
@@ -416,7 +446,15 @@ cityDropdown.addEventListener('change', function() {
   }
 });
 
+// Εμφάνισε το εικονίδιο της κατηγορίας όταν αλλάζει επιλογή
 categoryDropdown.addEventListener('change', function() {
+  const catId = this.value;
+  const icon = document.getElementById('categoryIconPreview');
+  if (catId && categoryImages[catId]) {
+    icon.innerHTML = `<img src="${categoryImages[catId]}" alt="" style="width:40px;height:40px;object-fit:cover;border-radius:50%;border:2.5px solid #fff;box-shadow:0 2px 8px #0002;">`;
+  } else {
+    icon.innerHTML = '';
+  }
   if (this.value) {
     viewAllBtn.style.display = '';
     viewAllBtn.textContent = 'View Shops in Category';
@@ -434,6 +472,9 @@ viewAllBtn.addEventListener('click', function() {
     window.location.href = `searchShops.html?cityId=${cityId}`;
   }
 });
+
+// Αρχικό load
+document.addEventListener('DOMContentLoaded', loadCities);
 </script>
 </body>
 </html>
