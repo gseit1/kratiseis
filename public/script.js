@@ -308,3 +308,148 @@ async function fetchLatestShops() {
 }
 
 document.addEventListener('DOMContentLoaded', fetchLatestShops);
+
+document.addEventListener('DOMContentLoaded', async () => {
+  // --- LATEST & TOP RATED SHOPS ---
+  const latestShopsList = document.getElementById('latestShopsList');
+  const topRatedShopsList = document.getElementById('topRatedShopsList');
+  if (latestShopsList && topRatedShopsList) {
+    try {
+      // Fetch all shops from /api/shop
+      const res = await fetch('/api/shop');
+      const shops = await res.json();
+      // Sort for latest (by createdAt desc)
+      const latestShops = [...shops].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 6);
+      // Sort for top rated (by reviewRatingAverage desc, then reviews count desc)
+      const topRatedShops = [...shops]
+        .filter(s => typeof s.reviewRatingAverage === 'number')
+        .sort((a, b) => {
+          if (b.reviewRatingAverage !== a.reviewRatingAverage) return b.reviewRatingAverage - a.reviewRatingAverage;
+          return (b.reviewsCount || 0) - (a.reviewsCount || 0);
+        })
+        .slice(0, 6);
+      // Render latest shops
+      latestShopsList.innerHTML = '';
+      latestShops.forEach(shop => {
+        let imageUrl = shop.image || (shop.images && shop.images[0]) || '/images/default-placeholder.jpg';
+        if (imageUrl.startsWith('/')) imageUrl = `http://localhost:300${imageUrl}`;
+        const li = document.createElement('li');
+        li.innerHTML = `
+          <img src="${imageUrl}" class="latest-shop-img" alt="${shop.shopName}">
+          <div class="latest-shop-info">
+            <div class="latest-shop-title">${shop.shopName}</div>
+            <div class="latest-shop-meta">
+              <span class="latest-shop-rating"><i class="bi bi-star-fill"></i> ${shop.reviewRatingAverage ? shop.reviewRatingAverage.toFixed(1) : '—'}${shop.reviewsCount ? ` <span style='color:#888;font-weight:400;'>(${shop.reviewsCount})</span>` : ''}</span>
+              ${shop.categoryName ? shop.categoryName + ' • ' : ''}${shop.priceLevel || ''}
+            </div>
+            <div class="latest-shop-location"><i class="bi bi-geo-alt"></i> ${shop.address || ''}
+            </div>
+          </div>
+          <button class="latest-shop-fav" title="Add to Favourites"><i class="bi bi-heart"></i></button>
+        `;
+        li.querySelector('.latest-shop-fav').addEventListener('click', async (e) => {
+          e.stopPropagation();
+          li.querySelector('.latest-shop-fav').classList.toggle('active');
+        });
+        li.addEventListener('click', (e) => {
+          if (!e.target.closest('.latest-shop-fav')) {
+            window.location.href = `shop.html?id=${shop._id || shop.id}`;
+          }
+        });
+        latestShopsList.appendChild(li);
+      });
+      // Render top rated shops
+      topRatedShopsList.innerHTML = '';
+      topRatedShops.forEach(shop => {
+        let imageUrl = shop.image || (shop.images && shop.images[0]) || '/images/default-placeholder.jpg';
+        if (imageUrl.startsWith('/')) imageUrl = `http://localhost:300${imageUrl}`;
+        const li = document.createElement('li');
+        li.innerHTML = `
+          <img src="${imageUrl}" class="latest-shop-img" alt="${shop.shopName}">
+          <div class="latest-shop-info">
+            <div class="latest-shop-title">${shop.shopName}</div>
+            <div class="latest-shop-meta">
+              <span class="latest-shop-rating"><i class="bi bi-star-fill"></i> ${shop.reviewRatingAverage ? shop.reviewRatingAverage.toFixed(1) : '—'}${shop.reviewsCount ? ` <span style='color:#888;font-weight:400;'>(${shop.reviewsCount})</span>` : ''}</span>
+              ${shop.categoryName ? shop.categoryName + ' • ' : ''}${shop.priceLevel || ''}
+            </div>
+            <div class="latest-shop-location"><i class="bi bi-geo-alt"></i> ${shop.address || ''}
+            </div>
+          </div>
+          <button class="latest-shop-fav" title="Add to Favourites"><i class="bi bi-heart"></i></button>
+        `;
+        li.querySelector('.latest-shop-fav').addEventListener('click', async (e) => {
+          e.stopPropagation();
+          li.querySelector('.latest-shop-fav').classList.toggle('active');
+        });
+        li.addEventListener('click', (e) => {
+          if (!e.target.closest('.latest-shop-fav')) {
+            window.location.href = `shop.html?id=${shop._id || shop.id}`;
+          }
+        });
+        topRatedShopsList.appendChild(li);
+      });
+    } catch (err) {
+      latestShopsList.innerHTML = '<div class="text-center text-muted">No shops found.</div>';
+      topRatedShopsList.innerHTML = '<div class="text-center text-muted">No shops found.</div>';
+    }
+  }
+});
+
+// --- CITIES SECTION ---
+document.addEventListener('DOMContentLoaded', async () => {
+  const citiesGrid = document.getElementById('citiesGrid');
+  if (citiesGrid) {
+    try {
+      const res = await fetch('/city');
+      const cities = await res.json();
+      citiesGrid.innerHTML = '';
+      cities.forEach(city => {
+        const col = document.createElement('div');
+        col.className = 'col';
+        const card = document.createElement('div');
+        card.className = 'city-card h-100';
+        card.innerHTML = `
+          <img src="${city.image || '/images/default-city.jpg'}" class="city-card-img" alt="${city.name}">
+          <div class="city-card-title">${city.name}</div>
+        `;
+        card.addEventListener('click', () => {
+          window.location.href = `searchShops.html?cityId=${city._id}`;
+        });
+        col.appendChild(card);
+        citiesGrid.appendChild(col);
+      });
+    } catch (err) {
+      citiesGrid.innerHTML = '<div class="text-center text-muted">No cities found.</div>';
+    }
+  }
+});
+
+// --- Homepage City Cards Section ---
+async function renderHomepageCityCards() {
+  const row = document.getElementById('cityCardsRow');
+  if (!row) return;
+  try {
+    const res = await fetch('/city');
+    const cities = await res.json();
+    row.innerHTML = '';
+    cities.forEach(city => {
+      const card = document.createElement('div');
+      card.className = 'col-md-4';
+      card.innerHTML = `
+        <div class="feature-card">
+          <img src="${city.image || '/images/default-city.jpg'}" alt="${city.name}" class="feature-card-img">
+          <div class="feature-card-body">
+            <h3 class="feature-card-title">${city.name}</h3>
+            <p class="feature-card-desc">${city.description || 'Discover the best shops and restaurants in ' + city.name + '.'}</p>
+            <a href="searchShops.html?cityId=${city._id}" class="feature-card-link">Δες τα μαγαζιά</a>
+          </div>
+        </div>
+      `;
+      row.appendChild(card);
+    });
+  } catch (e) {
+    row.innerHTML = '<div class="col-12 text-center text-danger">Could not load cities.</div>';
+  }
+}
+
+document.addEventListener('DOMContentLoaded', renderHomepageCityCards);

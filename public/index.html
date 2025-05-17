@@ -203,50 +203,50 @@
         </div>
     </section>
 
-    <!-- Latest Shops Section -->
-    <section id="latestShops" class="mt-5">
-      <h2 class="text-primary mb-4">Latest Shops</h2>
-      <div class="row" id="latestShopsContainer">
-        <!-- Latest shops will be dynamically injected here -->
+    <!-- Latest & Top Rated Shops Section -->
+    <section id="featuredShops" class="mt-5">
+      <div class="container">
+        <div class="row g-4 justify-content-center">
+          <!-- Latest Shops Card -->
+          <div class="col-12 col-md-6">
+            <div class="latest-shop-card h-100">
+              <div class="d-flex align-items-center justify-content-center mb-3">
+                <span class="latest-shops-icon" style="font-size:2.2rem;color:#e74c3c;margin-right:12px;"><i class="bi bi-stars"></i></span>
+                <h2 class="fw-bold mb-0" style="font-size:2rem;">Νέα Καταστήματα</h2>
+              </div>
+              <ul id="latestShopsList" class="latest-shop-list"></ul>
+              <div class="d-flex justify-content-center mt-3">
+                <a href="searchShops.html?sort=latest" class="see-all-link fw-bold" style="font-size:1.1rem;">See All</a>
+              </div>
+            </div>
+          </div>
+          <!-- Top Rated Shops Card -->
+          <div class="col-12 col-md-6">
+            <div class="latest-shop-card h-100">
+              <div class="d-flex align-items-center justify-content-center mb-3">
+                <span class="latest-shops-icon" style="font-size:2.2rem;color:#e67e22;margin-right:12px;"><i class="bi bi-trophy"></i></span>
+                <h2 class="fw-bold mb-0" style="font-size:2rem;">Κορυφαία Βαθμολογία</h2>
+              </div>
+              <ul id="topRatedShopsList" class="latest-shop-list"></ul>
+              <div class="d-flex justify-content-center mt-3">
+                <a href="searchShops.html?sort=top" class="see-all-link fw-bold" style="font-size:1.1rem;">See All</a>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 
-    <section class="testimonials text-center">
-        <div class="container">
-            <h2 data-aos="fade-up">Η δική σου άποψη</h2>
-            <div id="testimonialsCarousel" class="carousel slide mt-4" data-bs-ride="carousel">
-                <div class="carousel-inner">
-                    <div class="carousel-item active">
-                        <div class="card mx-auto" style="max-width: 600px;">
-                            <p>"Πανέυκολη χρήση και καταπληκτική εμπειρία!"</p>
-                            <footer class="blockquote-footer">Alex R.</footer>
-                        </div>
-                    </div>
-                    <div class="carousel-item">
-                        <div class="card mx-auto" style="max-width: 600px;">
-                            <p>"Βρήκα την αγαπημένη μου καφετέρια εξαιτίας αυτής της πλατφόρμας!!"</p>
-                            <footer class="blockquote-footer">Morgan S.</footer>
-                        </div>
-                    </div>
-                    <div class="carousel-item">
-                        <div class="card mx-auto" style="max-width: 600px;">
-                            <p>"Ομαλή εμπειρία και με πολλές επιλογές."</p>
-                            <footer class="blockquote-footer">Taylor L.</footer>
-                        </div>
-                    </div>
-                </div>
-                <button class="carousel-control-prev" type="button" data-bs-target="#testimonialsCarousel" data-bs-slide="prev">
-                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                    <span class="visually-hidden">Previous</span>
-                </button>
-                <button class="carousel-control-next" type="button" data-bs-target="#testimonialsCarousel" data-bs-slide="next">
-                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                    <span class="visually-hidden">Next</span>
-                </button>
-            </div>
+    <!-- Homepage City Cards Section (dynamic) -->
+    <section class="homepage-feature-cards" id="homepageCityCards">
+      <div class="container">
+        <div class="row g-4" id="cityCardsRow">
+          <!-- JS will populate city cards here -->
         </div>
+      </div>
     </section>
 
+  
  <!--   <section id="gallery" class="w-full bg-white py-20 px-4 md:px-12 lg:px-32">
         <div class="text-center mb-12" data-aos="fade-up">
           <h2 class="text-4xl font-bold text-gray-800 mb-4">Gallery</h2>
@@ -260,14 +260,16 @@
         </div>
       </section>
       -->
-      <section class="cities-section py-5">
-        <div class="container">
-            <h2 class="text-center mb-5" data-aos="fade-up">Εξερέυνησε τις πόλεις</h2>
-            <div class="cities-container" id="citiesContainer">
-                <!-- JavaScript will populate city cards here -->
-            </div>
-        </div>
-    </section>
+      <!-- Cities Section -->
+<section class="cities-section py-4">
+  <div class="container">
+    <div class="d-flex align-items-center justify-content-center mb-4">
+      <span class="cities-icon" style="font-size:1.7rem;color:#e67e22;margin-right:10px;"><i class="bi bi-geo-alt"></i></span>
+      <h2 class="fw-bold mb-0" style="font-size:1.4rem;">Εξερεύνησε τις πόλεις</h2>
+    </div>
+    <div id="citiesGrid" class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3 justify-content-center"></div>
+  </div>
+</section>
     
     
     
