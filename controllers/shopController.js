@@ -320,6 +320,21 @@ const patchBookingHoursForDay = async (req, res) => {
   }
 };
 
+//! Function για ενημέρωση της κατάστασης "προτεινόμενο" ενός καταστήματος
+const patchShopRecommendedState = async (req, res) => {
+    try {
+        const { shopId } = req.params;
+        const { recommended } = req.body;
+        if (typeof recommended !== 'boolean') {
+            return res.status(400).json({ message: 'Recommended must be boolean' });
+        }
+        const shop = await shopService.patchShopRecommendedState(shopId, recommended);
+        res.status(200).json(shop);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = { 
     addShop,
     getAllShops,
@@ -333,4 +348,5 @@ module.exports = {
     getPhotos,
     addPhoto,
     deletePhoto,
+    patchShopRecommendedState,
 };

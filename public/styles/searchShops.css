@@ -919,4 +919,14 @@ main.container {
   .shop-rating { font-size: 0.93rem; }
   .shop-card .btn-primary { font-size: 0.93rem; padding: 6px 10px; }
 }
-/* --- End --- */
+.horizontal-shops-list {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  gap: 16px;
+  padding-bottom: 8px;
+}
+.shop-card {
+  flex: 0 0 auto;
+}

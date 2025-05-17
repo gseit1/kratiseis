@@ -17,16 +17,37 @@ async function fetchShops(filter = '') {
     shops.forEach(shop => {
       const item = document.createElement('div');
       item.className = 'list-group-item list-group-item-action d-flex justify-content-between align-items-center';
+      // Αν το shop είναι ήδη recommended, δείξε κουμπί remove, αλλιώς add
+      const isRecommended = !!shop.recommended;
       item.innerHTML = `
         <div>
           <strong>${shop.shopName}</strong><br>
           <small>ID: ${shop._id}</small>
         </div>
-        <button class="btn btn-sm btn-primary view-shop-btn" title="View"><i class="fa fa-eye"></i></button>
+        <div>
+          <button class="btn btn-sm ${isRecommended ? 'btn-danger' : 'btn-success'} recommended-toggle-btn" title="${isRecommended ? 'Remove from Recommended' : 'Add to Recommended'}">
+            ${isRecommended ? 'Remove' : 'AddToRecommended'}
+          </button>
+          <button class="btn btn-sm btn-primary view-shop-btn" title="View"><i class="fa fa-eye"></i></button>
+        </div>
       `;
       item.querySelector('.view-shop-btn').onclick = e => {
         e.stopPropagation();
         fetchShopDetails(shop._id);
+      };
+      // Toggle recommended button
+      item.querySelector('.recommended-toggle-btn').onclick = async e => {
+        e.stopPropagation();
+        if (!isRecommended) {
+          if (!confirm('Να προστεθεί το κατάστημα στα προτεινόμενα;')) return;
+          await patchRecommended(shop._id, true);
+          alert('Το κατάστημα προστέθηκε στα προτεινόμενα!');
+        } else {
+          if (!confirm('Να αφαιρεθεί το κατάστημα από τα προτεινόμενα;')) return;
+          await patchRecommended(shop._id, false);
+          alert('Το κατάστημα αφαιρέθηκε από τα προτεινόμενα!');
+        }
+        fetchShops(document.getElementById('shopSearch').value); // refresh λίστα
       };
       item.onclick = () => fetchShopDetails(shop._id);
       shopList.appendChild(item);
@@ -95,4 +116,13 @@ if (document.getElementById('shopList')) {
     fetchShops(this.value);
   });
   document.getElementById('closeShopDetails').addEventListener('click', closeShopDetails);
+}
+
+// Πρόσθεσε αυτή τη συνάρτηση αν δεν υπάρχει ήδη
+async function patchRecommended(shopId, value) {
+  await fetch(`/api/shop/${shopId}/recommended`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ recommended: value })
+  });
 }

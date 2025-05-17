@@ -16,6 +16,7 @@ const regionRouter = require('./routes/region');
 const applicationRouter = require('./routes/applications');
 const uploadRouter = require('./routes/upload');
 const logoutRouter = require('./routes/logout');
+const reccomendedSearchesRouter = require('./routes/reccomendedSearches');
 
 const cookieParser = require('cookie-parser');
 
@@ -54,6 +55,7 @@ app.use(regionRouter);
 app.use(applicationRouter);
 app.use(uploadRouter);
 app.use(logoutRouter);
+app.use(reccomendedSearchesRouter);
 
 
 

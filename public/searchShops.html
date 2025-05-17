@@ -229,6 +229,7 @@
 
                     function renderMapWithShops(city, shops, categoryIcons, initialStyle = 'mapbox://styles/mapbox/satellite-streets-v12') {
                         const mapContainer = document.getElementById('mapContainer');
+                        mapContainer.innerHTML = ''; // Πρέπει να είναι άδειο πριν new mapboxgl.Map
                         if (window.currentMap) {
                             window.currentMap.remove();
                             window.currentMap = null;
@@ -459,38 +460,31 @@
     <div class="card-content" style="position: relative; background: rgba(40,38,60,0.78); border-radius: 0 0 22px 22px; padding: 18px 22px 16px 22px; color: #fff; min-height: 90px; display: flex; flex-direction: column;">
       <div class="shop-title" style="color:#fff; font-weight:900; font-size:1.25rem;">${shop.shopName}</div>
       <div class="shop-address" style="color:#fff; margin-bottom: 6px; font-size:1.01rem;">${shop.address || ''}</div>
-      <div style="display: flex; justify-content: space-between; align-items: flex-end; flex: 1;">
-        <div></div>
-        <div class="shop-rating" style="text-align:right; font-size:1.08rem; color:#fff; font-weight:700; display:flex; align-items:center; gap:4px;">
-          ${typeof shop.reviewRatingAverage === 'number' && shop.reviewRatingAverage > 0
-            ? `<span style="color:#ffb300;">${'★'.repeat(Math.round(shop.reviewRatingAverage))}</span>
-               <span>${shop.reviewRatingAverage.toFixed(1)}</span>`
-            : '—'}
-        </div>
-      </div>
       <div style="display: flex; justify-content: flex-end;">
         <a href="#" class="btn btn-primary btn-sm view-details" style="margin-top:10px; align-self: flex-end;">Λεπτομέρειες</a>
       </div>
     </div>
-    <button class="btn btn-light position-absolute top-0 end-0 m-2 favourite-btn" title="Add to Favourites">
-      <i class="bi bi-heart"></i>
-    </button>
   </div>
                                     `;
                                     horizontalList.appendChild(shopCard);
 
                                     // Προσθήκη event listener στο κουμπί "Add to Favourites"
                                     const favouriteBtn = shopCard.querySelector('.favourite-btn');
-                                    favouriteBtn.addEventListener('click', async (event) => {
+                                    if (favouriteBtn) {
+                                      favouriteBtn.addEventListener('click', async (event) => {
                                         event.stopPropagation();
                                         await handleAddToFavourites(shop._id || shop.id);
-                                    });
+                                      });
+                                    }
 
-                                    // Προσθήκη event listener για το κουμπί "Λεπτομέρειες"
-                                    shopCard.querySelector('.view-details').addEventListener('click', (e) => {
+                                    // Για το κουμπί "Λεπτομέρειες"
+                                    const detailsBtn = shopCard.querySelector('.view-details');
+                                    if (detailsBtn) {
+                                      detailsBtn.addEventListener('click', (e) => {
                                         e.preventDefault();
                                         window.location.href = `shop.html?id=${shop._id || shop.id}`;
-                                    });
+                                      });
+                                    }
                                 });
                                 categoriesContainer.appendChild(horizontalList);
                             }
@@ -498,6 +492,7 @@
                     });
 
                     const mapContainer = document.getElementById('mapContainer');
+                    mapContainer.innerHTML = ''; // Πρέπει να είναι άδειο πριν new mapboxgl.Map
 
                     // Δημιουργία Mapbox map με 3D, ωραία γωνία και επιλογή στυλ
                     const map = new mapboxgl.Map({
@@ -718,7 +713,9 @@
                         categoriesContainer.appendChild(categorySection);
 
                         // Fetch shops with full details for each shop (not just summary)
+                        console.log('fetching shops for', category.name, 'cityId:', cityId, 'categoryId:', category._id);
                         const shopsResponse = await fetch(`/search/city/${cityId}/category/${category._id}?details=1`);
+                        console.log('shopsResponse status:', shopsResponse.status);
                         if (!shopsResponse.ok) throw new Error(`Failed to fetch shops for category ${category.name}`);
                         const shops = await shopsResponse.json();
 
@@ -758,22 +755,10 @@
     <div class="card-content" style="position: relative; background: rgba(40,38,60,0.78); border-radius: 0 0 22px 22px; padding: 18px 22px 16px 22px; color: #fff; min-height: 90px; display: flex; flex-direction: column;">
       <div class="shop-title" style="color:#fff; font-weight:900; font-size:1.25rem;">${shop.shopName}</div>
       <div class="shop-address" style="color:#fff; margin-bottom: 6px; font-size:1.01rem;">${shop.address || ''}</div>
-      <div style="display: flex; justify-content: space-between; align-items: flex-end; flex: 1;">
-        <div></div>
-        <div class="shop-rating" style="text-align:right; font-size:1.08rem; color:#fff; font-weight:700; display:flex; align-items:center; gap:4px;">
-          ${typeof shop.reviewRatingAverage === 'number' && shop.reviewRatingAverage > 0
-            ? `<span style="color:#ffb300;">${'★'.repeat(Math.round(shop.reviewRatingAverage))}</span>
-               <span>${shop.reviewRatingAverage.toFixed(1)}</span>`
-            : '—'}
-        </div>
-      </div>
       <div style="display: flex; justify-content: flex-end;">
         <a href="#" class="btn btn-primary btn-sm view-details" style="margin-top:10px; align-self: flex-end;">Λεπτομέρειες</a>
       </div>
     </div>
-    <button class="btn btn-light position-absolute top-0 end-0 m-2 favourite-btn" title="Add to Favourites">
-      <i class="bi bi-heart"></i>
-    </button>
   </div>
                                 `;
 
@@ -781,16 +766,21 @@
 
                                 // Προσθήκη event listener στο κουμπί "Add to Favourites"
                                 const favouriteBtn = shopCard.querySelector('.favourite-btn');
-                                favouriteBtn.addEventListener('click', async (event) => {
+                                if (favouriteBtn) {
+                                  favouriteBtn.addEventListener('click', async (event) => {
                                     event.stopPropagation();
                                     await handleAddToFavourites(shop._id || shop.id);
-                                });
+                                  });
+                                }
 
-                                // Προσθήκη event listener για το κουμπί "Λεπτομέρειες"
-                                shopCard.querySelector('.view-details').addEventListener('click', (e) => {
+                                // Για το κουμπί "Λεπτομέρειες"
+                                const detailsBtn = shopCard.querySelector('.view-details');
+                                if (detailsBtn) {
+                                  detailsBtn.addEventListener('click', (e) => {
                                     e.preventDefault();
                                     window.location.href = `shop.html?id=${shop._id || shop.id}`;
-                                });
+                                  });
+                                }
                             });
                         }
                         leftArrow.addEventListener('click', () => {
@@ -807,6 +797,40 @@
                         });
                         renderShops();
                     }
+
+                    // 1. Fetch recommended για την πόλη
+                    const recommendedRes = await fetch(`/recommended/city/${cityId}`);
+                    const recommendedShops = await recommendedRes.json();
+
+                    if (recommendedShops.length > 0) {
+                      const recommendedSection = document.createElement('div');
+                      recommendedSection.className = 'recommended-section mb-4';
+                      recommendedSection.innerHTML = `
+                        <h5 class="mb-2" style="color:#ff9800;font-weight:700;">Προτεινόμενα</h5>
+                        <div class="horizontal-shops-list d-flex flex-row flex-nowrap overflow-auto py-2" style="gap:16px;"></div>
+                      `;
+                      const recList = recommendedSection.querySelector('.horizontal-shops-list');
+                      recommendedShops.forEach(shop => {
+                        recList.appendChild(createShopCard(shop));
+                      });
+                      // Βάλε το section ΠΡΙΝ από το πρώτο category section
+                      categoriesContainer.appendChild(recommendedSection);
+                    }
+
+                    // Fetch recommended για πόλη+κατηγορία
+                    const recCatRes = await fetch(`/recommended/city/${cityId}/category/${categoryId}`);
+                    const recCatShops = await recCatRes.json();
+                    const recommendedSection = document.createElement('div');
+                    recommendedSection.className = 'recommended-section mb-3';
+                    recommendedSection.innerHTML = `
+                      <h5 class="mb-2" style="color:#ff9800;font-weight:700;">Προτεινόμενα</h5>
+                      <div class="horizontal-shops-list d-flex flex-row flex-nowrap overflow-auto py-2" style="gap:16px;"></div>
+                    `;
+                    const recList = recommendedSection.querySelector('.horizontal-shops-list');
+                    recCatShops.forEach(shop => {
+                      recList.appendChild(createShopCard(shop));
+                    });
+                    categoriesContainer.prepend(recommendedSection);
                 } catch (error) {
                     console.error('Error updating categories:', error);
                 }

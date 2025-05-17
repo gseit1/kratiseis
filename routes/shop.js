@@ -4,7 +4,7 @@ const shopRouter = express.Router();
 const Shop = require('../models/shop'); 
 const { verifyToken, isShopOwner } = require('../middlewares/authMiddleware');
 
-const { addShop, getAllShops, getShopById, editShop, getShopReservationList, patchBookingHoursForDay, getShopTables, getReviewsForShop ,getGeneralDetails , addPhoto,deletePhoto,getPhotos} = require('../controllers/shopController');
+const { addShop, getAllShops, getShopById, editShop, getShopReservationList, patchBookingHoursForDay, getShopTables, getReviewsForShop ,getGeneralDetails , addPhoto,deletePhoto,getPhotos, patchShopRecommendedState} = require('../controllers/shopController');
 const { handleBookingHoursUpdate } = require('../middlewares/editsMiddleware');
 const upload = require('../middlewares/multerMiddleware');
 
@@ -35,6 +35,9 @@ shopRouter.delete('/api/shop/photos', verifyToken, isShopOwner, deletePhoto); //
 
 //! PATCH: Ενημέρωση των booking hours για συγκεκριμένη ημέρα με χρήση middleware
 shopRouter.patch('/api/shop/booking-hours', verifyToken, isShopOwner, handleBookingHoursUpdate, patchBookingHoursForDay);
+
+//! PATCH: recommended state
+shopRouter.patch('/api/shop/:shopId/recommended', patchShopRecommendedState);
 
 //! PATCH για edit επιλεγμενων πεδιων - moved after more specific routes
 shopRouter.patch('/api/shop/:id', verifyToken, isShopOwner, editShop);

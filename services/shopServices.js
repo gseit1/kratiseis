@@ -216,7 +216,15 @@ const getShopReviews = async (shopId) => {
     }
   };
 
-
+  // Ενημέρωση της κατάστασης "recommended" του καταστήματος
+const patchShopRecommendedState = async (shopId, recommended) => {
+    const shop = await Shop.findById(shopId);
+    if (!shop) throw new Error('Shop not found');
+    // Αν δεν υπάρχει το πεδίο, το προσθέτει και το θέτει στην τιμή που δόθηκε
+    shop.recommended = typeof recommended === 'boolean' ? recommended : false;
+    await shop.save();
+    return shop;
+};
 
 
 
@@ -231,5 +239,6 @@ module.exports = {
     updateReviewList,
     updateReviewRatingAverage,
     getShopReviews,
+    patchShopRecommendedState,
 };
 

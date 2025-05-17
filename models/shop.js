@@ -136,22 +136,23 @@ const shopSchema = mongoose.Schema({
     type: Object,
     default: {}
   },
-  
-  
- 
-  
 
-reviewList:[{
-  type:mongoose.Schema.Types.ObjectId,
-  ref:"Review",
-  default:[],
+  // ΝΕΟ ΠΕΔΙΟ
+  recommended: {
+    type: Boolean,
+    default: false
+  },
 
-}],
+  reviewList:[{
+    type:mongoose.Schema.Types.ObjectId,
+    ref:"Review",
+    default:[],
+  }],
 
-reviewRatingAverage:{
-  type:Number,
-  default:-1, // -1 means no rating/reviews for the shop
-}
+  reviewRatingAverage:{
+    type:Number,
+    default:-1, // -1 means no rating/reviews for the shop
+  }
 
 });
 
