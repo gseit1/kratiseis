@@ -265,15 +265,15 @@ const deletePhoto = async (req, res) => {
 
 //! Function for updating booking hours for a day
 const patchBookingHoursForDay = async (req, res) => {
-  const { day, bookingStart: newBookingStart, bookingEnd: newBookingEnd } = req.body;
-  
+  const { day, bookingStart: newBookingStart, bookingEnd: newBookingEnd, openingStart: newOpeningStart, openingEnd: newOpeningEnd } = req.body;
+
   // Get shopId from user claims
   const shopId = req.user.shopId;
-  
+
   if (!shopId) {
     return res.status(400).json({ message: 'Shop ID not found in user profile' });
   }
-  
+
   try {
     // Βρίσκουμε το κατάστημα
     const shop = await shopService.getShopByIdService(shopId);
@@ -281,12 +281,39 @@ const patchBookingHoursForDay = async (req, res) => {
       return res.status(404).json({ message: 'Shop not found' });
     }
 
-    // Ενημερώνουμε τις νέες τιμές για την ημέρα
-    shop.openingHours[day].bookingStart = newBookingStart;
-    shop.openingHours[day].bookingEnd = newBookingEnd;
+    // Αν δοθούν νέα opening hours, ενημέρωσέ τα
+    if (typeof newOpeningStart !== 'undefined' && typeof newOpeningEnd !== 'undefined') {
+      shop.openingHours[day].open = newOpeningStart;
+      shop.openingHours[day].close = newOpeningEnd;
+    }
+
+    // Έλεγχος ότι τα booking hours είναι εντός των opening hours
+    const openingStart = typeof newOpeningStart !== 'undefined' ? newOpeningStart : shop.openingHours[day].open;
+    const openingEnd = typeof newOpeningEnd !== 'undefined' ? newOpeningEnd : shop.openingHours[day].close;
+
+    if (
+      typeof newBookingStart !== 'undefined' &&
+      typeof newBookingEnd !== 'undefined'
+    ) {
+      if (
+        Number(newBookingStart) < Number(openingStart) ||
+        Number(newBookingEnd) > Number(openingEnd)
+      ) {
+        return res.status(400).json({
+          message: 'Booking hours must be within opening hours',
+          openingStart,
+          openingEnd,
+          bookingStart: newBookingStart,
+          bookingEnd: newBookingEnd,
+        });
+      }
+      shop.openingHours[day].bookingStart = newBookingStart;
+      shop.openingHours[day].bookingEnd = newBookingEnd;
+    }
+
     await shop.save();
 
-    res.status(200).json({ message: 'Booking hours updated successfully' });
+    res.status(200).json({ message: 'Booking and/or opening hours updated successfully' });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
