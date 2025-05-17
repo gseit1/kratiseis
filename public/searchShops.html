@@ -67,7 +67,6 @@
 
 <!-- 🖥️ Split Screen -->
 <main class="container mt-4">
-
   <div class="row gx-0">
     <!-- 🔝 Top: Summary + Map -->
     <section id="topFrame" class="col-12" style="height: 50vh;">
@@ -85,6 +84,12 @@
         </div>
       </div>
     </section>
+
+    <!-- ΕΔΩ ΒΑΛΕ ΤΟ CONTEXT HEADER -->
+    <div id="categoryContextHeader"
+         style="display:none;font-size:1.1rem;font-weight:600;color:#7873f5;margin:18px 0 8px 0;min-height:28px;">
+      <!-- Εδώ θα μπαίνει το context header -->
+    </div>
 
     <!-- 🔽 Bottom: Categories + Shops -->
     <section id="bottomFrame" class="col-12 bg-white pt-4">
@@ -248,11 +253,14 @@
                         }
                         mapContainer.innerHTML = '';
 
+                        // Ξεκινάει με zoom-out
+                        const startZoom = 8;
+                        const targetZoom = 13;
                         const map = new mapboxgl.Map({
                             container: 'mapContainer',
                             style: initialStyle,
                             center: [city.location.coordinates[0], city.location.coordinates[1]],
-                            zoom: 13,
+                            zoom: startZoom,
                             pitch: 60,
                             bearing: -30,
                             antialias: true,
@@ -264,6 +272,17 @@
                             fadeDuration: 250
                         });
                         window.currentMap = map;
+
+                        // Όταν φορτώσει το style, κάνε smooth zoom-in
+                        map.on('load', () => {
+                            map.flyTo({
+                                center: [city.location.coordinates[0], city.location.coordinates[1]],
+                                zoom: Math.min(targetZoom, 11.5), // Μην πάει πιο κοντά από 2km
+                                speed: 1.0,
+                                curve: 1.5,
+                                essential: true
+                            });
+                        });
 
                         // 3D buildings
                         map.on('style.load', () => {
@@ -454,21 +473,27 @@
                                     }
 
                                     shopCard.innerHTML = `
-                                        <div class="card mb-4 position-relative">
-                                            <img src="${imageUrl}" class="card-img-top" alt="${shop.shopName}">
-                                            <div class="card-body">
-                                                <h5 class="card-title">${shop.shopName}</h5>
-                                                <p class="card-text" style="min-height:30px;max-height:120px;overflow:auto;">${shop.address}</p>
-                                                <div class="d-flex align-items-center mb-2">
-                                                    <span class="text-warning me-2">${stars}</span>
-                                                    <span class="text-muted">${rating}</span>
-                                                </div>
-                                                <a href="#" class="btn btn-primary btn-sm view-details">Λεπτομέρειες</a>
-                                            </div>
-                                            <button class="btn btn-light position-absolute top-0 end-0 m-2 favourite-btn" title="Add to Favourites">
-                                                <i class="bi bi-heart"></i>
-                                            </button>
-                                        </div>
+  <div class="card mb-4 position-relative" style="background-image: url('${imageUrl}'); background-size: cover; background-position: center; border-radius: 22px; height: 340px; display: flex; flex-direction: column; justify-content: flex-end;">
+    <div class="card-content" style="position: relative; background: rgba(40,38,60,0.78); border-radius: 0 0 22px 22px; padding: 18px 22px 16px 22px; color: #fff; min-height: 90px; display: flex; flex-direction: column;">
+      <div class="shop-title" style="color:#fff; font-weight:900; font-size:1.25rem;">${shop.shopName}</div>
+      <div class="shop-address" style="color:#fff; margin-bottom: 6px; font-size:1.01rem;">${shop.address || ''}</div>
+      <div style="display: flex; justify-content: space-between; align-items: flex-end; flex: 1;">
+        <div></div>
+        <div class="shop-rating" style="text-align:right; font-size:1.08rem; color:#fff; font-weight:700; display:flex; align-items:center; gap:4px;">
+          ${typeof shop.reviewRatingAverage === 'number' && shop.reviewRatingAverage > 0
+            ? `<span style="color:#ffb300;">${'★'.repeat(Math.round(shop.reviewRatingAverage))}</span>
+               <span>${shop.reviewRatingAverage.toFixed(1)}</span>`
+            : '—'}
+        </div>
+      </div>
+      <div style="display: flex; justify-content: flex-end;">
+        <a href="#" class="btn btn-primary btn-sm view-details" style="margin-top:10px; align-self: flex-end;">Λεπτομέρειες</a>
+      </div>
+    </div>
+    <button class="btn btn-light position-absolute top-0 end-0 m-2 favourite-btn" title="Add to Favourites">
+      <i class="bi bi-heart"></i>
+    </button>
+  </div>
                                     `;
                                     horizontalList.appendChild(shopCard);
 
@@ -677,6 +702,16 @@
                         catCounts[catId] = (catCounts[catId] || 0) + 1;
                     });
 
+                    // Φέρε το όνομα της πόλης (για εμφάνιση στο header)
+                    let cityName = '';
+                    try {
+                        const cityRes = await fetch(`/city/${cityId}`);
+                        if (cityRes.ok) {
+                            const cityData = await cityRes.json();
+                            cityName = cityData.city?.name || '';
+                        }
+                    } catch {}
+
                     // Ταξινόμηση κατηγοριών κατά φθίνουσα σειρά πλήθους
                     categories.sort((a, b) => (catCounts[b._id] || 0) - (catCounts[a._id] || 0));
 
@@ -684,18 +719,19 @@
                     for (const category of categories) {
                         const categorySection = document.createElement('div');
                         categorySection.className = 'category-section mb-4';
+                        categorySection.setAttribute('data-category-id', category._id);
 
-                       categorySection.innerHTML = `
-                        <div class="category-header-bar">
-                            <span class="category-title">${category.name}</span>
-                            <a href="#" class="see-more-link">SEE MORE</a>
-                            <div class="scroll-arrows">
-                                <button class="scroll-arrow left" aria-label="Scroll left">&lt;</button>
-                                <button class="scroll-arrow right" aria-label="Scroll right">&gt;</button>
+                        // Η context-header είναι ΠΑΝΤΑ ορατή, με default κείμενο (θα αλλάζει όταν πατιέται το summary)
+                        categorySection.innerHTML = `
+                            <div class="category-header-bar">
+                                <span class="category-title">${category.name}</span>
                             </div>
-                        </div>
-                        <div class="shops-horizontal-scroll"></div>
-                    `;
+                            <div class="shops-horizontal-scroll-wrapper" style="display:flex;align-items:center;gap:10px;">
+                                <button class="rotate-arrow rotate-left" aria-label="Rotate left">&#8592;</button>
+                                <div class="shops-horizontal-scroll" style="flex:1;display:flex;overflow-x:auto;"></div>
+                                <button class="rotate-arrow rotate-right" aria-label="Rotate right">&#8594;</button>
+                            </div>
+                        `;
 
                         categoriesContainer.appendChild(categorySection);
 
@@ -704,11 +740,16 @@
                         if (!shopsResponse.ok) throw new Error(`Failed to fetch shops for category ${category.name}`);
                         const shops = await shopsResponse.json();
 
+                        let shopsArr = [...shops];
+
+                        const shopsWrapper = categorySection.querySelector('.shops-horizontal-scroll-wrapper');
                         const shopsContainer = categorySection.querySelector('.shops-horizontal-scroll');
-                        if (shops.length === 0) {
-                            shopsContainer.innerHTML = '<p class="text-muted">Δεν υπάρχουν καταστήματα για αυτή την κατηγορία.</p>';
-                        } else {
-                            shops.forEach(shop => {
+                        const leftArrow = categorySection.querySelector('.rotate-left');
+                        const rightArrow = categorySection.querySelector('.rotate-right');
+
+                        function renderShops() {
+                            shopsContainer.innerHTML = '';
+                            shopsArr.forEach(shop => {
                                 const shopCard = document.createElement('div');
                                 shopCard.className = 'shop-card me-3';
                                 shopCard.style.width = '200px';
@@ -731,21 +772,27 @@
                                 }
 
                                 shopCard.innerHTML = `
-                                    <div class="card mb-4 position-relative">
-                                        <img src="${imageUrl}" class="card-img-top" alt="${shop.shopName}">
-                                        <div class="card-body">
-                                            <h5 class="card-title">${shop.shopName}</h5>
-                                            <p class="card-text" style="min-height:30px;max-height:120px;overflow:auto;">${shop.address }</p>
-                                            <div class="d-flex align-items-center mb-2">
-                                                <span class="text-warning me-2">${stars}</span>
-                                                <span class="text-muted">${rating}</span>
-                                            </div>
-                                            <a href="#" class="btn btn-primary btn-sm view-details">Λεπτομέρειες</a>
-                                        </div>
-                                        <button class="btn btn-light position-absolute top-0 end-0 m-2 favourite-btn" title="Add to Favourites">
-                                            <i class="bi bi-heart"></i>
-                                        </button>
-                                    </div>
+  <div class="card mb-4 position-relative" style="background-image: url('${imageUrl}'); background-size: cover; background-position: center; border-radius: 22px; height: 340px; display: flex; flex-direction: column; justify-content: flex-end;">
+    <div class="card-content" style="position: relative; background: rgba(40,38,60,0.78); border-radius: 0 0 22px 22px; padding: 18px 22px 16px 22px; color: #fff; min-height: 90px; display: flex; flex-direction: column;">
+      <div class="shop-title" style="color:#fff; font-weight:900; font-size:1.25rem;">${shop.shopName}</div>
+      <div class="shop-address" style="color:#fff; margin-bottom: 6px; font-size:1.01rem;">${shop.address || ''}</div>
+      <div style="display: flex; justify-content: space-between; align-items: flex-end; flex: 1;">
+        <div></div>
+        <div class="shop-rating" style="text-align:right; font-size:1.08rem; color:#fff; font-weight:700; display:flex; align-items:center; gap:4px;">
+          ${typeof shop.reviewRatingAverage === 'number' && shop.reviewRatingAverage > 0
+            ? `<span style="color:#ffb300;">${'★'.repeat(Math.round(shop.reviewRatingAverage))}</span>
+               <span>${shop.reviewRatingAverage.toFixed(1)}</span>`
+            : '—'}
+        </div>
+      </div>
+      <div style="display: flex; justify-content: flex-end;">
+        <a href="#" class="btn btn-primary btn-sm view-details" style="margin-top:10px; align-self: flex-end;">Λεπτομέρειες</a>
+      </div>
+    </div>
+    <button class="btn btn-light position-absolute top-0 end-0 m-2 favourite-btn" title="Add to Favourites">
+      <i class="bi bi-heart"></i>
+    </button>
+  </div>
                                 `;
 
                                 shopsContainer.appendChild(shopCard);
@@ -764,6 +811,19 @@
                                 });
                             });
                         }
+                        leftArrow.addEventListener('click', () => {
+                            if (shopsArr.length > 1) {
+                                shopsArr.push(shopsArr.shift());
+                                renderShops();
+                            }
+                        });
+                        rightArrow.addEventListener('click', () => {
+                            if (shopsArr.length > 1) {
+                                shopsArr.unshift(shopsArr.pop());
+                                renderShops();
+                            }
+                        });
+                        renderShops();
                     }
                 } catch (error) {
                     console.error('Error updating categories:', error);
@@ -911,6 +971,33 @@ if (categoryIdFromQuery) {
     }
   }, 800);
 }
+
+// Όταν πατιέται ένα summary icon:
+document.addEventListener('click', function(e) {
+  const item = e.target.closest('.summary-item');
+  if (item && item.hasAttribute('data-category-id')) {
+    const catId = item.getAttribute('data-category-id');
+    // Κρύψε όλα τα category sections
+    document.querySelectorAll('.category-section').forEach(section => {
+      section.style.display = 'none';
+    });
+    // Εμφάνισε μόνο το επιλεγμένο
+    const selectedSection = document.querySelector(`.category-section[data-category-id="${catId}"]`);
+    if (selectedSection) {
+      selectedSection.style.display = '';
+      selectedSection.style.width = '100%';
+      // Βρες το όνομα της κατηγορίας και της πόλης
+      const categoryName = selectedSection.querySelector('.category-title')?.textContent || '';
+      const cityName = document.getElementById('categoriesContainer').dataset.cityName || '';
+      // Ενημέρωσε το context header (πάντα ορατό)
+      const ctx = document.getElementById('categoryContextHeader');
+      if (ctx) {
+        ctx.textContent = `${categoryName} στην ${cityName}`;
+        ctx.style.display = 'block';
+      }
+    }
+  }
+});
         });
     </script>
 </body>

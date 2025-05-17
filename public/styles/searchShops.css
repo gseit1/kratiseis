@@ -7,6 +7,11 @@ body {
   position: relative;
 }
 
+html, body {
+  height: 100%;
+  min-height: 100%;
+}
+
 body::before {
   content: '';
   position: fixed;
@@ -316,6 +321,13 @@ body::before {
 .summary-bar {
   overflow-y: visible !important;
   max-height: none !important;
+  height: 100% !important;
+  border-right: 2px solid #e74c3c;
+  background: #f9f9f9;
+  min-width: 90px;
+  max-width: 120px;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
 }
 .summary-bar img {
   width: 38px;
@@ -385,139 +397,199 @@ body::before {
 }
 .shops-horizontal-scroll {
   display: flex;
+  flex-direction: row;
   overflow-x: auto;
-  gap: 1.2rem;
-  padding-bottom: 14px;
-}
-.shops-horizontal-scroll::-webkit-scrollbar {
-  height: 8px;
-}
-.shops-horizontal-scroll::-webkit-scrollbar-thumb {
-  background: #ff6ec4;
-  border-radius: 10px;
-}
-.card {
-  min-width: 190px;
-  max-width: 190px;
-  border-radius: 18px;
-  overflow: hidden;
-  box-shadow: 0 2px 16px rgba(255,110,196,0.13);
-  background: rgba(40,38,60,0.18);
-  transition: transform 0.2s cubic-bezier(.4,2,.6,1);
-  margin: 12px;
-  border: none;
-  position: relative;
-}
-.card:hover {
-  transform: translateY(-6px) scale(1.03);
-  box-shadow: 0 6px 24px rgba(255,110,196,0.18);
-}
-.card img {
-  height: 120px;
+  gap: 24px;
+  padding: 32px 0;
+  align-items: flex-start;
+  min-height: 260px;
+  box-sizing: border-box;
   width: 100%;
-  object-fit: cover;
-  border-radius: 18px 18px 0 0;
 }
-.card-body {
-  padding: 16px 12px 12px 12px;
-}
-.card-title {
-  font-size: 1.12rem;
-  font-weight: 800;
-  margin-bottom: 7px;
-  color: #ff6ec4;
-  letter-spacing: 0.2px;
-}
-.card-text, .shop-address {
-  font-size: 1.01rem;
-  color: #23233a !important;
-  margin-bottom: 0;
-  height: 20px;
+
+.shop-card-std,
+.shop-card {
+  width: 480px;
+  min-width: 480px;
+  max-width: 480px;
+  height: 340px;
+  min-height: 340px;
+  max-height: 340px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  flex: 0 0 auto;
+  vertical-align: top;
+  box-sizing: border-box;
+  background: transparent;
+  z-index: 2;
   overflow: hidden;
+  cursor: pointer;
 }
-.btn-reserve, .btn-primary, .btn-search {
-  background: linear-gradient(135deg, #ff6ec4, #7873f5);
-  color: #fff;
-  font-size: 0.97rem;
-  padding: 9px 18px;
-  border: none;
-  border-radius: 14px;
-  font-weight: 700;
-  box-shadow: 0 4px 16px rgba(255,110,196,0.13);
-  transition: all 0.2s;
+
+.shop-card .card,
+.shop-card-std .card {
+  width: 100%;
+  height: 100%;
+  border-radius: 22px;
+  overflow: hidden;
+  position: relative;
+  background-image: var(--shop-bg-url);
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-start;
 }
-.btn-reserve:hover, .btn-primary:hover, .btn-search:hover {
-  background: linear-gradient(135deg, #7873f5, #ff6ec4);
-  color: #fff;
-  transform: scale(1.04);
+
+/* Blur ΜΟΝΟ στο κάτω μισό */
+.shop-card .card::before,
+.shop-card-std .card::before {
+  display: none !important;
 }
-.favourite-btn {
+
+.shop-card .card::after,
+.shop-card-std .card::after {
+  display: none !important;
+}
+
+.shop-card .card-content,
+.shop-card-std .card-content {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  background: rgba(255, 255, 255, 0.93);
-  border-radius: 50%;
+  z-index: 3;
+  left: 32px;
+  right: 32px;
+  bottom: 32px;
+  padding: 14px 20px 12px 20px;
+  width: auto;
+  min-width: 0;
+  max-width: calc(100% - 64px);
+  background: rgba(40,38,60,0.78);
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(40,38,60,0.13);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+  height: 70px; /* Μικρότερο ύψος, λιγότερο πλαίσιο */
+  box-sizing: border-box;
+}
+
+.shop-card .shop-title,
+.shop-card-std .shop-title {
+  font-family: 'Lora', 'Poppins', Arial, sans-serif;
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: #fff;
+  margin-bottom: 7px;
+  text-shadow: 0 2px 8px rgba(40,38,60,0.18);
+  letter-spacing: 0.2px;
+  text-align: left;
+  width: 100%;
+}
+
+.shop-card .shop-address,
+.shop-card-std .shop-address {
+  font-size: 1.01rem;
+  color: #fff;
+  font-weight: 500;
+  text-shadow: 0 2px 8px rgba(40,38,60,0.18);
+  margin-bottom: 6px;
+  text-align: left;
+  width: 100%;
+  line-height: 1.3;
+  min-height: 18px; /* Προσθέτει ελάχιστο ύψος */
+  word-break: break-word; /* Για να μην βγαίνει εκτός */
+}
+
+.shop-card .shop-rating,
+.shop-card-std .shop-rating {
+  font-size: 1.08rem;
+  color: #fff;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-shadow: 0 2px 8px rgba(40,38,60,0.18);
+  text-align: right;
+  width: 100%;
+  justify-content: flex-end; /* κάτω δεξιά */
+  margin-top: auto;
+}
+
+.shop-card .favourite-btn,
+.shop-card-std .favourite-btn {
+  z-index: 4;
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: rgba(255,255,255,0.85);
   border: none;
-  width: 34px;
-  height: 34px;
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
   display: flex;
   align-items: center;
   justify-content: center;
+  color: #ff6ec4;
+  box-shadow: 0 2px 8px rgba(255,110,196,0.10);
+  cursor: pointer;
+  transition: background 0.18s, transform 0.18s;
+  font-size: 1.35rem;
+}
+
+.shop-card .favourite-btn.active,
+.shop-card-std .favourite-btn.active {
+  background: #ff6ec4;
+  color: #fff;
+}
+
+.shop-card .favourite-btn:hover,
+.shop-card-std .favourite-btn:hover {
+  background: #ff6ec4;
+  color: #fff;
+  transform: scale(1.1);
+}
+.rotate-arrow {
+  font-size: 2.2rem;
+  background: none;
+  border: none;
   cursor: pointer;
   color: #ff6ec4;
-  transition: background-color 0.2s, color 0.2s;
-  box-shadow: 0 2px 8px rgba(255,110,196,0.10);
+  transition: color 0.18s, transform 0.18s;
 }
-.favourite-btn:hover {
-  background: #ff6ec4;
-  color: white;
+.rotate-arrow:hover {
+  color: #7873f5;
+  transform: scale(1.2);
 }
-.btn-primary.btn-sm {
-  font-size: 0.85rem;
-  padding: 5px 10px;
+@media (max-width: 900px) {
+  main.container {
+    margin-top: 110px !important;
+    padding-bottom: 30px !important;
+  }
+  .shops-horizontal-scroll {
+    gap: 10px;
+    padding: 16px 0;
+    min-height: 160px;
+  }
+  .shop-card-std,
+  .shop-card {
+    width: 96vw;
+    height: 160px;
+    margin: 0;
+  }
+  .shops-horizontal-scroll > .shop-card,
+  .shops-horizontal-scroll > .shop-card-std {
+    margin: 0;
+  }
+  .category-section {
+    margin-bottom: 40px !important;
+  }
 }
-.popup-card img {
-  width: 100%;
-  height: 120px;
-  object-fit: cover;
-  border-radius: 10px;
-  margin-bottom: 8px;
-}
-.popup-card h5 {
-  font-size: 17px;
-  margin: 8px 0;
-  color: #ff6ec4;
-  font-weight: 700;
-}
-.popup-card p {
-  font-size: 15px;
-  color: #f3f3f3;
-  margin-bottom: 8px;
-}
-#topFrame {
-  height: 50vh;
-  margin-top: 140px;
-  border: 3px solid #ff6ec4;
-  border-radius: 18px;
-  background: rgba(40,38,60,0.18);
-  box-shadow: 0 6px 18px rgba(255,110,196,0.13);
-  margin-bottom: 24px;
-  box-sizing: border-box;
-}
-#topFrame > .d-flex {
-  height: 100%;
-  width: 100%;
-  border-radius: 14px;
-  overflow: hidden;
-}
-.horizontal-shops-list {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    gap: 16px;
-    padding-bottom: 8px;
-}
-.shop-card {
-    flex: 0 0 auto;
+
+main.container {
+  margin-top: 140px !important;
+  padding-bottom: 60px !important;
 }
