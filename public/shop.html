@@ -378,7 +378,31 @@ body {
   filter: brightness(0.75);
   z-index: 2;
 }
-    
+    .horizontal-shops-list {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      gap: 16px;
+      padding-bottom: 8px;
+    }
+    .shop-card {
+      flex: 0 0 32%;      /* 3 cards per row on desktop */
+      max-width: 340px;   /* Optional: max width for large screens */
+      min-width: 220px;   /* Optional: min width for small screens */
+    }
+    @media (max-width: 991.98px) {
+      .shop-card {
+        flex: 0 0 48%;    /* 2 cards per row on tablet */
+        min-width: 180px;
+      }
+    }
+    @media (max-width: 600px) {
+      .shop-card {
+        flex: 0 0 90%;    /* 1 card per row on mobile */
+        min-width: 150px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -574,6 +598,14 @@ body {
             </form>
           </div>
         </div>
+
+        <!-- Βάλε αυτό το section ακριβώς κάτω από το reviews section στο HTML σου -->
+<div id="relatedSection" class="mt-5">
+  <h5 class="mb-3 text-primary fw-bold">Σχετικά μαγαζιά</h5>
+  <div id="relatedShopsList" class="horizontal-shops-list d-flex flex-row flex-nowrap overflow-auto py-2" style="gap:16px;">
+    <!-- Τα σχετικά μαγαζιά θα μπουν εδώ -->
+  </div>
+</div>
       </div>
 
       <!-- Right Side: Fixed Booking Section -->
@@ -838,13 +870,69 @@ document.getElementById('decrementPeople').addEventListener('click', () => {
     if (latitude && longitude) {
       const map = new mapboxgl.Map({
         container: 'map',
-        style: 'mapbox://styles/mapbox/streets-v12',
+        style: 'mapbox://styles/mapbox/satellite-streets-v12', // Satellite-street style
         center: [longitude, latitude],
-        zoom: 14,
-        interactive: true,
+        zoom: 16, // >=15 για να φαίνεται 3D
+        pitch: 60, // Κλίση για 3D
+        bearing: -30, // Λίγη περιστροφή για καλύτερη 3D αίσθηση
+        antialias: true
       });
 
-      new mapboxgl.Marker()
+      // Προσθήκη terrain (DEM)
+      map.on('style.load', () => {
+        // Προσθήκη DEM source για terrain
+        map.addSource('mapbox-dem', {
+          type: 'raster-dem',
+          url: 'mapbox://mapbox.terrain-rgb',
+          tileSize: 512,
+          maxzoom: 14
+        });
+        // Ενεργοποίηση terrain
+        map.setTerrain({ source: 'mapbox-dem', exaggeration: 1.3 });
+
+        // Προσθήκη 3D buildings layer
+        if (!map.getLayer('3d-buildings')) {
+          map.addLayer({
+            'id': '3d-buildings',
+            'source': 'composite',
+            'source-layer': 'building',
+            'filter': ['==', 'extrude', 'true'],
+            'type': 'fill-extrusion',
+            'minzoom': 15,
+            'paint': {
+              'fill-extrusion-color': '#aaa',
+              'fill-extrusion-height': [
+                "interpolate", ["linear"], ["zoom"],
+                15, 0,
+                15.05, ["get", "height"]
+              ],
+              'fill-extrusion-base': [
+                "interpolate", ["linear"], ["zoom"],
+                15, 0,
+                15.05, ["get", "min_height"]
+              ],
+              'fill-extrusion-opacity': 0.9
+            }
+          });
+        }
+      });
+
+      // Δημιουργία custom marker με μαύρο background και εσωτερικό σχέδιο στο χρώμα της εφαρμογής
+      const markerEl = document.createElement('div');
+      markerEl.style.width = '36px';
+      markerEl.style.height = '36px';
+      markerEl.style.background = '#111'; // Μαύρο background
+      markerEl.style.border = '3px solid #ff6ec4'; // Χρώμα εφαρμογής (ή όποιο θέλεις)
+      markerEl.style.borderRadius = '50%';
+      markerEl.style.boxShadow = '0 2px 8px rgba(0,0,0,0.25)';
+      markerEl.style.display = 'flex';
+      markerEl.style.alignItems = 'center';
+      markerEl.style.justifyContent = 'center';
+
+      // Εσωτερικό σχέδιο: shop icon στο χρώμα της εφαρμογής
+      markerEl.innerHTML = `<i class="bi bi-shop" style="color:#ff6ec4;font-size:1.3rem;"></i>`;
+
+      new mapboxgl.Marker(markerEl)
         .setLngLat([longitude, latitude])
         .addTo(map);
 
@@ -876,6 +964,86 @@ document.getElementById('decrementPeople').addEventListener('click', () => {
         document.body.prepend(overlay);
       }
     }
+
+    // --- ΣΧΕΤΙΚΑ ΜΑΓΑΖΙΑ ---
+    const relatedList = document.getElementById('relatedShopsList');
+    relatedList.innerHTML = ''; // Καθάρισε πριν βάλεις νέα cards
+
+    if (shop.city && shop.category) {
+      try {
+        const res = await fetch(`/search/city/${shop.city._id || shop.city}/category/${shop.category._id || shop.category}`);
+        if (res.ok) {
+          let relatedShops = await res.json();
+          relatedShops = relatedShops.filter(s => (s._id || s.id) !== shop._id);
+
+          if (relatedShops.length === 0) {
+            relatedList.innerHTML = '<span class="text-muted">Δεν βρέθηκαν σχετικά μαγαζιά.</span>';
+          } else {
+            relatedShops.forEach(s => {
+              let imageUrl = s.image || (s.images && s.images[0]) || '/images/default-placeholder.jpg';
+              if (imageUrl && imageUrl.startsWith('/')) imageUrl = `http://localhost:300${imageUrl}`;
+              let rating = typeof s.reviewRatingAverage === 'number' && s.reviewRatingAverage >= 0
+                ? s.reviewRatingAverage.toFixed(1)
+                : '—';
+              let stars = '';
+              if (typeof s.reviewRatingAverage === 'number' && s.reviewRatingAverage > 0) {
+                const rounded = Math.round(s.reviewRatingAverage);
+                stars = '⭐'.repeat(rounded);
+              }
+              const card = document.createElement('div');
+              card.className = 'shop-card me-3';
+              card.style.width = '200px';
+              card.style.flex = '0 0 auto';
+              card.innerHTML = `
+                <div class="card mb-4 position-relative">
+                  <img src="${imageUrl}" class="card-img-top" alt="${s.shopName}">
+                  <div class="card-body">
+                    <h5 class="card-title">${s.shopName}</h5>
+                    <p class="card-text" style="min-height:30px;max-height:120px;overflow:auto;">${s.address || ''}</p>
+                    <div class="d-flex align-items-center mb-2">
+                      <span class="text-warning me-2">${stars}</span>
+                      <span class="text-muted">${rating}</span>
+                    </div>
+                    <a href="shop.html?id=${s._id || s.id}" class="btn btn-primary btn-sm view-details">Λεπτομέρειες</a>
+                  </div>
+                  <button class="btn btn-light position-absolute top-0 end-0 m-2 favourite-btn" title="Add to Favourites">
+                    <i class="bi bi-heart"></i>
+                  </button>
+                </div>
+              `;
+              card.querySelector('.favourite-btn').addEventListener('click', async (event) => {
+                event.stopPropagation();
+                await handleAddToFavourites(s._id || s.id);
+              });
+              card.querySelector('.view-details').addEventListener('click', (e) => {
+                e.preventDefault();
+                window.location.href = `shop.html?id=${s._id || s.id}`;
+              });
+              relatedList.appendChild(card);
+            });
+          }
+        }
+      } catch (err) {
+        relatedList.innerHTML = '<span class="text-danger">Σφάλμα φόρτωσης σχετικών μαγαζιών.</span>';
+      }
+    }
+
+    // --- CSS για οριζόντιο scroll αν δεν υπάρχει ---
+    const style = document.createElement('style');
+    style.innerHTML = `
+    .horizontal-shops-list {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      gap: 16px;
+      padding-bottom: 8px;
+    }
+    .shop-card {
+      flex: 0 0 auto;
+    }
+    `;
+    document.head.appendChild(style);
   } catch (error) {
     console.error('Error fetching shop details:', error);
     alert('Error fetching shop details');
