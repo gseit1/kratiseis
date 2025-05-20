@@ -75,7 +75,12 @@ tableSchema.pre('save', async function (next) {
 
   // Επικύρωση ότι το isBookingAllowed δεν είναι true όταν το isOpen του shop είναι false για την ίδια ημέρα
   for (const day of daysOfWeek) {
-    if (table.bookingHours[day].isBookingAllowed && (!shop.openingHours[day] || !shop.openingHours[day].isOpen)) {
+    // Αν το bookingHours[day] γίνεται false ή δεν αλλάζει, μην μπλοκάρεις το save
+    if (
+      table.isModified(`bookingHours.${day}.isBookingAllowed`) &&
+      table.bookingHours[day].isBookingAllowed &&
+      (!shop.openingHours[day] || !shop.openingHours[day].isOpen)
+    ) {
       return next(new Error(`Booking is not allowed on ${day} because the shop is closed`));
     }
   }

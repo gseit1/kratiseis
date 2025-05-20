@@ -204,9 +204,102 @@ const handleTableDeletion = async (req, res, next) => {
   }
 };
 
+// Middleware για αλλαγή isOpen για μια μέρα (isOpenForDay)
+const handleIsOpenForDayUpdate = async (req, res) => {
+  const { day, isOpen, open, close, bookingStart, bookingEnd } = req.body;
+  const shopId = req.params.shopId;
+  console.log('handleIsOpenForDayUpdate called with:', { shopId, day, isOpen, open, close, bookingStart, bookingEnd });
+
+  try {
+    const shop = await Shop.findById(shopId);
+    if (!shop) {
+      return res.status(404).json({ message: 'Shop not found', details: 'Invalid shopId' });
+    }
+
+    if (isOpen) {
+      // Validation
+      if (
+        typeof open !== 'number' || typeof close !== 'number' ||
+        typeof bookingStart !== 'number' || typeof bookingEnd !== 'number'
+      ) {
+        return res.status(400).json({ message: 'All hours must be provided as numbers' });
+      }
+      if (open >= close) {
+        return res.status(400).json({ message: 'Open time must be before close time' });
+      }
+      if (bookingStart >= bookingEnd) {
+        return res.status(400).json({ message: 'Booking start must be before booking end' });
+      }
+      if (bookingStart < open || bookingEnd > close) {
+        return res.status(400).json({ message: 'Booking hours must be within opening hours' });
+      }
+
+      // Αρχικοποίηση openingHours[day]
+      shop.openingHours[day] = {
+        isOpen: true,
+        open,
+        close,
+        bookingStart,
+        bookingEnd
+      };
+      shop.markModified('openingHours');
+      await shop.save();
+      return res.status(200).json({
+        message: 'Day set to open',
+        day,
+        openingHours: shop.openingHours[day]
+      });
+    }
+
+    // Αν το μαγαζί κλείνει, κάνε τα openingHours[day] = 0
+    shop.openingHours[day] = {
+      isOpen: false,
+      open: 0,
+      close: 0,
+      bookingStart: 0,
+      bookingEnd: 0
+    };
+    shop.markModified('openingHours');
+    await shop.save();
+
+    // Για κάθε τραπέζι κάνε τις ίδιες λειτουργίες με handleIsBookingAllowedUpdate ΚΑΙ isOpen=false
+    const tables = await Table.find({ shopId });
+    for (const table of tables) {
+      // 1. Ακύρωσε κρατήσεις για τη μέρα
+      const reservationsResult = await getReservationsForTable(table._id);
+      if (reservationsResult.success && reservationsResult.reservations.length > 0) {
+        const invalidReservations = await invalidReservationForIsBookingAllowedEdit(reservationsResult.reservations, day);
+        if (invalidReservations.length > 0) {
+          await setTableIdForReservations(invalidReservations.map(reservation => reservation._id));
+        }
+      }
+
+      // 2. Καθάρισε availability για τη μέρα
+      await clearAvailabilityForDay(table._id, day);
+
+      // 3. Κάνε isBookingAllowed και isOpen false για τη μέρα
+      if (!table.bookingHours) table.bookingHours = {};
+      if (!table.bookingHours[day]) table.bookingHours[day] = {};
+      table.bookingHours[day].isBookingAllowed = false;
+      table.bookingHours[day].isOpen = false;
+      await table.save();
+    }
+
+    res.status(200).json({
+      message: 'Day set to closed and openingHours set to null',
+      day,
+      openingHours: shop.openingHours[day]
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 module.exports = {
   handleBookingHoursUpdate,
   handleSeatsUpdate,
   handleIsBookingAllowedUpdate,
   handleTableDeletion,
+  handleIsOpenForDayUpdate, // export the new middleware
 };

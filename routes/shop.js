@@ -5,7 +5,7 @@ const Shop = require('../models/shop');
 const { verifyToken, isShopOwner } = require('../middlewares/authMiddleware');
 
 const { addShop, getAllShops, getShopById, editShop, getShopReservationList, patchBookingHoursForDay, getShopTables, getReviewsForShop ,getGeneralDetails , addPhoto,deletePhoto,getPhotos, patchShopRecommendedState} = require('../controllers/shopController');
-const { handleBookingHoursUpdate } = require('../middlewares/editsMiddleware');
+const { handleBookingHoursUpdate, handleIsOpenForDayUpdate } = require('../middlewares/editsMiddleware');
 const upload = require('../middlewares/multerMiddleware');
 
 //! POST: Δημιουργία νέου καταστήματος με τα απαραιτητα πεδια
@@ -42,7 +42,10 @@ shopRouter.patch('/api/shop/:shopId/recommended', patchShopRecommendedState);
 //! PATCH για edit επιλεγμενων πεδιων - moved after more specific routes
 shopRouter.patch('/api/shop/:id', verifyToken, isShopOwner, editShop);
 
-//! GET: Ανάκτηση ενός συγκεκριμένου καταστήματος με βάση το ID - moved to the end
+//! PATCH: Αλλαγή isOpen για συγκεκριμένη μέρα (open/close ημέρας)
+shopRouter.patch('/api/shop/:shopId/is-open-for-day', verifyToken, isShopOwner, handleIsOpenForDayUpdate);
+
+//! GET: Ανάκτηση ενός συγκεκριμένου καταστήματος με βάση το ID - moved to the endΑνάκτηση ενός συγκεκριμένου καταστήματος με βάση το ID - moved to the end
 shopRouter.get('/api/shop/:shopId', getShopById);
 
 module.exports = shopRouter;

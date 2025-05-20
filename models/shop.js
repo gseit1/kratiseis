@@ -161,6 +161,9 @@ shopSchema.pre('save', function(next) {
   const openingHours = this.openingHours;
 
   for (const day in openingHours) {
+    // Αν το object είναι null (δηλαδή το μαγαζί είναι κλειστό), απλά συνέχισε
+    if (!openingHours[day]) continue;
+
     if (openingHours[day].isOpen) {
       if (openingHours[day].open >= openingHours[day].close) {
         return next(new Error(`Open time must be before close time for ${day}`));
@@ -172,6 +175,7 @@ shopSchema.pre('save', function(next) {
         return next(new Error(`Booking hours must be within open hours for ${day}`));
       }
     } else {
+      // Όταν το μαγαζί είναι κλειστό, όλα τα πεδία γίνονται 0
       openingHours[day].open = 0;
       openingHours[day].close = 0;
       openingHours[day].bookingStart = 0;
