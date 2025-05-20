@@ -119,6 +119,7 @@ async function fetchUserProfile() {
                     window.location.href = '../createShop.html';
                 } else {
                     console.log('ShopId found:', shopId);
+                    await fetchShopOpeningHours();
                     fetchTables();
                 }
             } else {
@@ -198,17 +199,45 @@ async function fetchTables() {
     `;
 
     // Create the row for days and availability
-    let availabilityRow = `<div class="d-flex justify-content-around mt-3">`;
+    // Προσθήκη τίτλου αριστερά από τα tick
+    let availabilityRow = `
+      <div class="d-flex justify-content-around align-items-center">
+        <div class="text-start fw-bold" style="min-width:170px;">Τραπέζι διαθεσιμο για:</div>
+    `;
+
     daysFull.forEach(day => {
-      const isBookingAllowed = table.bookingHours?.[day.toLowerCase()]?.isBookingAllowed; // Access `isBookingAllowed` for each day
+      const isBookingAllowed = table.bookingHours?.[day.toLowerCase()]?.isBookingAllowed;
       availabilityRow += `
         <div class="text-center">
           <div>${day}</div>
-          <div>${isBookingAllowed ? "✔" : "✘"}</div>
+          <div>
+            ${isBookingAllowed
+              ? '<span style="color:green;font-size:1.3em;">✔</span>'
+              : '<span style="color:red;font-size:1.3em;">✘</span>'
+            }
+          </div>
         </div>
       `;
     });
     availabilityRow += `</div>`;
+
+    // Προσθήκη τίτλου αριστερά από τα open/close
+    let openCloseRow = `
+      <div class="d-flex justify-content-around align-items-center mt-2 mb-1">
+        <div class="text-start fw-bold" style="min-width:170px;">Μαγαζί ανοιχτό για:</div>
+    `;
+
+    daysFull.forEach(day => {
+      const isOpen = shopOpeningHours?.[day.toLowerCase()]?.isOpen;
+      openCloseRow += `
+        <div class="text-center" style="font-size:0.95em;">
+          <span class="${isOpen ? 'text-success' : 'text-danger'} fw-bold">
+            ${isOpen ? 'Open' : 'Closed'}
+          </span>
+        </div>
+      `;
+    });
+    openCloseRow += `</div>`;
 
     // Add a date picker, search button, hide button, and a container for available hours
     const availabilitySearch = `
@@ -216,15 +245,25 @@ async function fetchTables() {
         <label for="datePicker_${table._id}" class="form-label">Select Date:</label>
         <input type="date" id="datePicker_${table._id}" class="form-control mb-2" />
         <button class="btn btn-primary me-2" onclick="searchTableAvailability('${table._id}')">Search Availability</button>
-        <button class="btn btn-secondary" id="hideButton_${table._id}" style="display: none;" onclick="hideTableAvailability('${table._id}')">Hide Availability</button>
+        <button class="btn btn-outline-secondary me-2" onclick="searchTableReservations('${table._id}')">Search Reservations</button>
+        <button class="btn btn-secondary" id="hideButton_${table._id}" style="display: none;" onclick="hideTableAvailability('${table._id}')">Hide Results</button>
         <div id="availableHours_${table._id}" class="mt-2 text-light"></div>
       </div>
     `;
 
     // Combine the header, availability row, and search functionality
-    item.innerHTML = tableHeader + availabilityRow + availabilitySearch;
-
+    item.innerHTML = tableHeader + availabilityRow + openCloseRow + availabilitySearch;
     tableList.appendChild(item);
+
+    // Αρχικοποίηση date picker στη σημερινή ημερομηνία
+    const dateInput = document.getElementById(`datePicker_${table._id}`);
+    if (dateInput) {
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      dateInput.value = `${yyyy}-${mm}-${dd}`;
+    }
   });
 }
 async function searchTableAvailability(tableId) {
@@ -249,7 +288,7 @@ async function searchTableAvailability(tableId) {
       availableHoursContainer.innerHTML = `
         <p><strong>Available Hours:</strong></p>
         <ul class="list-group">
-          ${availabilityData.map(hour => `<li class="list-group-item">${hour}</li>`).join("")}
+          ${availabilityData.map(hour => `<li class="list-group-item">${formatHour(hour)}</li>`).join("")}
         </ul>
       `;
     } else {
@@ -266,7 +305,66 @@ async function searchTableAvailability(tableId) {
     availableHoursContainer.innerHTML = `<p class="text-danger">Error fetching availability. Please try again later.</p>`;
   }
 }
+async function searchTableReservations(tableId) {
+  const datePicker = document.getElementById(`datePicker_${tableId}`);
+  const selectedDate = datePicker.value;
+  const availableHoursContainer = document.getElementById(`availableHours_${tableId}`);
+  const hideButton = document.getElementById(`hideButton_${tableId}`);
 
+  if (!selectedDate) {
+    availableHoursContainer.innerHTML = `<p class="text-danger">Please select a date.</p>`;
+    return;
+  }
+
+  try {
+    // Fetch reservations for the selected date
+    const response = await fetch(`/api/table/${tableId}/reservations?date=${selectedDate}`);
+    if (!response.ok) throw new Error("Failed to fetch table reservations");
+    const reservations = await response.json();
+
+    // Display the reservations
+    if (Array.isArray(reservations) && reservations.length > 0) {
+      availableHoursContainer.innerHTML = `
+        <p><strong>Reservations for ${selectedDate}:</strong></p>
+        <div class="table-responsive">
+          <table class="table table-bordered table-sm bg-light">
+            <thead>
+              <tr>
+                <th>Reservation ID</th>
+                <th>Name</th>
+                <th>Surname</th>
+                <th>Time</th>
+                <th>Seats</th>
+                <th>State</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${reservations.map(r => `
+                <tr>
+                  <td>${r._id || '-'}</td>
+                  <td>${r.name || '-'}</td>
+                  <td>${r.surname || '-'}</td>
+                  <td>${formatHour(r.reservationTime)}</td>
+                  <td>${r.seats || '-'}</td>
+                  <td>${r.state || '-'}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+      `;
+    } else {
+      availableHoursContainer.innerHTML = `<p class="text-warning">No reservations for ${selectedDate}.</p>`;
+    }
+
+    // Show the "Hide Results" button
+    hideButton.style.display = "inline-block";
+    availableHoursContainer.style.display = "block";
+  } catch (error) {
+    console.error("Error fetching table reservations:", error);
+    availableHoursContainer.innerHTML = `<p class="text-danger">Error fetching reservations. Please try again later.</p>`;
+  }
+}
 
 function hideTableAvailability(tableId) {
   const availableHoursContainer = document.getElementById(`availableHours_${tableId}`);
@@ -328,6 +426,31 @@ function hideTableAvailability(tableId) {
     });
 });
 
+let shopOpeningHours = {};
+
+async function fetchShopOpeningHours() {
+  if (!shopId) return;
+  try {
+    const response = await fetch(`/api/shop/${shopId}/opening-hours`, {
+      method: "GET",
+      credentials: 'include'
+    });
+    if (!response.ok) throw new Error("Failed to fetch shop opening hours");
+    const data = await response.json();
+    shopOpeningHours = data.openingHours || {};
+  } catch (error) {
+    console.error("Error fetching shop opening hours:", error);
+    shopOpeningHours = {};
+  }
+}
+
+function formatHour(hour) {
+  if (typeof hour !== "number") hour = parseFloat(hour);
+  if (isNaN(hour)) return "-";
+  const h = Math.floor(hour);
+  const m = Math.round((hour - h) * 60);
+  return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
+}
     </script>
 </body>
 </html>

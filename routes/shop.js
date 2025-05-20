@@ -48,4 +48,11 @@ shopRouter.patch('/api/shop/:shopId/is-open-for-day', verifyToken, isShopOwner, 
 //! GET: Ανάκτηση ενός συγκεκριμένου καταστήματος με βάση το ID - moved to the endΑνάκτηση ενός συγκεκριμένου καταστήματος με βάση το ID - moved to the end
 shopRouter.get('/api/shop/:shopId', getShopById);
 
+// New route for getting opening hours
+shopRouter.get('/api/shop/:shopId/opening-hours', async (req, res) => {
+  const shop = await Shop.findById(req.params.shopId).lean();
+  if (!shop) return res.status(404).json({ message: 'Shop not found' });
+  res.json({ openingHours: shop.openingHours });
+});
+
 module.exports = shopRouter;

@@ -1,4 +1,4 @@
-const { createTable, updateTable, deleteTableService, checkAvailability,getTableByIdSe , unvalidReservationsAfterSeatsEdit, updateWhenReservationDelete, setAvailabilityForDay, invalidReservationForIsBookingAllowedEdit, initializeAvailabilityForDate, clearAvailabilityForDay } = require('../services/tableServices');
+const { createTable, updateTable, deleteTableService, checkAvailability,getTableByIdSe , unvalidReservationsAfterSeatsEdit, updateWhenReservationDelete, setAvailabilityForDay, invalidReservationForIsBookingAllowedEdit, initializeAvailabilityForDate, clearAvailabilityForDay, getShopReservationsForDate, getTableReservationsForDate } = require('../services/tableServices');
 const { getReservationsForTable, setTableIdForReservations } = require('../services/reservationServices');
 const { addReservationToUndefinedList } = require('../services/shopServices');
 const Table = require('../models/table'); // Προσθήκη της εισαγωγής του Table
@@ -170,6 +170,24 @@ const getTableAvailabilityForDate = async (req, res) => {
 };
 
 
+
+const getReservationsForTableAndDate = async (req, res) => {
+  const { tableId } = req.params;
+  const { date } = req.query; // format: YYYY-MM-DD
+
+  if (!tableId || !date) {
+    return res.status(400).json({ message: 'Missing tableId or date' });
+  }
+
+  try {
+    const reservations = await getTableReservationsForDate(tableId, date);
+    res.json(reservations);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 module.exports = {
   addTable,
   editTable,
@@ -179,4 +197,6 @@ module.exports = {
   checkTableAvailability,
   getTable,
   getTableAvailabilityForDate,
+
+  getReservationsForTableAndDate,
 };

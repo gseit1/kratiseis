@@ -585,7 +585,14 @@ const updateAvailabilityForBookingHoursEdit = async (tableId, dayOfWeek, newBook
 
 
 
-
+const getTableReservationsForDate = async (tableId, dateString) => {
+  // dateString: 'YYYY-MM-DD'
+  const reservations = await Reservation.find({
+    tableId,
+    reservationDate: new Date(dateString)
+  });
+  return reservations;
+};
 
 module.exports = {
   createTable,
@@ -601,6 +608,7 @@ module.exports = {
   clearAvailabilityForDay, // Προσθήκη της νέας συνάρτησης στο export
  setAvailabilityForDay, // Προσθήκη της νέας συνάρτησης στο export
  updateAvailabilityForBookingHoursEdit,
- getTablesByShopId,    
+ getTablesByShopId,
+ getTableReservationsForDate,    
                                                                  
 };

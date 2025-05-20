@@ -4,7 +4,7 @@ const tableRouter = express.Router();
 const Table = require('../models/table');
 const { verifyToken, isShopOwner } = require('../middlewares/authMiddleware');
 
-const { addTable, editTable, deleteTable, editSeats, editIsBookingAllowed,getTable , getTableAvailabilityForDate } = require('../controllers/tableController');
+const { addTable, editTable, deleteTable, editSeats, editIsBookingAllowed,getTable , getTableAvailabilityForDate,  getReservationsForTableAndDate } = require('../controllers/tableController');
 const { handleSeatsUpdate, handleIsBookingAllowedUpdate, handleTableDeletion } = require('../middlewares/editsMiddleware');
 
 //!POST : Δημιουργια τραπεζιου απο καταστηματαρχη
@@ -27,5 +27,9 @@ tableRouter.get('/api/table/:tableId', getTable);
 
 //!GET gia availability
 tableRouter.get('/api/table/:tableId/availability',getTableAvailabilityForDate);
+
+
+// GET: Κρατήσεις τραπεζιού για συγκεκριμένη ημερομηνία
+tableRouter.get('/api/table/:tableId/reservations', getReservationsForTableAndDate);
 
 module.exports = tableRouter;
