@@ -6,6 +6,7 @@
     <title>Reservations</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -42,6 +43,64 @@
         #content {
             padding: 20px;
         }
+        /* Calendar styles */
+        #calendarContainer {
+            max-width: 520px;
+            margin: 0 auto 2rem auto;
+            background: #f8f9fa;
+            border-radius: 18px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+            padding: 2.5rem 2.5rem 2rem 2.5rem;
+        }
+        .flatpickr-calendar {
+            display: block !important;
+            position: static !important;
+            box-shadow: none;
+            background: transparent;
+            margin-bottom: 0;
+            width: 100%;
+            min-width: 380px;
+            font-size: 1.25rem;
+        }
+        .flatpickr-months {
+            margin-bottom: 0.7rem;
+        }
+        .flatpickr-day {
+            width: 3.5rem;
+            height: 3.5rem;
+            line-height: 3.5rem;
+            font-size: 1.35rem;
+            margin: 0.22rem;
+            border-radius: 14px;
+            transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+        }
+        .flatpickr-day.selected, .flatpickr-day.today {
+            background: #007bff;
+            color: #fff;
+            font-size: 1.65rem;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(0,123,255,0.15);
+        }
+        .flatpickr-day:hover {
+            background: #e3f0ff;
+            color: #007bff;
+        }
+        .flatpickr-weekdays {
+            font-size: 1.18rem;
+            font-weight: 600;
+        }
+        .flatpickr-current-month input.cur-year {
+            font-size: 1.28rem;
+            font-weight: 600;
+        }
+#pendingBar {
+  max-height: 420px;
+  overflow-y: auto;
+  margin-bottom: 1.5rem;
+}
+#pendingBar .list-group-item {
+  cursor: pointer;
+}
     </style>
 </head>
 <body>
@@ -56,28 +115,31 @@
             <div id="content" class="col-md-9">
                 <section id="reservations" class="mt-5">
                     <div class="container">
-                      <h2>Reservations</h2>
-                      <!-- Bar επιλογών για φιλτράρισμα -->
+                      <!-- Headline για pending -->
+                      <h2 id="pendingHeadline" class="mb-2">Pending Reservations (<span id="pendingCount">0</span>)</h2>
+                      <!-- Pending bar με scroll -->
+                      <div id="pendingBar" class="mb-3" style="max-height: 320px; overflow-y: auto;"></div>
+                      <!-- Headline για τα υπόλοιπα -->
+                      <h3 class="mb-3">Reservations</h3>
+                      <!-- State bar -->
                       <ul class="nav nav-tabs mb-3" id="reservationTabs" role="tablist">
-  <li class="nav-item" role="presentation">
-    <button class="nav-link active" id="pending-tab" data-bs-toggle="tab" type="button" onclick="fetchReservations('pending')">Pending</button>
-  </li>
-  <li class="nav-item" role="presentation">
-    <button class="nav-link" id="accepted-tab" data-bs-toggle="tab" type="button" onclick="fetchReservations('accepted')">Accepted</button>
-  </li>
-  <li class="nav-item" role="presentation">
-    <button class="nav-link" id="completed-tab" data-bs-toggle="tab" type="button" onclick="fetchReservations('completed')">Completed</button>
-  </li>
-  <li class="nav-item" role="presentation">
-    <button class="nav-link" id="notShown-tab" data-bs-toggle="tab" type="button" onclick="fetchReservations('notShown')">Not Shown</button>
-  </li>
-</ul>
-
+                        <li class="nav-item" role="presentation">
+                          <button class="nav-link active" id="accepted-tab" data-bs-toggle="tab" type="button" onclick="onTabClick('accepted')">Accepted</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                          <button class="nav-link" id="completed-tab" data-bs-toggle="tab" type="button" onclick="fetchReservations('completed')">Completed</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                          <button class="nav-link" id="notShown-tab" data-bs-toggle="tab" type="button" onclick="fetchReservations('notShown')">Not Shown</button>
+                        </li>
+                      </ul>
                       <!-- Scrollable list of days -->
                       <div id="reservationsDaysList" class="list-group mb-3" style="max-height: 300px; overflow-y: auto;"></div>
-
-                      <!-- Container for reservations for the selected day -->
-                      <div id="reservationsList" class="row gy-3"></div>
+                      <!-- Calendar -->
+                      <div id="calendarContainer" class="mb-4"></div>
+                      <!-- Reservations list -->
+                      <div id="reservationsDayTitle" class="h5 mb-2"></div>
+<div id="reservationsList" class="row gy-3"></div>
                     </div>
                 </section>
             </div>
@@ -85,6 +147,8 @@
     </div>
 
     <script>
+        let currentStateFilter = 'accepted';
+
         // Load the external menu dynamically
         document.addEventListener('DOMContentLoaded', async () => {
             try {
@@ -98,6 +162,9 @@
             } catch (error) {
                 console.error('Error loading menu:', error);
             }
+
+            await renderPendingBar();
+            await fetchReservations(currentStateFilter); // Χρησιμοποίησε το global state
         });
 
         // Helper functions
@@ -162,16 +229,42 @@
 }
 
         // Render reservations for a specific day
-        async function renderReservationsForDay(reservationsArray) {
+        async function renderReservationsForDay(reservationsArray, state = currentStateFilter, dateStr = null) {
   const reservationsListDiv = document.getElementById("reservationsList");
+  const titleDiv = document.getElementById("reservationsDayTitle");
   reservationsListDiv.innerHTML = "";
 
-  if (reservationsArray.length === 0) {
+  // Βρες ημερομηνία και ημέρα
+  let dayOfWeek = "";
+  let formattedDate = "";
+  if (reservationsArray.length > 0) {
+    const date = reservationsArray[0].reservationDate;
+    const dateObj = new Date(date);
+    dayOfWeek = getDayOfWeek(dateObj);
+    formattedDate = formatDate_dd_mm_yy(dateObj);
+  } else if (dateStr) {
+    const dateObj = new Date(dateStr);
+    dayOfWeek = getDayOfWeek(dateObj);
+    formattedDate = formatDate_dd_mm_yy(dateObj);
+  }
+
+  // Μετατροπή state σε ελληνικό/αγγλικό label αν θες
+  const stateLabels = {
+    accepted: "Accepted",
+    completed: "Completed",
+    notShown: "Not Shown"
+  };
+  const stateLabel = stateLabels[state] || state;
+
+  titleDiv.textContent = `${stateLabel} Κρατήσεις για ${dayOfWeek}, ${formattedDate}`;
+
+  if (!reservationsArray.length) {
     reservationsListDiv.innerHTML = "<p class='text-center'>No reservations for this day.</p>";
     return;
   }
 
-  for (const reservation of reservationsArray) {
+  // Δημιουργία λίστας Promises για κάθε reservation
+  const reservationItems = await Promise.all(reservationsArray.map(async (reservation) => {
     let tableNumber = "N/A";
     if (reservation.tableId) {
       try {
@@ -185,48 +278,58 @@
       }
     }
 
-    const hours = Math.floor(reservation.reservationTime);
-    const minutes = Math.round((reservation.reservationTime % 1) * 60);
-    const formattedTime = `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
+    const formattedTime = formatHour(reservation.reservationTime);
 
-    reservationsListDiv.innerHTML += `
-      <div class="col-md-4" data-reservation-id="${reservation._id}" data-state="${reservation.state}">
-        <div class="card mb-3">
-          <div class="card-header">Reservation #${reservation._id}</div>
-          <div class="card-body">
-            <p><strong>Name:</strong> ${reservation.name || "N/A"}</p>
-            <p><strong>Surname:</strong> ${reservation.surname || "N/A"}</p>
-            <p><strong>Table Number:</strong> 
-              <span class="table-number">${reservation.tableId ? tableNumber : `
-                <span class="text-danger" title="This reservation does not have a table assigned">
-                  N/A <i class="bi bi-exclamation-circle-fill"></i>
-                </span>`}
-              </span>
-            </p>
-            <p><strong>Date:</strong> ${reservation.reservationDate ? new Date(reservation.reservationDate).toLocaleDateString() : "N/A"}</p>
-            <p><strong>Hour:</strong> ${formattedTime}</p>
-            <p><strong>Seats:</strong> ${reservation.seats || "N/A"}</p>
-            <p><strong>State:</strong> ${reservation.state}</p>
-            <p><strong>Comment:</strong> ${reservation.commentFromUser || "N/A"}</p>
-            ${reservation.state === 'pending' ? `
-              <button class="btn btn-success btn-sm" onclick="acceptReservation('${reservation._id}')">Accept</button>
-              <button class="btn btn-danger btn-sm" onclick="deleteReservation('${reservation._id}')">Delete</button>
-              ${!reservation.tableId ? `<button class="btn btn-primary btn-sm find-table-btn" onclick="findAndAssignTable('${reservation._id}', '${reservation.reservationDate}', '${reservation.reservationTime}', ${reservation.seats})">Find Table</button>` : ''}
-            ` : reservation.state === 'accepted' ? `
-              <button class="btn btn-secondary btn-sm" onclick="markAsCompleted('${reservation._id}')">Completed</button>
-              <button class="btn btn-warning btn-sm" onclick="markAsNotShown('${reservation._id}')">Not Shown</button>
-              <button class="btn btn-danger btn-sm" onclick="deleteReservation('${reservation._id}')">Delete</button>
-              ${!reservation.tableId ? `<button class="btn btn-primary btn-sm find-table-btn" onclick="findAndAssignTable('${reservation._id}', '${reservation.reservationDate}', '${reservation.reservationTime}', ${reservation.seats})">Find Table</button>` : ''}
-            ` : ''}
-          </div>
+    return `
+      <button class="list-group-item list-group-item-action"
+        type="button"
+        data-bs-toggle="collapse"
+        data-bs-target="#reservationDetails_${reservation._id}"
+        aria-expanded="false"
+        aria-controls="reservationDetails_${reservation._id}">
+        ${reservation.reservationDate ? new Date(reservation.reservationDate).toLocaleDateString() : ''} 
+        ${typeof reservation.reservationTime !== 'undefined' ? formattedTime : ''} - 
+        ${reservation.name || ''} ${reservation.surname || ''} - 
+        <strong>${reservation._id}</strong>
+      </button>
+      <div class="collapse" id="reservationDetails_${reservation._id}">
+        <div class="card card-body mb-2">
+          <p><strong>Name:</strong> ${reservation.name || "N/A"}</p>
+          <p><strong>Surname:</strong> ${reservation.surname || "N/A"}</p>
+          <p><strong>Table Number:</strong> 
+            <span class="table-number">${reservation.tableId ? tableNumber : `
+              <span class="text-danger" title="This reservation does not have a table assigned">
+                N/A <i class="bi bi-exclamation-circle-fill"></i>
+              </span>`}
+            </span>
+          </p>
+          <p><strong>Date:</strong> ${reservation.reservationDate ? new Date(reservation.reservationDate).toLocaleDateString() : "N/A"}</p>
+          <p><strong>Hour:</strong> ${formattedTime}</p>
+          <p><strong>Seats:</strong> ${reservation.seats || "N/A"}</p>
+          <p><strong>State:</strong> ${reservation.state}</p>
+          <p><strong>Comment:</strong> ${reservation.commentFromUser || "N/A"}</p>
+          ${reservation.state === 'accepted' ? `
+            <button class="btn btn-secondary btn-sm" onclick="markAsCompleted('${reservation._id}')">Completed</button>
+            <button class="btn btn-warning btn-sm" onclick="markAsNotShown('${reservation._id}')">Not Shown</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteReservation('${reservation._id}')">Delete</button>
+            ${!reservation.tableId ? `<button class="btn btn-primary btn-sm find-table-btn" onclick="findAndAssignTable('${reservation._id}', '${reservation.reservationDate}', '${reservation.reservationTime}', ${reservation.seats})">Find Table</button>` : ''}
+          ` : reservation.state === 'completed' || reservation.state === 'notShown' ? `
+            <button class="btn btn-danger btn-sm" onclick="deleteReservation('${reservation._id}')">Delete</button>
+          ` : ''}
         </div>
       </div>
     `;
-  }
+  }));
+
+  reservationsListDiv.innerHTML = `
+    <div class="list-group" style="max-height: 420px; overflow-y: auto;">
+      ${reservationItems.join("")}
+    </div>
+  `;
 }
 
         // Fetch reservations
-        async function fetchReservations(stateFilter = 'all') {
+        async function fetchReservations(stateFilter = 'accepted') {
   try {
     const allReservationsResponse = await fetch('/api/shop/reservationList');
     if (!allReservationsResponse.ok) throw new Error('Failed to fetch all reservations');
@@ -237,7 +340,10 @@
     if (allReservationsData && typeof allReservationsData === 'object') {
       Object.values(allReservationsData.reservationList).forEach(dateGroup => {
         if (Array.isArray(dateGroup.reservations)) {
-          reservationsToDisplay = reservationsToDisplay.concat(dateGroup.reservations);
+          // Εξαίρεσε τις pending από το κάτω section
+          reservationsToDisplay = reservationsToDisplay.concat(
+            dateGroup.reservations.filter(r => r.state !== 'pending')
+          );
         }
       });
     } else {
@@ -281,29 +387,34 @@
         function displayGroupedReservations(reservationsArray) {
   if (!Array.isArray(reservationsArray) || reservationsArray.length === 0) {
     document.getElementById("reservationsList").innerHTML = "<p class='text-center'>No reservations found.</p>";
-    document.getElementById("reservationsDaysList").innerHTML = "<p class='text-center'>No reservations available.</p>";
+    document.getElementById("reservationsDayTitle").textContent = "";
     return;
   }
 
   const grouped = groupReservationsByDate(reservationsArray);
 
-  renderDaysList(grouped);
+  setupCalendar(grouped);
 
   const sortedDates = Object.keys(grouped).sort();
   if (sortedDates.length > 0) {
-    renderReservationsForDay(grouped[sortedDates[0]]);
+    // Περνάμε πάντα το currentStateFilter!
+    renderReservationsForDay(grouped[sortedDates[0]], currentStateFilter, sortedDates[0]);
+    if (window.flatpickrInstance) {
+      window.flatpickrInstance.setDate(sortedDates[0], true);
+    }
   } else {
     document.getElementById("reservationsList").innerHTML = "<p class='text-center'>No reservations found.</p>";
+    document.getElementById("reservationsDayTitle").textContent = "";
   }
 }
 
         // Delete reservation
-        async function deleteReservation(reservationId) {
+        async function deleteReservation(reservationId, closePending) {
             if (confirm("Are you sure you want to delete this reservation?")) {
                 try {
                     const response = await fetch(`/api/reservation/${reservationId}`, {
                         method: 'DELETE',
-                        credentials: 'include', // Include cookies for authentication
+                        credentials: 'include',
                     });
 
                     if (!response.ok) {
@@ -313,7 +424,9 @@
                     }
 
                     alert("Reservation deleted successfully!");
-                    fetchReservations(); // Ανανεώστε τη λίστα κρατήσεων
+                    if (closePending) closePendingReservationDetails(reservationId);
+                    await fetchReservations(currentStateFilter); // <-- Εδώ!
+                    await renderPendingBar();
                 } catch (error) {
                     console.error("Error deleting reservation:", error);
                     alert("Failed to delete reservation. Please try again later.");
@@ -322,7 +435,7 @@
         }
 
         // Accept reservation
-async function acceptReservation(reservationId) {
+async function acceptReservation(reservationId, closePending) {
   try {
     const response = await fetch(`/api/reservation/${reservationId}/state`, {
       method: 'PATCH',
@@ -337,7 +450,9 @@ async function acceptReservation(reservationId) {
     }
 
     alert("Reservation accepted successfully!");
-    fetchReservations('pending'); // Ανανεώστε τη λίστα των pending κρατήσεων
+    if (closePending) closePendingReservationDetails(reservationId);
+    fetchReservations('pending');
+    await renderPendingBar();
   } catch (error) {
     console.error("Error accepting reservation:", error);
     alert("Failed to accept reservation. Please try again later.");
@@ -412,7 +527,7 @@ async function markAsNotShown(reservationId) {
         // Fetch pending κρατήσεις κατά την αρχική φόρτωση
 fetchReservations('pending');
 
-async function findAndAssignTable(reservationId, reservationDate, reservationTime, seats) {
+async function findAndAssignTable(reservationId, reservationDate, reservationTime, seats, closePending) {
   try {
     console.log("Sending data to find table:", {
       reservationId,
@@ -437,24 +552,9 @@ async function findAndAssignTable(reservationId, reservationDate, reservationTim
     const result = await response.json();
     console.log("Table assigned successfully:", result);
     alert(`Table assigned successfully! Table Number: ${result.tableNumber}`);
-
-    // Ενημέρωση της συγκεκριμένης κράτησης στη λίστα
-    const reservationCard = document.querySelector(`[data-reservation-id="${reservationId}"]`);
-    if (reservationCard) {
-      const tableNumberElement = reservationCard.querySelector(".table-number");
-      if (tableNumberElement) {
-        tableNumberElement.innerHTML = result.tableNumber;
-      }
-
-      // Αφαιρούμε το κουμπί "Find Table" αφού έχει ανατεθεί τραπέζι
-      const findTableButton = reservationCard.querySelector(".find-table-btn");
-      if (findTableButton) {
-        findTableButton.remove();
-      }
-    }
-
-    // Ενημέρωση των προειδοποιητικών
+    if (closePending) closePendingReservationDetails(reservationId);
     updateWarnings();
+    await renderPendingBar();
   } catch (error) {
     console.error("Error finding and assigning table:", error);
     alert("Failed to find and assign table. Please try again later.");
@@ -462,7 +562,7 @@ async function findAndAssignTable(reservationId, reservationDate, reservationTim
 }
 
 function updateWarnings() {
-  const tabs = ['pending', 'accepted'];
+  const tabs = ['accepted', 'completed', 'notShown'];
   tabs.forEach(async (state) => {
     const reservations = Array.from(document.querySelectorAll(`[data-state="${state}"]`));
     const unassignedCount = reservations.filter(reservation => reservation.querySelector(".table-number").textContent === "N/A").length;
@@ -476,7 +576,175 @@ function updateWarnings() {
     }
   });
 }
+
+// Calendar setup
+let availableDates = []; // Θα γεμίσει με τα dates που υπάρχουν κρατήσεις
+
+function setupCalendar(groupedReservations) {
+  availableDates = Object.keys(groupedReservations);
+
+  // Καθαρίζει το container πριν το ξαναγεμίσει
+  document.getElementById("calendarContainer").innerHTML = `<input id="calendarFlatpickr" type="text" style="width:100%;background:transparent;border:none;outline:none;" readonly />`;
+
+  // Destroy previous instance αν υπάρχει
+  if (window.flatpickrInstance) {
+    window.flatpickrInstance.destroy();
+  }
+
+  window.flatpickrInstance = flatpickr("#calendarFlatpickr", {
+    inline: true,
+    enable: availableDates,
+    locale: "default",
+    onChange: function(selectedDates, dateStr) {
+      if (availableDates.includes(dateStr)) {
+        renderReservationsForDay(groupedReservations[dateStr], currentStateFilter, dateStr);
+      } else {
+        document.getElementById("reservationsList").innerHTML = "<p class='text-center'>No reservations for this day.</p>";
+        document.getElementById("reservationsDayTitle").textContent = "";
+      }
+    }
+  });
+}
+
+async function renderPendingBar() {
+  try {
+    const response = await fetch('/api/shop/reservationList');
+    if (!response.ok) throw new Error('Failed to fetch reservations');
+    const data = await response.json();
+
+    let pendingReservations = [];
+    if (data && typeof data === 'object') {
+      Object.values(data.reservationList).forEach(dateGroup => {
+        if (Array.isArray(dateGroup.reservations)) {
+          pendingReservations = pendingReservations.concat(
+            dateGroup.reservations.filter(r => r.state === 'pending')
+          );
+        }
+      });
+    }
+
+    // Sort by date/time (προαιρετικά)
+    pendingReservations.sort((a, b) => {
+      if (a.reservationDate === b.reservationDate) {
+        return a.reservationTime - b.reservationTime;
+      }
+      return new Date(a.reservationDate) - new Date(b.reservationDate);
+    });
+
+    // Ενημέρωσε το πλήθος
+    document.getElementById("pendingCount").textContent = pendingReservations.length;
+
+    // Show up to 10, scrollable (τώρα δείχνει όλα, με scroll)
+    const toShow = pendingReservations;
+
+    const pendingBarDiv = document.getElementById("pendingBar");
+    if (toShow.length === 0) {
+      pendingBarDiv.innerHTML = `<div class="alert alert-info mb-0">No pending reservations.</div>`;
+      return;
+    }
+
+    pendingBarDiv.innerHTML = `
+      <div class="list-group">
+        ${toShow.map(r => `
+          <button type="button" class="list-group-item list-group-item-action"
+            onclick="showPendingReservationDetails('${r._id}')">
+            ${r.reservationDate ? new Date(r.reservationDate).toLocaleDateString() : ''} 
+            ${typeof r.reservationTime !== 'undefined' ? formatHour(r.reservationTime) : ''} - 
+            ${r.name || ''} ${r.surname || ''} - 
+            <strong>${r._id}</strong>
+          </button>
+          <div class="collapse" id="pendingDetails_${r._id}"></div>
+        `).join("")}
+      </div>
+    `;
+  } catch (error) {
+    document.getElementById("pendingBar").innerHTML = `<div class="alert alert-danger mb-0">Error loading pending reservations.</div>`;
+    console.error(error);
+  }
+}
+
+// Εμφάνιση λεπτομερειών κράτησης όταν πατιέται
+async function showPendingReservationDetails(reservationId) {
+  // Κλείσε όλα τα άλλα
+  document.querySelectorAll('#pendingBar .collapse').forEach(div => div.classList.remove('show'));
+
+  // Βρες τα δεδομένα της κράτησης
+  const response = await fetch('/api/shop/reservationList');
+  const data = await response.json();
+  let reservation = null;
+  Object.values(data.reservationList).forEach(dateGroup => {
+    if (Array.isArray(dateGroup.reservations)) {
+      const found = dateGroup.reservations.find(r => r._id === reservationId);
+      if (found) reservation = found;
+    }
+  });
+  if (!reservation) return;
+
+  // Φέρε table number αν υπάρχει
+  let tableNumber = "N/A";
+  if (reservation.tableId) {
+    try {
+      const tableRes = await fetch(`/api/table/${reservation.tableId}`);
+      if (tableRes.ok) {
+        const table = await tableRes.json();
+        tableNumber = table.tableNumber || "N/A";
+      }
+    } catch {}
+  }
+
+  const formattedTime = typeof reservation.reservationTime !== 'undefined'
+    ? formatHour(reservation.reservationTime)
+    : '';
+
+  // Γέμισε το collapse div
+  const detailsDiv = document.getElementById(`pendingDetails_${reservationId}`);
+  if (detailsDiv) {
+    detailsDiv.innerHTML = `
+      <div class="card card-body mt-2 mb-2">
+        <p><strong>Name:</strong> ${reservation.name || "N/A"}</p>
+        <p><strong>Surname:</strong> ${reservation.surname || "N/A"}</p>
+        <p><strong>Table Number:</strong> 
+          <span class="table-number">${reservation.tableId ? tableNumber : `
+            <span class="text-danger" title="This reservation does not have a table assigned">
+              N/A <i class="bi bi-exclamation-circle-fill"></i>
+            </span>`}
+          </span>
+        </p>
+        <p><strong>Date:</strong> ${reservation.reservationDate ? new Date(reservation.reservationDate).toLocaleDateString() : "N/A"}</p>
+        <p><strong>Hour:</strong> ${formattedTime}</p>
+        <p><strong>Seats:</strong> ${reservation.seats || "N/A"}</p>
+        <p><strong>State:</strong> ${reservation.state}</p>
+        <p><strong>Comment:</strong> ${reservation.commentFromUser || "N/A"}</p>
+        <button class="btn btn-success btn-sm" onclick="acceptReservation('${reservation._id}', true)">Accept</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteReservation('${reservation._id}', true)">Delete</button>
+        ${!reservation.tableId ? `<button class="btn btn-primary btn-sm find-table-btn" onclick="findAndAssignTable('${reservation._id}', '${reservation.reservationDate}', '${reservation.reservationTime}', ${reservation.seats}, true)">Find Table</button>` : ''}
+        <button class="btn btn-secondary btn-sm" onclick="closePendingReservationDetails('${reservation._id}')">Hide</button>
+      </div>
+    `;
+    // Άνοιξε το collapse
+    detailsDiv.classList.add('show');
+  }
+}
+
+function formatHour(hour) {
+  if (typeof hour !== "number") hour = parseFloat(hour);
+  if (isNaN(hour)) return "-";
+  const h = Math.floor(hour);
+  const m = Math.round((hour - h) * 60);
+  return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
+}
+
+function closePendingReservationDetails(reservationId) {
+  const detailsDiv = document.getElementById(`pendingDetails_${reservationId}`);
+  if (detailsDiv) detailsDiv.classList.remove('show');
+}
+
+function onTabClick(state) {
+    currentStateFilter = state;
+    fetchReservations(currentStateFilter);
+}
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 </body>
 </html>
