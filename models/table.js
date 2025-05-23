@@ -55,6 +55,11 @@ const tableSchema = mongoose.Schema({
     type: Object, // Changed from Map to Object
     default: {}   // Default as an empty object
   },
+  floorPanelId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'FloorPanel',
+    required: false,
+  },
 });
 
 tableSchema.index({ 'availability.date': 1 });

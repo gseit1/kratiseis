@@ -1,17 +1,32 @@
 const Table = require('../models/table');
 const Reservation = require('../models/reservation');
 const Shop = require('../models/shop');
+const FloorPanel = require('../models/floorPanel');
 
 // Service για τη δημιουργία τραπεζιού
 const createTable = async (shopId, tableData) => {
   const shop = await Shop.findById(shopId);
   if (!shop) throw new Error('Shop not found');
 
-  const newTable = new Table(tableData); // Περιλαμβάνει το minimumSeats
+  const newTable = new Table(tableData);
   await newTable.save();
 
   shop.tables.push(newTable._id);
   await shop.save();
+
+  // Αν υπάρχει floorPanelId, ενημέρωσε και το table και το floorPanel
+  if (tableData.floorPanelId) {
+    // Ενημέρωσε το table (αν δεν το έχει ήδη)
+    if (!newTable.floorPanelId || String(newTable.floorPanelId) !== String(tableData.floorPanelId)) {
+      newTable.floorPanelId = tableData.floorPanelId;
+      await newTable.save();
+    }
+    // Πρόσθεσε το table στο floorPanel
+    await FloorPanel.findByIdAndUpdate(
+      tableData.floorPanelId,
+      { $push: { tables: { tableId: newTable._id, x: tableData.x || 0, y: tableData.y || 0 } } }
+    );
+  }
 
   // Initialize availability for the entire month
   const today = new Date();
@@ -37,6 +52,26 @@ const updateTable = async (tableId, updateData) => {
   const table = await Table.findById(tableId);
   if (!table) throw new Error('Table not found');
 
+  // Αν αλλάζει το floorPanelId
+  if (updateData.floorPanelId && String(updateData.floorPanelId) !== String(table.floorPanelId)) {
+    // Αφαίρεση από το παλιό floorPanel
+    if (table.floorPanelId) {
+      await FloorPanel.findByIdAndUpdate(
+        table.floorPanelId,
+        { $pull: { tables: { tableId: table._id } } }
+      );
+    }
+    // Προσθήκη στο νέο floorPanel
+    await FloorPanel.findByIdAndUpdate(
+      updateData.floorPanelId,
+      { $push: { tables: { tableId: table._id, x: updateData.x || 0, y: updateData.y || 0 } } }
+    );
+    // Ενημέρωσε το πεδίο στο table
+    table.floorPanelId = updateData.floorPanelId;
+    await table.save();
+  }
+
+  // Ενημέρωση των υπόλοιπων πεδίων
   const updatedTable = await Table.findByIdAndUpdate(tableId, updateData, {
     new: true,
     runValidators: true,
@@ -114,7 +149,7 @@ const checkAvailability = async (req) => {
       return { success: false, message: 'Shop not found', availability: [] };
     }
 
-    const tables = await Table.find({ shopId });
+    const tables = await Table.find({ shopId }).populate('floorPanelId');
     if (!tables || tables.length === 0) {
       return { success: false, message: 'No tables found for this shop', availability: [] };
     }
@@ -532,7 +567,7 @@ const invalidReservationForIsBookingAllowedEdit = async (reservations, day) => {
 
 const getTablesByShopId = async (shopId) => {
   try {
-    const tables = await Table.find({ shopId });
+    const tables = await Table.find({ shopId }).populate('floorPanelId');
     return tables;
   } catch (error) {
     console.error('Error getting tables by shop ID:', error.message);
@@ -594,6 +629,10 @@ const getTableReservationsForDate = async (tableId, dateString) => {
   return reservations;
 };
 
+const getTableWithPanel = async (tableId) => {
+  return Table.findById(tableId).populate('floorPanelId');
+};
+
 module.exports = {
   createTable,
   updateTable,
@@ -610,5 +649,6 @@ module.exports = {
  updateAvailabilityForBookingHoursEdit,
  getTablesByShopId,
  getTableReservationsForDate,    
+ getTableWithPanel, 
                                                                  
 };

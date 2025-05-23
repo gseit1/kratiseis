@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Floor Panels Management</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    .floor-panel-bar {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      margin-bottom: 20px;
+    }
+    .floor-panel-btn.active {
+      background: #007bff;
+      color: #fff;
+    }
+    #floorPanelView {
+      min-height: 300px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 24px;
+      background: #fafbfc;
+    }
+    #tablePopup .card {
+      background-color: rgba(255,255,255,0.7) !important;
+      backdrop-filter: blur(2px);
+      box-shadow: 0 2px 16px rgba(0,0,0,0.10);
+    }
+  </style>
+</head>
+<body>
+<div class="container-fluid">
+  <div class="row">
+    <!-- Left Menu -->
+    <div id="menu-container" class="col-md-3">
+      <!-- Include the external menu -->
+      <div id="menu"></div>
+    </div>
+    <!-- Right Content -->
+    <div class="col-md-9">
+      <h2 class="mt-4">Διαχείριση Floor Panels</h2>
+      <div id="noPanelsMsg" class="alert alert-info d-none">
+        Δεν υπάρχουν floor panels. <button id="addPanelBtn" class="btn btn-primary btn-sm ms-2">Add Floor Panel</button>
+      </div>
+      <div id="floorPanelBar" class="floor-panel-bar mb-3"></div>
+      <button id="addPanelBtnTop" class="btn btn-success mb-3 d-none">Add Floor Panel</button>
+      <div id="floorPanelView"></div>
+      <div id="floorPanelSVGContainer"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal για προσθήκη panel -->
+<div class="modal fade" id="addPanelModal" tabindex="-1">
+  <div class="modal-dialog">
+    <form id="addPanelForm" class="modal-content" enctype="multipart/form-data">
+      <div class="modal-header">
+        <h5 class="modal-title">Νέο Floor Panel</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-2">
+          <label class="form-label">Όνομα Panel</label>
+          <input type="text" class="form-control" name="name" required maxlength="32">
+        </div>
+        <div class="mb-2">
+          <label class="form-label">Πλάτος (px)</label>
+          <input type="number" class="form-control" name="width" value="800" min="200" max="2000" required>
+        </div>
+        <div class="mb-2">
+          <label class="form-label">Ύψος (px)</label>
+          <input type="number" class="form-control" name="height" value="600" min="200" max="2000" required>
+        </div>
+        <div class="mb-2">
+          <label class="form-label">Background (προαιρετικό)</label>
+          <input type="text" class="form-control" name="background" placeholder="π.χ. #f5f5f5 ή url">
+        </div>
+        <div class="mb-2">
+          <label class="form-label">Background Photo (προαιρετικό)</label>
+          <input type="file" class="form-control" name="backgroundPhoto" accept="image/*">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-primary">Προσθήκη</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// Φόρτωσε το μενού δυναμικά
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    const menuContainer = document.getElementById('menu');
+    const response = await fetch('./components/menu.html');
+    if (response.ok) {
+      menuContainer.innerHTML = await response.text();
+    } else {
+      console.error('Failed to load menu:', response.status);
+    }
+  } catch (error) {
+    console.error('Error loading menu:', error);
+  }
+  await loadPanels();
+});
+
+let shopId = null; // Πάρε το shopId από URL ή session
+
+// --- Βοηθητικές ---
+async function getShopId() {
+  const res = await fetch('/api/users/details', { credentials: 'include' });
+  if (!res.ok) return null;
+  const data = await res.json();
+  return data.user && data.user.shopId ? data.user.shopId : null;
+}
+
+// --- Φόρτωση panels ---
+async function loadPanels() {
+  shopId = await getShopId();
+  if (!shopId) {
+    alert('Δεν βρέθηκε κατάστημα για τον χρήστη.');
+    return;
+  }
+
+  const res = await fetch(`/api/shop/${shopId}/floorPanels`);
+  const panels = await res.json();
+
+  const bar = document.getElementById('floorPanelBar');
+  const view = document.getElementById('floorPanelView');
+  const noMsg = document.getElementById('noPanelsMsg');
+  const addBtnTop = document.getElementById('addPanelBtnTop');
+
+  bar.innerHTML = '';
+  view.innerHTML = '';
+  addBtnTop.classList.add('d-none');
+
+  if (!panels.length) {
+    noMsg.classList.remove('d-none');
+  } else {
+    noMsg.classList.add('d-none');
+    addBtnTop.classList.remove('d-none');
+    panels.forEach((panel, idx) => {
+      const btn = document.createElement('button');
+      btn.className = 'btn btn-outline-primary floor-panel-btn';
+      btn.textContent = panel.name;
+      btn.onclick = () => showPanel(panel, panels, idx);
+      bar.appendChild(btn);
+    });
+    // Εμφάνισε το πρώτο panel by default
+    showPanel(panels[0], panels, 0);
+  }
+}
+
+// --- Εμφάνιση ενός panel ---
+function showPanel(panel, allPanels, idx) {
+  // Highlight το επιλεγμένο
+  document.querySelectorAll('.floor-panel-btn').forEach((b, i) => {
+    b.classList.toggle('active', i === idx);
+  });
+
+  // LOG για debugging
+  console.log('showPanel tables:', panel.tables);
+
+  // Υπολογισμός default θέσεων για όσα δεν έχουν x/y
+  let nextX = 20, nextY = 20, gap = 80;
+  let bgStyle = panel.backgroundPhoto
+    ? `background: url('${panel.backgroundPhoto}') center/cover`
+    : (panel.background ? `background: ${panel.background}` : 'background: #fff');
+  let svg = `<svg id="floorSVG" width="${panel.width}" height="${panel.height}" style="border:1px solid #bbb;${bgStyle}">`;
+
+  if (panel.tables && panel.tables.length) {
+    panel.tables.forEach((t, i) => {
+      // LOG για κάθε τραπέζι
+      console.log('table', i, t);
+
+      let x = (typeof t.x === 'number') ? t.x : nextX;
+      let y = (typeof t.y === 'number') ? t.y : nextY;
+      if (typeof t.x !== 'number') nextX += gap;
+
+      svg += `
+        <g class="draggable-table" data-tableid="${t.tableId?._id || t.tableId}" data-x="${x}" data-y="${y}">
+          <rect x="${x}" y="${y}" width="60" height="60" fill="${panel.color || '#e3e3e3'}" stroke="#333" cursor="pointer"/>
+          <text x="${x + 30}" y="${y + 35}" text-anchor="middle" font-size="16">${t.tableId?.tableNumber || ''}</text>
+        </g>
+      `;
+    });
+  } else {
+    svg += `<text x="20" y="40" fill="#aaa">Δεν υπάρχουν τραπέζια σε αυτό το panel</text>`;
+  }
+
+  svg += '</svg>';
+
+  document.getElementById('floorPanelView').innerHTML = `
+    <h4>${panel.name}</h4>
+    <div>Διαστάσεις: ${panel.width} x ${panel.height}</div>
+    <div>Background: ${panel.background || '-'}</div>
+    ${panel.backgroundPhoto ? `
+      <div class="mb-2">
+        <img src="${panel.backgroundPhoto}" alt="background" style="max-width:200px;max-height:100px;display:block;">
+        <button class="btn btn-sm btn-danger mt-1" onclick="deletePanelBg('${panel._id}')">Διαγραφή Background</button>
+      </div>
+    ` : `
+      <form id="editBgForm-${panel._id}" enctype="multipart/form-data" class="mb-2">
+        <input type="file" name="backgroundPhoto" accept="image/*" class="form-control form-control-sm" style="width:auto;display:inline-block;">
+        <button type="submit" class="btn btn-sm btn-primary">Αλλαγή Background</button>
+      </form>
+    `}
+    <div class="mb-2">
+      <label>Χρώμα τραπεζιών panel:</label>
+      <input type="color" id="panelColorPicker" value="${panel.color || '#e3e3e3'}" style="width:40px;height:30px;vertical-align:middle;">
+      <button class="btn btn-sm btn-outline-primary ms-2" id="savePanelColorBtn">Αποθήκευση χρώματος</button>
+    </div>
+    <div class="mt-3" id="floorPanelSVGContainer">${svg}</div>
+    <div id="tablePopup" style="display:none; position:absolute; z-index:10;"></div>
+  `;
+
+  enableTablePopupAndMove(panel);
+
+  // Προσθήκη handler για αποθήκευση χρώματος panel
+  const savePanelColorBtn = document.getElementById('savePanelColorBtn');
+  if (savePanelColorBtn) {
+    savePanelColorBtn.onclick = async () => {
+      const newColor = document.getElementById('panelColorPicker').value;
+      await fetch(`/api/floorPanel/${panel._id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ color: newColor })
+      });
+      await loadPanels();
+    };
+  }
+}
+
+function enableTablePopupAndMove(panel) {
+  const svg = document.getElementById('floorSVG');
+  if (!svg) return;
+  let movingTable = null, offset = {}, saveBtn = null;
+
+  // Popup για πληροφορίες τραπεζιού
+  svg.addEventListener('click', function (e) {
+    if (e.target.tagName === 'rect') {
+      const g = e.target.parentNode;
+      const tableId = g.getAttribute('data-tableid');
+      const t = panel.tables.find(t => (t.tableId?._id || t.tableId) == tableId);
+      if (!t) return;
+      showTablePopup(t, g, panel);
+    }
+  });
+
+  function showTablePopup(t, g, panel) {
+    const popup = document.getElementById('tablePopup');
+    fetch(`/api/shop/${panel.shopId || shopId}/floorPanels`)
+      .then(res => res.json())
+      .then(panelsList => {
+        // Dropdown για αλλαγή panel
+        let panelSelect = `<select id="changePanelSelect" class="form-select form-select-sm mt-2">`;
+        panelsList.forEach(p =>
+          panelSelect += `<option value="${p._id}" ${p._id === panel._id ? 'selected' : ''}>${p.name}</option>`
+        );
+        panelSelect += `</select>`;
+
+        // Εμφάνιση bookingHours
+        const daysFull = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+        let bookingRow = `<div class="mb-2"><b>Διαθεσιμότητα:</b><br>`;
+        daysFull.forEach(day => {
+          const allowed = t.bookingHours?.[day.toLowerCase()]?.isBookingAllowed;
+          bookingRow += `<span style="margin-right:8px;">${day}: ${allowed ? '<span style="color:green;">✔</span>' : '<span style="color:red;">✘</span>'}</span>`;
+        });
+        bookingRow += `</div>`;
+
+        popup.innerHTML = `
+          <div class="card shadow" style="min-width:260px;">
+            <div class="card-body">
+              <h5 class="card-title">Τραπέζι ${t.tableNumber || t.tableId?.tableNumber || ''}</h5>
+              <div><b>Θέσεις:</b> ${t.seats || t.tableId?.seats || '-'}</div>
+              <div><b>Min Θέσεις:</b> ${t.minimumSeats || t.tableId?.minimumSeats || '-'}</div>
+              <div><b>Χρόνος Κράτησης:</b> ${t.estimatedReservationTime || t.tableId?.estimatedReservationTime || '-'} λεπτά</div>
+              <div><b>Panel:</b> ${panel.name}</div>
+              ${bookingRow}
+              <div class="mt-2">
+                <label class="form-label mb-1" style="font-size:0.9em;">Μεταφορά σε άλλο Panel:</label>
+                ${panelSelect}
+                <button class="btn btn-sm btn-primary mt-2" id="changePanelBtn">Change Panel</button>
+              </div>
+              <button class="btn btn-sm btn-warning mt-2" id="moveTableBtn">Move Table</button>
+              <button class="btn btn-sm btn-secondary mt-2 ms-2" id="closePopupBtn">Κλείσιμο</button>
+              <div id="saveMoveDiv" style="display:none;">
+                <button class="btn btn-sm btn-success mt-2" id="saveMoveBtn">Save</button>
+              </div>
+            </div>
+          </div>
+        `;
+
+        // Τοποθέτηση popup κοντά στο τραπέζι
+        const rect = g.querySelector('rect');
+        const svgRect = svg.getBoundingClientRect();
+        const x = parseFloat(rect.getAttribute('x')) + svgRect.left + 70;
+        const y = parseFloat(rect.getAttribute('y')) + svgRect.top;
+        popup.style.left = x + 'px';
+        popup.style.top = y + 'px';
+        popup.style.display = 'block';
+
+        document.getElementById('closePopupBtn').onclick = () => popup.style.display = 'none';
+
+        document.getElementById('moveTableBtn').onclick = () => {
+          movingTable = g;
+          popup.querySelector('#saveMoveDiv').style.display = '';
+          enableSingleDrag(g, panel, t, popup);
+        };
+
+        document.getElementById('changePanelBtn').onclick = async () => {
+          const newPanelId = document.getElementById('changePanelSelect').value;
+          if (newPanelId === panel._id) return;
+          await fetch(`/api/table/${t.tableId?._id || t.tableId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ floorPanelId: newPanelId })
+          });
+          popup.style.display = 'none';
+          await loadPanels();
+        };
+      });
+  }
+
+  function enableSingleDrag(g, panel, t, popup) {
+    const rect = g.querySelector('rect');
+    let dragging = false, dragOffset = {};
+
+    rect.style.cursor = 'move';
+
+    rect.addEventListener('mousedown', startDrag);
+
+    function startDrag(e) {
+      dragging = true;
+      const svgRect = svg.getBoundingClientRect();
+      dragOffset = {
+        x: e.clientX - svgRect.left - parseFloat(rect.getAttribute('x')),
+        y: e.clientY - svgRect.top - parseFloat(rect.getAttribute('y'))
+      };
+      svg.addEventListener('mousemove', onDrag);
+      svg.addEventListener('mouseup', endDrag);
+    }
+
+    function onDrag(e) {
+      if (!dragging) return;
+      const svgRect = svg.getBoundingClientRect();
+      const x = e.clientX - svgRect.left - dragOffset.x;
+      const y = e.clientY - svgRect.top - dragOffset.y;
+      rect.setAttribute('x', x);
+      rect.setAttribute('y', y);
+      g.querySelector('text').setAttribute('x', x + 30);
+      g.querySelector('text').setAttribute('y', y + 35);
+
+      // --- ΚΙΝΗΣΗ POPUP ΜΑΖΙ ΜΕ ΤΟ TABLE ---
+      popup.style.left = (svgRect.left + x + 70) + 'px'; // 70px margin όπως όταν ανοίγει
+      popup.style.top = (svgRect.top + y) + 'px';
+    }
+
+    function endDrag(e) {
+      dragging = false;
+      svg.removeEventListener('mousemove', onDrag);
+      svg.removeEventListener('mouseup', endDrag);
+    }
+
+    document.getElementById('saveMoveBtn').onclick = async () => {
+      const x = parseFloat(rect.getAttribute('x'));
+      const y = parseFloat(rect.getAttribute('y'));
+      // PATCH request για αποθήκευση νέας θέσης
+      await fetch(`/api/floorPanel/${panel._id}/table/${t.tableId?._id || t.tableId}/position`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ x, y })
+      });
+      popup.style.display = 'none';
+      await loadPanels();
+    };
+  }
+}
+
+// --- Προσθήκη panel ---
+document.getElementById('addPanelBtn').onclick = () => {
+  new bootstrap.Modal(document.getElementById('addPanelModal')).show();
+};
+document.getElementById('addPanelBtnTop').onclick = () => {
+  new bootstrap.Modal(document.getElementById('addPanelModal')).show();
+};
+document.getElementById('addPanelForm').onsubmit = async function(e) {
+  e.preventDefault();
+  const form = e.target;
+  const formData = new FormData(form);
+  formData.append('shopId', shopId);
+
+  const res = await fetch('/api/floorPanel', {
+    method: 'POST',
+    body: formData
+  });
+  if (res.ok) {
+    bootstrap.Modal.getInstance(document.getElementById('addPanelModal')).hide();
+    await loadPanels();
+  } else {
+    alert('Αποτυχία δημιουργίας panel');
+  }
+};
+
+window.deletePanelBg = async function(panelId) {
+  await fetch(`/api/floorPanel/${panelId}/backgroundPhoto`, { method: 'DELETE' });
+  await loadPanels();
+};
+
+document.addEventListener('submit', async function(e) {
+  if (e.target && e.target.id && e.target.id.startsWith('editBgForm-')) {
+    e.preventDefault();
+    const panelId = e.target.id.replace('editBgForm-', '');
+    const formData = new FormData(e.target);
+    const res = await fetch(`/api/floorPanel/${panelId}/backgroundPhoto`, {
+      method: 'POST',
+      body: formData
+    });
+    if (res.ok) await loadPanels();
+  }
+});
+</script>
+</body>
+</html>

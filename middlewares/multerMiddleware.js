@@ -13,12 +13,7 @@ const createFolderIfNotExists = (folderPath) => {
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     // Δυναμικός φάκελος αποθήκευσης
-    let folder = 'categories'; // Default folder
-    if (req.originalUrl.includes('/city')) {
-      folder = 'cities';
-    } else if (req.originalUrl.includes('/shop')) {
-      folder = 'shops';
-    }
+    let folder = 'floorPanelBackgrounds';
 
     console.log(`[multerMiddleware] Uploading to folder: ${folder}`);
     console.log(`[multerMiddleware] Request URL: ${req.originalUrl}`);
@@ -33,21 +28,10 @@ const storage = multer.diskStorage({
   },
 });
 
-// Φιλτράρισμα τύπων αρχείων
-const fileFilter = (req, file, cb) => {
-  const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
-  if (allowedTypes.includes(file.mimetype)) {
-    cb(null, true);
-  } else {
-    cb(new Error('Only JPEG, PNG, and JPG files are allowed'));
-  }
-};
-
 // Ρύθμιση του multer
 const upload = multer({
   storage,
-  fileFilter,
-  limits: { fileSize: 2 * 1024 * 1024 }, // Μέγιστο μέγεθος αρχείου: 2MB
+  limits: { fileSize: 10 * 1024 * 1024 }, // Μέγιστο μέγεθος αρχείου: 10MB
 });
 
 module.exports = upload;

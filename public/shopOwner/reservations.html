@@ -613,7 +613,7 @@ async function renderPendingBar() {
     const data = await response.json();
 
     let pendingReservations = [];
-    if (data && typeof data === 'object') {
+    if (data && typeof data === 'object') {π
       Object.values(data.reservationList).forEach(dateGroup => {
         if (Array.isArray(dateGroup.reservations)) {
           pendingReservations = pendingReservations.concat(

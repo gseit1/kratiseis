@@ -80,6 +80,12 @@
               <label for="estimatedReservationTime" class="form-label">Estimated Reservation Time (minutes)</label>
               <input type="number" class="form-control" id="estimatedReservationTime" name="estimatedReservationTime" min="1" required>
             </div>
+            <div class="mb-3">
+              <label for="floorPanelId" class="form-label">Floor Panel</label>
+              <select class="form-select" id="floorPanelId" name="floorPanelId" required>
+                <option value="">Επιλέξτε Floor Panel</option>
+              </select>
+            </div>
             <button type="submit" class="btn btn-primary">Create Table</button>
           </form>
         </div>
@@ -112,6 +118,17 @@
       const shopId = urlParams.get('shop_id');
       document.getElementById('shopId').value = shopId;
 
+      // Γέμισε το dropdown με τα floor panels
+      const res = await fetch(`/api/shop/${shopId}/floorPanels`);
+      const panels = await res.json();
+      const select = document.getElementById('floorPanelId');
+      panels.forEach(panel => {
+        const option = document.createElement('option');
+        option.value = panel._id;
+        option.textContent = panel.name;
+        select.appendChild(option);
+      });
+
       // Handle form submission
       document.getElementById('createTableForm').addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -119,8 +136,9 @@
           shopId: shopId,
           tableNumber: document.getElementById('tableNumber').value,
           seats: parseInt(document.getElementById('seats').value),
-          minimumSeats: parseInt(document.getElementById('minimumSeats').value), // Προσθήκη του minimumSeats
+          minimumSeats: parseInt(document.getElementById('minimumSeats').value),
           estimatedReservationTime: parseInt(document.getElementById('estimatedReservationTime').value),
+          floorPanelId: document.getElementById('floorPanelId').value
         };
 
         try {
@@ -164,4 +182,4 @@
   </script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
-</html>
+</html>  formData.append('shopId', shopId);

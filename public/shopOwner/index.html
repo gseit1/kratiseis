@@ -182,14 +182,20 @@ async function fetchTables() {
     const item = document.createElement("div");
     item.className = "list-group-item";
 
-    // Create the table header with table number, seats, minimum seats, and estimated reservation time
+    // Προσθήκη floor panel info
+    const floorPanelName = table.floorPanelId && table.floorPanelId.name
+      ? table.floorPanelId.name
+      : '<span class="text-muted">Χωρίς Floor Panel</span>';
+
+    // Create the table header with table number, seats, minimum seats, estimated reservation time, floor panel
     const tableHeader = `
       <div class="d-flex justify-content-between align-items-center">
         <div>
           <strong>Table:</strong> ${table.tableNumber} | 
           <strong>Seats:</strong> ${table.seats} | 
           <strong>Minimum Seats:</strong> ${table.minimumSeats || "N/A"} | 
-          <strong>Estimated Reservation Time:</strong> ${table.estimatedReservationTime || "N/A"} mins
+          <strong>Estimated Reservation Time:</strong> ${table.estimatedReservationTime || "N/A"} mins |
+          <strong>Floor Panel:</strong> ${floorPanelName}
         </div>
         <div>
           <button class="btn btn-sm btn-secondary me-2" onclick="editTable('${table._id}')">Edit</button>

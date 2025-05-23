@@ -1,11 +1,12 @@
-const { createTable, updateTable, deleteTableService, checkAvailability,getTableByIdSe , unvalidReservationsAfterSeatsEdit, updateWhenReservationDelete, setAvailabilityForDay, invalidReservationForIsBookingAllowedEdit, initializeAvailabilityForDate, clearAvailabilityForDay, getShopReservationsForDate, getTableReservationsForDate } = require('../services/tableServices');
+const { createTable, updateTable, deleteTableService, checkAvailability,getTableWithPanel , unvalidReservationsAfterSeatsEdit, updateWhenReservationDelete, setAvailabilityForDay, invalidReservationForIsBookingAllowedEdit, initializeAvailabilityForDate, clearAvailabilityForDay, getShopReservationsForDate, getTableReservationsForDate } = require('../services/tableServices');
 const { getReservationsForTable, setTableIdForReservations } = require('../services/reservationServices');
 const { addReservationToUndefinedList } = require('../services/shopServices');
 const Table = require('../models/table'); // Προσθήκη της εισαγωγής του Table
+const FloorPanel = require('../models/floorPanel'); // στην αρχή
 
 //! Function για add table
 const addTable = async (req, res) => {
-  const { shopId, tableNumber, seats, minimumSeats, estimatedReservationTime, bookingHours, availability } = req.body;
+  const { shopId, tableNumber, seats, minimumSeats, estimatedReservationTime, bookingHours, availability, floorPanelId, x, y } = req.body;
 
   try {
     const tableData = {
@@ -16,6 +17,8 @@ const addTable = async (req, res) => {
       estimatedReservationTime,
       bookingHours,
       availability,
+      floorPanelId,
+      x, y
     };
 
     const newTable = await createTable(shopId, tableData);
@@ -137,9 +140,8 @@ const checkTableAvailability = async (req, res) => {
 
 const getTable = async (req, res) => {
   const { tableId } = req.params;
-  console.log("Fetching table with id:", tableId);
   try {
-    const table = await Table.findById(tableId);
+    const table = await getTableWithPanel(tableId);
     if (!table) {
       return res.status(404).json({ message: 'Table not found' });
     }

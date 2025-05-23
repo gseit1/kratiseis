@@ -152,8 +152,13 @@ const shopSchema = mongoose.Schema({
   reviewRatingAverage:{
     type:Number,
     default:-1, // -1 means no rating/reviews for the shop
-  }
+  },
 
+  floorPanels: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'FloorPanel',
+    default: []
+  }],
 });
 
 // Middleware για επικυρώσεις πριν την αποθήκευση

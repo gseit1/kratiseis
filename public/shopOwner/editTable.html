@@ -80,6 +80,12 @@
                 <label for="estimatedReservationTime" class="form-label">Estimated Reservation Time (minutes)</label>
                 <input type="number" id="estimatedReservationTime" class="form-control" required min="30" max="600">
               </div>
+              <div class="mb-3">
+                <label for="floorPanelId" class="form-label">Floor Panel</label>
+                <select class="form-select" id="floorPanelId" name="floorPanelId" required>
+                  <option value="">Επιλέξτε Floor Panel</option>
+                </select>
+              </div>
               <button type="button" id="saveGeneralBtn" class="btn btn-success">Save General Details</button>
             </form>
           </div>
@@ -172,19 +178,40 @@
     document.getElementById('tableId').value = tableId;
     document.getElementById('shopId').value = shopId;
 
+    async function fetchFloorPanels() {
+      const res = await fetch(`/api/shop/${shopId}/floorPanels`);
+      const panels = await res.json();
+      const select = document.getElementById('floorPanelId');
+      select.innerHTML = '<option value="">Επιλέξτε Floor Panel</option>';
+      panels.forEach(panel => {
+        const option = document.createElement('option');
+        option.value = panel._id;
+        option.textContent = panel.name;
+        select.appendChild(option);
+      });
+    }
+
     // Fetch table data
     async function fetchTableData() {
       try {
         const response = await fetch(`/api/table/${tableId}`);
         if (!response.ok) throw new Error('Table not found');
         const table = await response.json();
+
         document.getElementById('tableNumber').value = table.tableNumber;
         document.getElementById('estimatedReservationTime').value = table.estimatedReservationTime;
         document.getElementById('seats').value = table.seats;
-        document.getElementById('minimumSeats').value = table.minimumSeats; // Προσθήκη για το minimumSeats
+        document.getElementById('minimumSeats').value = table.minimumSeats;
+
         ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].forEach(day => {
           document.getElementById(day).checked = table.bookingHours?.[day]?.isBookingAllowed || false;
         });
+
+        // Πρώτα γέμισε το dropdown
+        await fetchFloorPanels();
+
+        // Μετά όρισε το value
+        document.getElementById('floorPanelId').value = table.floorPanelId?._id || '';
       } catch (error) {
         console.error("Error fetching table data:", error);
       }
@@ -196,6 +223,7 @@
       const updatedGeneral = {
         tableNumber: Number(document.getElementById('tableNumber').value),
         estimatedReservationTime: Number(document.getElementById('estimatedReservationTime').value),
+        floorPanelId: document.getElementById('floorPanelId').value
       };
       try {
         const response = await fetch(`/api/table/${tableId}`, {
