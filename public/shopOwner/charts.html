@@ -11,57 +11,70 @@
         body {
             font-family: Arial, sans-serif;
         }
-        #menu {
-        height: 100vh;
-        position: sticky;
-        top: 0;
-        background-color: #f8f9fa;
-        padding-top: 20px;
-    }
-    #menu h4 {
-        font-size: 1.5rem;
-        font-weight: bold;
-        color: #333;
-    }
-    #menu .nav-link {
-        color: #000;
-        padding: 10px 15px;
-        border-radius: 5px;
-        transition: background-color 0.3s, color 0.3s;
-    }
-    #menu .nav-link:hover {
-        background-color: #e9ecef;
-        color: #007bff;
-    }
-    #menu .nav-link.active {
-        background-color: #007bff;
-        color: #fff;
-    }
-    #menu .nav-link i {
-        font-size: 1.2rem;
-    }
+        body.shopowner-has-menu { margin-top: 64px !important; }
         #content {
             padding: 20px;
         }
     </style>
 </head>
 <body>
+    <div id="menu"></div>
+    <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        const menuContainer = document.getElementById('menu');
+        const response = await fetch('./components/menu.html');
+        if (response.ok) {
+            menuContainer.innerHTML = await response.text();
+        }
+    });
+    </script>
     <div class="container-fluid">
         <div class="row">
-            <!-- Left Menu -->
-            <div id="menu-container" class="col-md-3">
-                <!-- Include the external menu -->
-                <div id="menu"></div>
-            </div>
-
-            <!-- Right Content -->
-            <div id="content" class="col-md-9">
+            <div id="content" class="col-12">
                 <section id="charts" class="mt-5">
                     <div class="container">
-                        <h2>Στατιστικά</h2>
-                        <div class="alert alert-info text-center" role="alert">
-                            Σύντομα διαθέσιμο
-                        </div>
+                        <h2>📊 Στατιστικά Κρατήσεων</h2>
+                        <section class="mb-5">
+                            <h4>Συνολικές κρατήσεις</h4>
+                            <div id="total-reservations-section"></div>
+                            <div class="mt-4">
+                                <div class="text-center mb-2">
+                                    <strong>Κρατήσεις ανά ημέρα (bar chart)</strong>
+                                </div>
+                                <canvas id="reservationChart" style="height:240px;max-height:240px;min-height:180px;width:100%;"></canvas>
+                            </div>
+                            <div class="mt-4">
+                                <div class="text-center mb-2">
+                                    <strong>Ποσοστό κρατήσεων ανά τραπέζι</strong>
+                                </div>
+                                <canvas id="tablePercentageChart" style="height:240px;max-height:240px;min-height:180px;width:100%;"></canvas>
+                            </div>
+                        </section>
+                        <section class="mb-5">
+                            <h4>Κατανομή κρατήσεων ανά ώρα</h4>
+                            <div id="reservations-by-hour-section"></div>
+                        </section>
+                        <section class="mb-5">
+                            <h4>Ποσοστό πληρότητας</h4>
+                            <div id="occupancy-section"></div>
+                        </section>
+                        <section class="mb-5">
+                            <h4>No-shows</h4>
+                            <div id="no-shows-section"></div>
+                        </section>
+                        <h2 class="mt-5">👥 Στατιστικά Πελατών</h2>
+                        <section class="mb-5">
+                            <h4>Επαναλαμβανόμενοι πελάτες</h4>
+                            <div id="repeat-customers-section"></div>
+                        </section>
+                        <section class="mb-5">
+                            <h4>Προέλευση κρατήσεων</h4>
+                            <div id="reservation-source-section"></div>
+                        </section>
+                        <section class="mb-5">
+                            <h4>Κριτικές / Feedback</h4>
+                            <div id="reviews-section"></div>
+                        </section>
                     </div>
                 </section>
             </div>
@@ -69,21 +82,6 @@
     </div>
 
     <script>
-        // Load the external menu dynamically
-        document.addEventListener('DOMContentLoaded', async () => {
-            try {
-                const menuContainer = document.getElementById('menu');
-                const response = await fetch('./components/menu.html');
-                if (response.ok) {
-                    menuContainer.innerHTML = await response.text();
-                } else {
-                    console.error('Failed to load menu:', response.status);
-                }
-            } catch (error) {
-                console.error('Error loading menu:', error);
-            }
-        });
-
         let shopId = null; // Global shopId variable
 
         // Process reservation data
@@ -103,7 +101,11 @@
         // Render the chart
         function renderReservationChart(chartData) {
             const ctx = document.getElementById('reservationChart').getContext('2d');
-            new Chart(ctx, {
+            // Destroy previous chart if exists to avoid canvas growing
+            if (window.reservationChartInstance) {
+                window.reservationChartInstance.destroy();
+            }
+            window.reservationChartInstance = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: chartData.labels,
@@ -123,23 +125,225 @@
             });
         }
 
-        async function fetchReservations() {
-    try {
-        const response = await fetch(`/api/shop/reservationList?shopId=${shopId}`);
-        if (!response.ok) throw new Error('Failed to fetch reservations');
-        const reservations = await response.json();
-        console.log('Reservations:', reservations); // Debugging
-        if (!Array.isArray(reservations)) {
-            throw new Error('Invalid data format: Expected an array');
+        // Render table reservation percentage chart
+        function renderTablePercentageChart(chartData) {
+            const ctx = document.getElementById('tablePercentageChart').getContext('2d');
+            if (window.tablePercentageChartInstance) {
+                window.tablePercentageChartInstance.destroy();
+            }
+            window.tablePercentageChartInstance = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: chartData.labels,
+                    datasets: [{
+                        label: 'Ποσοστό κρατήσεων ανά τραπέζι',
+                        data: chartData.data,
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.6)',
+                            'rgba(54, 162, 235, 0.6)',
+                            'rgba(255, 206, 86, 0.6)',
+                            'rgba(75, 192, 192, 0.6)',
+                            'rgba(153, 102, 255, 0.6)',
+                            'rgba(255, 159, 64, 0.6)'
+                        ],
+                        borderColor: [
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(153, 102, 255, 1)',
+                            'rgba(255, 159, 64, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed || 0;
+                                    return `${label}: ${value}%`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
         }
-        const chartData = processReservationData(reservations);
-        renderReservationChart(chartData);
-    } catch (error) {
-        console.error('Error fetching reservations:', error);
-        alert('Failed to fetch reservation data. Please try again later.');
-    }
-}
 
+        async function fetchReservations() {
+            try {
+                const response = await fetch(`/api/shop/reservationList`);
+                if (!response.ok) throw new Error('Failed to fetch reservations');
+                const reservationsObj = await response.json();
+                // reservationsObj is expected to be an object with reservationList property
+                let reservations = [];
+                if (reservationsObj && typeof reservationsObj === 'object' && reservationsObj.reservationList) {
+                    Object.values(reservationsObj.reservationList).forEach(dateGroup => {
+                        if (Array.isArray(dateGroup.reservations)) {
+                            reservations = reservations.concat(dateGroup.reservations);
+                        }
+                    });
+                }
+                if (!Array.isArray(reservations)) {
+                    throw new Error('Invalid data format: Expected an array');
+                }
+                const chartData = processReservationData(reservations);
+                renderReservationChart(chartData);
+            } catch (error) {
+                console.error('Error fetching reservations:', error);
+                alert('Failed to fetch reservation data. Please try again later.');
+            }
+        }
+
+        // Fetch table reservation percentages
+        async function fetchTablePercentages() {
+            try {
+                const response = await fetch('/api/stats/table-reservation-percentages', { credentials: 'include' });
+                if (!response.ok) throw new Error('Failed to fetch table percentages');
+                const data = await response.json();
+                // Εμφάνιση: "Τραπέζι 1 (25%)"
+                const labels = data.tablePercentages.map(
+                    t => `Τραπέζι ${t.tableNumber ?? t.tableId} (${t.percentage}%)`
+                );
+                const percentages = data.tablePercentages.map(t => Number(t.percentage));
+                renderTablePercentageChart({ labels, data: percentages });
+            } catch (error) {
+                console.error('Error fetching table percentages:', error);
+                alert('Failed to fetch table reservation percentages.');
+            }
+        }
+
+        async function fetchTotalReservations() {
+            try {
+                const response = await fetch('/api/stats/total-reservations', { credentials: 'include' });
+                if (!response.ok) throw new Error('Failed to fetch total reservations');
+                const data = await response.json();
+                document.getElementById('total-reservations-section').innerHTML =
+                    `<div class="alert alert-info">Συνολικές κρατήσεις: <strong>${data.total}</strong></div>`;
+            } catch (error) {
+                document.getElementById('total-reservations-section').innerHTML =
+                    `<div class="alert alert-danger">Σφάλμα φόρτωσης συνολικών κρατήσεων</div>`;
+            }
+        }
+
+        // Fetch reservations by day
+        async function fetchReservationsByDay() {
+            try {
+                const response = await fetch('/api/stats/reservations-by-day', { credentials: 'include' });
+                if (!response.ok) throw new Error('Failed to fetch reservations by day');
+                const data = await response.json();
+                const labels = Object.keys(data.counts);
+                const values = Object.values(data.counts);
+                // Render as bar chart
+                const ctx = document.createElement('canvas');
+                document.getElementById('reservations-by-day-section').innerHTML = '';
+                document.getElementById('reservations-by-day-section').appendChild(ctx);
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels,
+                        datasets: [{
+                            label: 'Κρατήσεις ανά ημέρα',
+                            data: values,
+                            backgroundColor: 'rgba(54, 162, 235, 0.6)'
+                        }]
+                    },
+                    options: { responsive: true }
+                });
+            } catch (error) {
+                document.getElementById('reservations-by-day-section').innerHTML =
+                    `<div class="alert alert-danger">Σφάλμα φόρτωσης κρατήσεων ανά ημέρα</div>`;
+            }
+        }
+
+        // Fetch reservations by hour
+        async function fetchReservationsByHour() {
+            try {
+                const response = await fetch('/api/stats/reservations-by-hour', { credentials: 'include' });
+                if (!response.ok) throw new Error('Failed to fetch reservations by hour');
+                const data = await response.json();
+                const labels = Object.keys(data.counts).map(h => `${h}:00`);
+                const values = Object.values(data.counts);
+                const ctx = document.createElement('canvas');
+                document.getElementById('reservations-by-hour-section').innerHTML = '';
+                document.getElementById('reservations-by-hour-section').appendChild(ctx);
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels,
+                        datasets: [{
+                            label: 'Κρατήσεις ανά ώρα',
+                            data: values,
+                            backgroundColor: 'rgba(255, 206, 86, 0.6)'
+                        }]
+                    },
+                    options: { responsive: true }
+                });
+            } catch (error) {
+                document.getElementById('reservations-by-hour-section').innerHTML =
+                    `<div class="alert alert-danger">Σφάλμα φόρτωσης κρατήσεων ανά ώρα</div>`;
+            }
+        }
+
+        // Fetch occupancy by day
+        async function fetchOccupancyByDay() {
+            try {
+                const response = await fetch('/api/stats/occupancy-by-day', { credentials: 'include' });
+                if (!response.ok) throw new Error('Failed to fetch occupancy');
+                const data = await response.json();
+                const labels = Object.keys(data.percentages);
+                const values = Object.values(data.percentages);
+                const ctx = document.createElement('canvas');
+                document.getElementById('occupancy-section').innerHTML = '';
+                document.getElementById('occupancy-section').appendChild(ctx);
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels,
+                        datasets: [{
+                            label: 'Ποσοστό πληρότητας (%)',
+                            data: values,
+                            backgroundColor: 'rgba(75, 192, 192, 0.4)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            fill: true
+                        }]
+                    },
+                    options: { responsive: true }
+                });
+            } catch (error) {
+                document.getElementById('occupancy-section').innerHTML =
+                    `<div class="alert alert-danger">Σφάλμα φόρτωσης πληρότητας</div>`;
+            }
+        }
+
+        // Fetch no-shows and cancellations
+        // Fetch only notShown and its percentage
+        async function fetchNoShowsStats() {
+            try {
+                const response = await fetch('/api/stats/no-shows', { credentials: 'include' });
+                if (!response.ok) throw new Error('Failed to fetch no-shows');
+                const data = await response.json();
+
+                // LOG για debugging
+                console.log('NoShows FRONTEND:', data);
+
+                document.getElementById('no-shows-section').innerHTML =
+                    `<div class="alert alert-warning">
+                        <strong>Not-shows:</strong> ${data.notShown} 
+                        <br>
+                        <strong>Ποσοστό not-shows:</strong> ${data.percentage}%
+                    </div>`;
+            } catch (error) {
+                document.getElementById('no-shows-section').innerHTML =
+                    `<div class="alert alert-danger">Σφάλμα φόρτωσης not-shows</div>`;
+            }
+        }
+
+        // Fetch average duration of reservations
         // Fetch shop ID on page load
         async function fetchShopId() {
             try {
@@ -149,23 +353,38 @@
                 });
 
                 if (!response.ok) throw new Error("Failed to fetch user details");
-                const user = await response.json();
-                shopId = user.shopId;
-
-                if (!shopId) {
-                    alert("Shop ID is missing. Redirecting to create shop page.");
-                    window.location.href = 'createShop.html';
+                const userData = await response.json();
+                if (userData.isAuthenticated && userData.user) {
+                    shopId = userData.user.shopId;
+                    if (!shopId) {
+                        alert("Shop ID is missing. Redirecting to create shop page.");
+                        window.location.href = 'createShop.html';
+                    } else {
+                        fetchReservations();
+                    }
                 } else {
-                    fetchReservations();
+                    alert("Authentication required. Redirecting to login.");
+                    window.location.href = '../registerLogin.html';
                 }
             } catch (error) {
                 console.error("Error fetching shop ID:", error);
                 alert("Failed to fetch shop details. Please try again later.");
+                window.location.href = '../registerLogin.html';
             }
         }
 
         // Initialize page
-        fetchShopId();
+        async function initializeCharts() {
+            await fetchShopId();
+            await fetchTotalReservations();
+            await fetchTablePercentages();
+            // await fetchReservationsByDay();  <-- ΑΦΑΙΡΕΣΕ ΤΟ ΑΥΤΟ
+            await fetchReservationsByHour();
+            await fetchOccupancyByDay();
+            await fetchNoShowsStats();
+        }
+        initializeCharts();
+
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>

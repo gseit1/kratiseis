@@ -38,8 +38,12 @@
       <!-- Include the external menu -->
       <div id="menu"></div>
     </div>
+    <!-- Scrollable index.html -->
+    <div class="col-md-3" style="height: 90vh; overflow-y: auto; border-right: 1px solid #eee;">
+      <iframe src="index.html" style="width:100%; height:100%; border:none;"></iframe>
+    </div>
     <!-- Right Content -->
-    <div class="col-md-9">
+    <div class="col-md-6">
       <h2 class="mt-4">Διαχείριση Floor Panels</h2>
       <div id="noPanelsMsg" class="alert alert-info d-none">
         Δεν υπάρχουν floor panels. <button id="addPanelBtn" class="btn btn-primary btn-sm ms-2">Add Floor Panel</button>
@@ -183,7 +187,9 @@ function showPanel(panel, allPanels, idx) {
       svg += `
         <g class="draggable-table" data-tableid="${t.tableId?._id || t.tableId}" data-x="${x}" data-y="${y}">
           <rect x="${x}" y="${y}" width="60" height="60" fill="${panel.color || '#e3e3e3'}" stroke="#333" cursor="pointer"/>
-          <text x="${x + 30}" y="${y + 35}" text-anchor="middle" font-size="16">${t.tableId?.tableNumber || ''}</text>
+          <text x="${x + 30}" y="${y + 35}" text-anchor="middle" font-size="16">
+            ${t.tableId?.tableNumber || t.tableNumber || ''}
+          </text>
         </g>
       `;
     });
@@ -232,152 +238,160 @@ function showPanel(panel, allPanels, idx) {
       await loadPanels();
     };
   }
+
+  document.getElementById('floorPanelSVGContainer').innerHTML = svg;
+
+  // Highlight & scroll στο index όταν γίνεται click σε τραπέζι ΚΑΙ άνοιγμα popup
+  const svgElem = document.getElementById('floorSVG');
+  document.querySelectorAll('.draggable-table').forEach(g => {
+    g.addEventListener('click', function(e) {
+      e.stopPropagation(); // Μην φτάνει το click στο svgElem
+      const tableId = g.getAttribute('data-tableid');
+      const indexIframe = document.querySelector('iframe[src="index.html"]');
+      if (indexIframe && indexIframe.contentWindow) {
+        indexIframe.contentWindow.postMessage({ type: 'highlightTable', tableId }, '*');
+      }
+      // Εμφάνιση popup για το τραπέζι
+      const t = panel.tables.find(t => (t.tableId?._id || t.tableId) == tableId);
+      if (!t) return;
+      showTablePopup(t, g, panel, svgElem);
+    });
+  });
+
+  // Όταν πατιέται κενό σημείο στο SVG, καθάρισε το highlight στην index
+  svgElem.addEventListener('click', function(e) {
+    // Αν το click είναι πάνω σε svg και ΟΧΙ σε τραπέζι (g)
+    if (!e.target.closest('.draggable-table')) {
+      const indexIframe = document.querySelector('iframe[src="index.html"]');
+      if (indexIframe && indexIframe.contentWindow) {
+        indexIframe.contentWindow.postMessage({ type: 'clearHighlight' }, '*');
+      }
+      // Κλείσε και το popup αν είναι ανοιχτό
+      const popup = document.getElementById('tablePopup');
+      if (popup) popup.style.display = 'none';
+    }
+  });
+}
+
+function showTablePopup(t, g, panel, svg) {
+  const popup = document.getElementById('tablePopup');
+  fetch(`/api/shop/${panel.shopId || shopId}/floorPanels`)
+    .then(res => res.json())
+    .then(panelsList => {
+      // Dropdown για αλλαγή panel
+      let panelSelect = `<select id="changePanelSelect" class="form-select form-select-sm mt-2">`;
+      panelsList.forEach(p =>
+        panelSelect += `<option value="${p._id}" ${p._id === panel._id ? 'selected' : ''}>${p.name}</option>`
+      );
+      panelSelect += `</select>`;
+
+      popup.innerHTML = `
+        <div class="card shadow" style="min-width:260px;">
+          <div class="card-body">
+            <h5 class="card-title">Τραπέζι ${t.tableNumber || t.tableId?.tableNumber || ''}</h5>
+            <div><b>Θέσεις:</b> ${t.seats || t.tableId?.seats || '-'}</div>
+            <div><b>Min Θέσεις:</b> ${t.minimumSeats || t.tableId?.minimumSeats || '-'}</div>
+            <div><b>Χρόνος Κράτησης:</b> ${t.estimatedReservationTime || t.tableId?.estimatedReservationTime || '-'} λεπτά</div>
+            <div class="mt-2">
+              <label class="form-label mb-1" style="font-size:0.9em;">Μεταφορά σε άλλο Panel:</label>
+              ${panelSelect}
+              <button class="btn btn-sm btn-primary mt-2" id="changePanelBtn">Change Panel</button>
+            </div>
+            <button class="btn btn-sm btn-warning mt-2" id="moveTableBtn">Move Table</button>
+            <button class="btn btn-sm btn-secondary mt-2 ms-2" id="closePopupBtn">Κλείσιμο</button>
+            <div id="saveMoveDiv" style="display:none;">
+              <button class="btn btn-sm btn-success mt-2" id="saveMoveBtn">Save</button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Τοποθέτηση popup κοντά στο τραπέζι
+      const rect = g.querySelector('rect');
+      const svgRect = svg.getBoundingClientRect();
+      const x = parseFloat(rect.getAttribute('x')) + svgRect.left + 70;
+      const y = parseFloat(rect.getAttribute('y')) + svgRect.top;
+      popup.style.left = x + 'px';
+      popup.style.top = y + 'px';
+      popup.style.display = 'block';
+
+      document.getElementById('closePopupBtn').onclick = () => popup.style.display = 'none';
+
+      document.getElementById('moveTableBtn').onclick = () => {
+        popup.querySelector('#saveMoveDiv').style.display = '';
+        enableSingleDrag(g, panel, t, popup, svg);
+      };
+
+      document.getElementById('changePanelBtn').onclick = async () => {
+        const newPanelId = document.getElementById('changePanelSelect').value;
+        if (newPanelId === panel._id) return;
+        await fetch(`/api/table/${t.tableId?._id || t.tableId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ floorPanelId: newPanelId })
+        });
+        popup.style.display = 'none';
+        await loadPanels();
+      };
+    });
+}
+
+function enableSingleDrag(g, panel, t, popup, svg) {
+  const rect = g.querySelector('rect');
+  let dragging = false, dragOffset = {};
+
+  rect.style.cursor = 'move';
+
+  rect.addEventListener('mousedown', startDrag);
+
+  function startDrag(e) {
+    dragging = true;
+    const svgRect = svg.getBoundingClientRect();
+    dragOffset = {
+      x: e.clientX - svgRect.left - parseFloat(rect.getAttribute('x')),
+      y: e.clientY - svgRect.top - parseFloat(rect.getAttribute('y'))
+    };
+    svg.addEventListener('mousemove', onDrag);
+    svg.addEventListener('mouseup', endDrag);
+  }
+
+  function onDrag(e) {
+    if (!dragging) return;
+    const svgRect = svg.getBoundingClientRect();
+    const x = e.clientX - svgRect.left - dragOffset.x;
+    const y = e.clientY - svgRect.top - dragOffset.y;
+    rect.setAttribute('x', x);
+    rect.setAttribute('y', y);
+    g.querySelector('text').setAttribute('x', x + 30);
+    g.querySelector('text').setAttribute('y', y + 35);
+
+    // --- ΚΙΝΗΣΗ POPUP ΜΑΖΙ ΜΕ ΤΟ TABLE ---
+    popup.style.left = (svgRect.left + x + 70) + 'px'; // 70px margin όπως όταν ανοίγει
+    popup.style.top = (svgRect.top + y) + 'px';
+  }
+
+  function endDrag(e) {
+    dragging = false;
+    svg.removeEventListener('mousemove', onDrag);
+    svg.removeEventListener('mouseup', endDrag);
+  }
+
+  document.getElementById('saveMoveBtn').onclick = async () => {
+    const x = parseFloat(rect.getAttribute('x'));
+    const y = parseFloat(rect.getAttribute('y'));
+    // PATCH request για αποθήκευση νέας θέσης
+    await fetch(`/api/floorPanel/${panel._id}/table/${t.tableId?._id || t.tableId}/position`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ x, y })
+    });
+    popup.style.display = 'none';
+    await loadPanels();
+  };
 }
 
 function enableTablePopupAndMove(panel) {
-  const svg = document.getElementById('floorSVG');
-  if (!svg) return;
-  let movingTable = null, offset = {}, saveBtn = null;
-
-  // Popup για πληροφορίες τραπεζιού
-  svg.addEventListener('click', function (e) {
-    if (e.target.tagName === 'rect') {
-      const g = e.target.parentNode;
-      const tableId = g.getAttribute('data-tableid');
-      const t = panel.tables.find(t => (t.tableId?._id || t.tableId) == tableId);
-      if (!t) return;
-      showTablePopup(t, g, panel);
-    }
-  });
-
-  function showTablePopup(t, g, panel) {
-    const popup = document.getElementById('tablePopup');
-    fetch(`/api/shop/${panel.shopId || shopId}/floorPanels`)
-      .then(res => res.json())
-      .then(panelsList => {
-        // Dropdown για αλλαγή panel
-        let panelSelect = `<select id="changePanelSelect" class="form-select form-select-sm mt-2">`;
-        panelsList.forEach(p =>
-          panelSelect += `<option value="${p._id}" ${p._id === panel._id ? 'selected' : ''}>${p.name}</option>`
-        );
-        panelSelect += `</select>`;
-
-        // Εμφάνιση bookingHours
-        const daysFull = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-        let bookingRow = `<div class="mb-2"><b>Διαθεσιμότητα:</b><br>`;
-        daysFull.forEach(day => {
-          const allowed = t.bookingHours?.[day.toLowerCase()]?.isBookingAllowed;
-          bookingRow += `<span style="margin-right:8px;">${day}: ${allowed ? '<span style="color:green;">✔</span>' : '<span style="color:red;">✘</span>'}</span>`;
-        });
-        bookingRow += `</div>`;
-
-        popup.innerHTML = `
-          <div class="card shadow" style="min-width:260px;">
-            <div class="card-body">
-              <h5 class="card-title">Τραπέζι ${t.tableNumber || t.tableId?.tableNumber || ''}</h5>
-              <div><b>Θέσεις:</b> ${t.seats || t.tableId?.seats || '-'}</div>
-              <div><b>Min Θέσεις:</b> ${t.minimumSeats || t.tableId?.minimumSeats || '-'}</div>
-              <div><b>Χρόνος Κράτησης:</b> ${t.estimatedReservationTime || t.tableId?.estimatedReservationTime || '-'} λεπτά</div>
-              <div><b>Panel:</b> ${panel.name}</div>
-              ${bookingRow}
-              <div class="mt-2">
-                <label class="form-label mb-1" style="font-size:0.9em;">Μεταφορά σε άλλο Panel:</label>
-                ${panelSelect}
-                <button class="btn btn-sm btn-primary mt-2" id="changePanelBtn">Change Panel</button>
-              </div>
-              <button class="btn btn-sm btn-warning mt-2" id="moveTableBtn">Move Table</button>
-              <button class="btn btn-sm btn-secondary mt-2 ms-2" id="closePopupBtn">Κλείσιμο</button>
-              <div id="saveMoveDiv" style="display:none;">
-                <button class="btn btn-sm btn-success mt-2" id="saveMoveBtn">Save</button>
-              </div>
-            </div>
-          </div>
-        `;
-
-        // Τοποθέτηση popup κοντά στο τραπέζι
-        const rect = g.querySelector('rect');
-        const svgRect = svg.getBoundingClientRect();
-        const x = parseFloat(rect.getAttribute('x')) + svgRect.left + 70;
-        const y = parseFloat(rect.getAttribute('y')) + svgRect.top;
-        popup.style.left = x + 'px';
-        popup.style.top = y + 'px';
-        popup.style.display = 'block';
-
-        document.getElementById('closePopupBtn').onclick = () => popup.style.display = 'none';
-
-        document.getElementById('moveTableBtn').onclick = () => {
-          movingTable = g;
-          popup.querySelector('#saveMoveDiv').style.display = '';
-          enableSingleDrag(g, panel, t, popup);
-        };
-
-        document.getElementById('changePanelBtn').onclick = async () => {
-          const newPanelId = document.getElementById('changePanelSelect').value;
-          if (newPanelId === panel._id) return;
-          await fetch(`/api/table/${t.tableId?._id || t.tableId}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ floorPanelId: newPanelId })
-          });
-          popup.style.display = 'none';
-          await loadPanels();
-        };
-      });
-  }
-
-  function enableSingleDrag(g, panel, t, popup) {
-    const rect = g.querySelector('rect');
-    let dragging = false, dragOffset = {};
-
-    rect.style.cursor = 'move';
-
-    rect.addEventListener('mousedown', startDrag);
-
-    function startDrag(e) {
-      dragging = true;
-      const svgRect = svg.getBoundingClientRect();
-      dragOffset = {
-        x: e.clientX - svgRect.left - parseFloat(rect.getAttribute('x')),
-        y: e.clientY - svgRect.top - parseFloat(rect.getAttribute('y'))
-      };
-      svg.addEventListener('mousemove', onDrag);
-      svg.addEventListener('mouseup', endDrag);
-    }
-
-    function onDrag(e) {
-      if (!dragging) return;
-      const svgRect = svg.getBoundingClientRect();
-      const x = e.clientX - svgRect.left - dragOffset.x;
-      const y = e.clientY - svgRect.top - dragOffset.y;
-      rect.setAttribute('x', x);
-      rect.setAttribute('y', y);
-      g.querySelector('text').setAttribute('x', x + 30);
-      g.querySelector('text').setAttribute('y', y + 35);
-
-      // --- ΚΙΝΗΣΗ POPUP ΜΑΖΙ ΜΕ ΤΟ TABLE ---
-      popup.style.left = (svgRect.left + x + 70) + 'px'; // 70px margin όπως όταν ανοίγει
-      popup.style.top = (svgRect.top + y) + 'px';
-    }
-
-    function endDrag(e) {
-      dragging = false;
-      svg.removeEventListener('mousemove', onDrag);
-      svg.removeEventListener('mouseup', endDrag);
-    }
-
-    document.getElementById('saveMoveBtn').onclick = async () => {
-      const x = parseFloat(rect.getAttribute('x'));
-      const y = parseFloat(rect.getAttribute('y'));
-      // PATCH request για αποθήκευση νέας θέσης
-      await fetch(`/api/floorPanel/${panel._id}/table/${t.tableId?._id || t.tableId}/position`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ x, y })
-      });
-      popup.style.display = 'none';
-      await loadPanels();
-    };
-  }
+  // Δεν χρειάζεται πλέον event handler εδώ!
 }
 
 // --- Προσθήκη panel ---
@@ -420,6 +434,16 @@ document.addEventListener('submit', async function(e) {
       body: formData
     });
     if (res.ok) await loadPanels();
+  }
+});
+
+window.addEventListener('message', (event) => {
+  if (event.data && (
+      event.data.type === 'tableAdded' ||
+      event.data.type === 'tableEdited' ||
+      event.data.type === 'tableDeleted'
+    )) {
+    loadPanels(); // Ενημερώνει τα floorPanels χωρίς reload σελίδας
   }
 });
 </script>

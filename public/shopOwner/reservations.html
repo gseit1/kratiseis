@@ -11,35 +11,7 @@
         body {
             font-family: Arial, sans-serif;
         }
-        #menu {
-        height: 100vh;
-        position: sticky;
-        top: 0;
-        background-color: #f8f9fa;
-        padding-top: 20px;
-    }
-    #menu h4 {
-        font-size: 1.5rem;
-        font-weight: bold;
-        color: #333;
-    }
-    #menu .nav-link {
-        color: #000;
-        padding: 10px 15px;
-        border-radius: 5px;
-        transition: background-color 0.3s, color 0.3s;
-    }
-    #menu .nav-link:hover {
-        background-color: #e9ecef;
-        color: #007bff;
-    }
-    #menu .nav-link.active {
-        background-color: #007bff;
-        color: #fff;
-    }
-    #menu .nav-link i {
-        font-size: 1.2rem;
-    }
+        body.shopowner-has-menu { margin-top: 64px !important; }
         #content {
             padding: 20px;
         }
@@ -104,15 +76,19 @@
     </style>
 </head>
 <body>
+    <div id="menu"></div>
+    <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        const menuContainer = document.getElementById('menu');
+        const response = await fetch('./components/menu.html');
+        if (response.ok) {
+            menuContainer.innerHTML = await response.text();
+        }
+    });
+    </script>
     <div class="container-fluid">
         <div class="row">
-            <!-- Left Menu -->
-            <div id="menu-container" class="col-md-3">
-                <!-- Include the external menu -->
-                <div id="menu"></div>
-            </div>
-            <!-- Right Content -->
-            <div id="content" class="col-md-9">
+            <div id="content" class="col-12">
                 <section id="reservations" class="mt-5">
                     <div class="container">
                       <!-- Headline για pending -->
@@ -613,7 +589,7 @@ async function renderPendingBar() {
     const data = await response.json();
 
     let pendingReservations = [];
-    if (data && typeof data === 'object') {π
+    if (data && typeof data === 'object') {
       Object.values(data.reservationList).forEach(dateGroup => {
         if (Array.isArray(dateGroup.reservations)) {
           pendingReservations = pendingReservations.concat(

@@ -10,89 +10,64 @@
         body {
             font-family: Arial, sans-serif;
         }
-        #menu {
-        height: 100vh;
-        position: sticky;
-        top: 0;
-        background-color: #f8f9fa;
-        padding-top: 20px;
-    }
-    #menu h4 {
-        font-size: 1.5rem;
-        font-weight: bold;
-        color: #333;
-    }
-    #menu .nav-link {
-        color: #000;
-        padding: 10px 15px;
-        border-radius: 5px;
-        transition: background-color 0.3s, color 0.3s;
-    }
-    #menu .nav-link:hover {
-        background-color: #e9ecef;
-        color: #007bff;
-    }
-    #menu .nav-link.active {
-        background-color: #007bff;
-        color: #fff;
-    }
-    #menu .nav-link i {
-        font-size: 1.2rem;
-    }
+        body.shopowner-has-menu { margin-top: 64px !important; }
         #content {
             padding: 20px;
         }
     </style>
 </head>
 <body>
-    <div class="container-fluid">
-        <div class="row">
-            <!-- Left Menu -->
-            <div id="menu-container" class="col-md-3">
-                <!-- Include the external menu -->
-                <div id="menu"></div>
-            </div>
-
-            <!-- Right Content -->
-            <div id="content" class="col-md-9">
-                <section id="availability" class="mt-5">
-                    <div class="container">
-                        <h2>Availability</h2>
-                        <form id="availabilityForm" class="row">
-                            <div class="col-md-4 mb-3">
-                                <label for="dateString" class="form-label">Date</label>
-                                <input type="date" id="dateString" class="form-control">
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label for="seatsRequired" class="form-label">Seats Required</label>
-                                <input type="number" id="seatsRequired" class="form-control" min="1">
-                            </div>
-                            <div class="col-md-4 mb-3 d-flex align-items-end">
-                                <button type="button" id="checkAvailabilityBtn" class="btn btn-primary">Check Availability</button>
-                            </div>
-                        </form>
-                        <div id="availabilitySection" class="mt-3"></div>
-                        <div id="reservationFormContainer" class="mt-4" style="display: none;">
-                            <h3>Make a Reservation</h3>
-                            <form id="reservationForm">
-                                <div class="mb-3">
-                                    <label for="reservationName" class="form-label">Name</label>
-                                    <input type="text" id="reservationName" class="form-control" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="reservationSurname" class="form-label">Surname</label>
-                                    <input type="text" id="reservationSurname" class="form-control" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="reservationDateTime" class="form-label">Date & Time</label>
-                                    <input type="text" id="reservationDateTime" class="form-control" disabled>
-                                </div>
-                                <button type="button" id="submitReservationBtn" class="btn btn-success">Submit Reservation</button>
-                            </form>
+    <div id="menu"></div>
+    <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        const menuContainer = document.getElementById('menu');
+        const response = await fetch('./components/menu.html');
+        if (response.ok) {
+            menuContainer.innerHTML = await response.text();
+        }
+        // Add margin class to body after menu loads
+        document.body.classList.add('shopowner-has-menu');
+    });
+    </script>
+    <div class="container">
+        <div id="content">
+            <section id="availability" class="mt-5">
+                <div class="container">
+                    <h2>Availability</h2>
+                    <form id="availabilityForm" class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="dateString" class="form-label">Date</label>
+                            <input type="date" id="dateString" class="form-control">
                         </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="seatsRequired" class="form-label">Seats Required</label>
+                            <input type="number" id="seatsRequired" class="form-control" min="1">
+                        </div>
+                        <div class="col-md-4 mb-3 d-flex align-items-end">
+                            <button type="button" id="checkAvailabilityBtn" class="btn btn-primary">Check Availability</button>
+                        </div>
+                    </form>
+                    <div id="availabilitySection" class="mt-3"></div>
+                    <div id="reservationFormContainer" class="mt-4" style="display: none;">
+                        <h3>Make a Reservation</h3>
+                        <form id="reservationForm">
+                            <div class="mb-3">
+                                <label for="reservationName" class="form-label">Name</label>
+                                <input type="text" id="reservationName" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="reservationSurname" class="form-label">Surname</label>
+                                <input type="text" id="reservationSurname" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="reservationDateTime" class="form-label">Date & Time</label>
+                                <input type="text" id="reservationDateTime" class="form-control" disabled>
+                            </div>
+                            <button type="button" id="submitReservationBtn" class="btn btn-success">Submit Reservation</button>
+                        </form>
                     </div>
-                </section>
-            </div>
+                </div>
+            </section>
         </div>
     </div>
 

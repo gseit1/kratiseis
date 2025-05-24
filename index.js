@@ -18,6 +18,7 @@ const uploadRouter = require('./routes/upload');
 const logoutRouter = require('./routes/logout');
 const reccomendedSearchesRouter = require('./routes/reccomendedSearches');
 const floorPanelRouter = require('./routes/floorPanel');
+const statisticsRouter = require('./routes/statistics');
 
 
 const cookieParser = require('cookie-parser');
@@ -59,6 +60,7 @@ app.use(uploadRouter);
 app.use(logoutRouter);
 app.use(reccomendedSearchesRouter);
 app.use(floorPanelRouter);
+app.use('/api/stats', statisticsRouter);
 
 
 

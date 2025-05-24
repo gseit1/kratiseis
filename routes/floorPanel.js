@@ -1,9 +1,10 @@
 const express = require('express');
 const floorPanelRouter = express.Router();
 const floorPanelController = require('../controllers/floorPanelController');
-const { verifyToken, isShopOwner } = require('../middlewares/authMiddleware');
 const FloorPanel = require('../models/floorPanel');
 const multer = require('../middlewares/multerMiddleware');
+const { verifyToken, isShopOwner } = require('../middlewares/authMiddleware');
+
 
 // Δημιουργία νέου floor panel
 floorPanelRouter.post(

@@ -11,33 +11,7 @@
       font-family: Arial, sans-serif;
     }
     #menu {
-        height: 100vh;
-        position: sticky;
-        top: 0;
-        background-color: #f8f9fa;
-        padding-top: 20px;
-    }
-    #menu h4 {
-        font-size: 1.5rem;
-        font-weight: bold;
-        color: #333;
-    }
-    #menu .nav-link {
-        color: #000;
-        padding: 10px 15px;
-        border-radius: 5px;
-        transition: background-color 0.3s, color 0.3s;
-    }
-    #menu .nav-link:hover {
-        background-color: #e9ecef;
-        color: #007bff;
-    }
-    #menu .nav-link.active {
-        background-color: #007bff;
-        color: #fff;
-    }
-    #menu .nav-link i {
-        font-size: 1.2rem;
+        display: none;
     }
     #content {
       padding: 20px;
@@ -48,13 +22,14 @@
   <div class="container-fluid">
     <div class="row">
       <!-- Left Menu -->
+      <!--
       <div id="menu-container" class="col-md-3">
-        <!-- Include the external menu -->
         <div id="menu"></div>
       </div>
+      -->
 
       <!-- Right Content -->
-      <div id="content" class="col-md-9">
+      <div id="content" class="col-md-12">
         <div class="container mt-5">
           
            <!-- Back Arrow -->
@@ -86,7 +61,7 @@
                   <option value="">Επιλέξτε Floor Panel</option>
                 </select>
               </div>
-              <button type="button" id="saveGeneralBtn" class="btn btn-success">Save General Details</button>
+              <button type="submit" id="saveGeneralBtn" class="btn btn-success">Save General Details</button>
             </form>
           </div>
 
@@ -157,21 +132,6 @@
   </div>
 
   <script>
-    // Load the external menu dynamically
-    document.addEventListener('DOMContentLoaded', async () => {
-      try {
-        const menuContainer = document.getElementById('menu');
-        const response = await fetch('./components/menu.html');
-        if (response.ok) {
-          menuContainer.innerHTML = await response.text();
-        } else {
-          console.error('Failed to load menu:', response.status);
-        }
-      } catch (error) {
-        console.error('Error loading menu:', error);
-      }
-    });
-
     const urlParams = new URLSearchParams(window.location.search);
     const tableId = urlParams.get('table_id');
     const shopId = urlParams.get('shop_id');
@@ -219,7 +179,13 @@
     fetchTableData();
 
     // Save general details
-    document.getElementById('saveGeneralBtn').addEventListener('click', async () => {
+    document.getElementById('generalDetailsForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
       const updatedGeneral = {
         tableNumber: Number(document.getElementById('tableNumber').value),
         estimatedReservationTime: Number(document.getElementById('estimatedReservationTime').value),
@@ -233,6 +199,7 @@
         });
         if (!response.ok) throw new Error('Failed to update general details');
         alert("General details updated successfully!");
+        window.location.href = "index.html?tableEdited=1";
       } catch (error) {
         console.error("Error updating general details:", error);
       }

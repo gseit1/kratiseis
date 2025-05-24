@@ -88,8 +88,17 @@ const deleteTableService = async (tableId) => {
   const shop = await Shop.findById(table.shopId);
   if (!shop) throw new Error('Shop not found');
 
+  // Αφαίρεση από το shop
   shop.tables = shop.tables.filter((tableIdRef) => tableIdRef.toString() !== table._id.toString());
   await shop.save();
+
+  // Αφαίρεση από το floorPanel (αν υπάρχει)
+  if (table.floorPanelId) {
+    await FloorPanel.findByIdAndUpdate(
+      table.floorPanelId,
+      { $pull: { tables: { tableId: table._id } } }
+    );
+  }
 
   await Table.findByIdAndDelete(tableId);
 };

@@ -10,50 +10,21 @@
         body {
             font-family: Arial, sans-serif;
         }
-        #menu {
-        height: 100vh;
-        position: sticky;
-        top: 0;
-        background-color: #f8f9fa;
-        padding-top: 20px;
-    }
-    #menu h4 {
-        font-size: 1.5rem;
-        font-weight: bold;
-        color: #333;
-    }
-    #menu .nav-link {
-        color: #000;
-        padding: 10px 15px;
-        border-radius: 5px;
-        transition: background-color 0.3s, color 0.3s;
-    }
-    #menu .nav-link:hover {
-        background-color: #e9ecef;
-        color: #007bff;
-    }
-    #menu .nav-link.active {
-        background-color: #007bff;
-        color: #fff;
-    }
-    #menu .nav-link i {
-        font-size: 1.2rem;
-    }
         #content {
             padding: 20px;
+        }
+        .highlighted-table {
+            border: 3px solid #007bff !important;
+            box-shadow: 0 0 10px #007bff;
+            transition: border 0.2s, box-shadow 0.2s;
         }
     </style>
 </head>
 <body>
     <div class="container-fluid">
         <div class="row">
-            <!-- Left Menu -->
-            <div id="menu-container" class="col-md-3">
-                <!-- Include the external menu -->
-                <div id="menu"></div>
-            </div>
             <!-- Right Content -->
-            <div id="content" class="col-md-9">
+            <div id="content" class="col-md-12">
                 <!-- Table Options Section -->
                 <section id="tableOptions">
                     <div class="container mt-5">
@@ -72,21 +43,6 @@
         </div>
     </div>
     <script>
-        // Load the external menu dynamically
-        document.addEventListener('DOMContentLoaded', async () => {
-            try {
-                const menuContainer = document.getElementById('menu');
-                const response = await fetch('./components/menu.html');
-                if (response.ok) {
-                    menuContainer.innerHTML = await response.text();
-                } else {
-                    console.error('Failed to load menu:', response.status);
-                }
-            } catch (error) {
-                console.error('Error loading menu:', error);
-            }
-        });
-
         //User Details fetch
 
 // Global shopId variable
@@ -181,6 +137,7 @@ async function fetchTables() {
   tables.forEach(table => {
     const item = document.createElement("div");
     item.className = "list-group-item";
+    item.setAttribute('data-tableid', table._id);
 
     // Προσθήκη floor panel info
     const floorPanelName = table.floorPanelId && table.floorPanelId.name
@@ -398,6 +355,7 @@ function hideTableAvailability(tableId) {
           if (response.ok) {
             alert("Table deleted successfully");
             fetchTables();
+            window.parent.postMessage({ type: 'tableDeleted' }, '*');
           } else {
             alert("Error deleting table: " + result.message);
           }
@@ -457,6 +415,31 @@ function formatHour(hour) {
   const m = Math.round((hour - h) * 60);
   return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
 }
+
+// Στο DOMContentLoaded ή πριν το loadTables()
+if (window.location.search.includes('tableEdited=1')) {
+  window.parent.postMessage({ type: 'tableEdited' }, '*');
+  // Προαιρετικά, αφαίρεσε το param για να μη στέλνει ξανά αν γίνει reload
+  const url = new URL(window.location);
+  url.searchParams.delete('tableEdited');
+  window.history.replaceState({}, '', url);
+}
+
+window.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'highlightTable' && event.data.tableId) {
+    const tableDiv = document.querySelector(`[data-tableid="${event.data.tableId}"]`);
+    if (tableDiv) {
+      // Αφαίρεσε προηγούμενο highlight
+      document.querySelectorAll('.highlighted-table').forEach(el => el.classList.remove('highlighted-table'));
+      // Πρόσθεσε highlight
+      tableDiv.classList.add('highlighted-table');
+      // Scroll στη μέση του container
+      tableDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // Προαιρετικά: αφαίρεσε το highlight μετά από λίγο
+      setTimeout(() => tableDiv.classList.remove('highlighted-table'), 2000);
+    }
+  }
+});
     </script>
 </body>
-</html>          <i class="bi bi-exclamation-circle-fill"></i> (${unassignedCount})        </span>` : ''}`;    }
+</html>
