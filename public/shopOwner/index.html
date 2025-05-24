@@ -18,6 +18,53 @@
             box-shadow: 0 0 10px #007bff;
             transition: border 0.2s, box-shadow 0.2s;
         }
+        /* Responsive Table Wrapper */
+          .responsive-table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin-bottom: 1.5rem;
+          }
+          .responsive-table-wrapper table {
+            min-width: 600px;
+            width: 100%;
+            border-collapse: collapse;
+          }
+          .responsive-table-wrapper th, .responsive-table-wrapper td {
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            max-width: 180px;
+          }
+          /* Make day columns more compact for availability/open rows */
+          .responsive-table-wrapper .day-col {
+            min-width: 60px;
+            font-size: 0.98rem;
+            padding: 2px 2px 0 2px;
+            line-height: 1.1;
+          }
+          .responsive-table-wrapper .day-label {
+            font-size: 0.97rem;
+            font-weight: 500;
+            margin-bottom: 0.1em;
+          }
+          .responsive-table-wrapper .tick-mark {
+            font-size: 1.1em;
+            line-height: 1;
+          }
+          @media (max-width: 768px) {
+            .responsive-table-wrapper table {
+              min-width: 480px;
+            }
+            .responsive-table-wrapper th, .responsive-table-wrapper td {
+              max-width: 120px;
+              font-size: 0.97rem;
+            }
+            .responsive-table-wrapper .day-col {
+              min-width: 44px;
+              font-size: 0.93rem;
+            }
+          }
     </style>
 </head>
 <body>
@@ -28,12 +75,10 @@
                 <!-- Table Options Section -->
                 <section id="tableOptions">
                     <div class="container mt-5">
-                        <h1>Shop Owner Dashboard</h1>
-                        <p id="shopIdDisplay"></p>
+                       
                         <div class="mb-4">
                             <button id="addTableBtn" class="btn btn-primary me-2">Add Table</button>
-                            <button id="editTableBtn" class="btn btn-secondary me-2">Edit Table</button>
-                            <button id="deleteTableBtn" class="btn btn-danger">Delete Table</button>
+                            
                         </div>
                         <h3>Your Tables</h3>
                         <div id="tableList" class="list-group"></div>
@@ -128,8 +173,16 @@ async function fetchTables() {
   const tableList = document.getElementById("tableList");
   tableList.innerHTML = "";
 
-  // Full names of the days of the week
-  const daysFull = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+  // Full short names of the days of the week
+  const daysFull = [
+    { long: "Monday", short: "Mon" },
+    { long: "Tuesday", short: "Tue" },
+    { long: "Wednesday", short: "Wed" },
+    { long: "Thursday", short: "Thu" },
+    { long: "Friday", short: "Fri" },
+    { long: "Saturday", short: "Sat" },
+    { long: "Sunday", short: "Sun" }
+  ];
 
   // Sort tables by tableNumber
   tables.sort((a, b) => a.tableNumber - b.tableNumber);
@@ -164,43 +217,46 @@ async function fetchTables() {
     // Create the row for days and availability
     // Προσθήκη τίτλου αριστερά από τα tick
     let availabilityRow = `
-      <div class="d-flex justify-content-around align-items-center">
-        <div class="text-start fw-bold" style="min-width:170px;">Τραπέζι διαθεσιμο για:</div>
+      <div class="responsive-table-wrapper">
+        <div class="d-flex justify-content-around align-items-center flex-nowrap">
+          <div class="text-start fw-bold" style="min-width:110px;font-size:0.97rem;">Τραπέζι <br>διαθεσιμο:</div>
     `;
 
-    daysFull.forEach(day => {
-      const isBookingAllowed = table.bookingHours?.[day.toLowerCase()]?.isBookingAllowed;
+    daysFull.forEach(dayObj => {
+      const isBookingAllowed = table.bookingHours?.[dayObj.long.toLowerCase()]?.isBookingAllowed;
       availabilityRow += `
-        <div class="text-center">
-          <div>${day}</div>
-          <div>
+        <div class="text-center day-col">
+          <div class="day-label">${dayObj.short}</div>
+          <div class="tick-mark">
             ${isBookingAllowed
-              ? '<span style="color:green;font-size:1.3em;">✔</span>'
-              : '<span style="color:red;font-size:1.3em;">✘</span>'
+              ? '<span style="color:green;">✔</span>'
+              : '<span style="color:red;">✘</span>'
             }
           </div>
         </div>
       `;
     });
-    availabilityRow += `</div>`;
+    availabilityRow += `</div></div>`;
 
     // Προσθήκη τίτλου αριστερά από τα open/close
     let openCloseRow = `
-      <div class="d-flex justify-content-around align-items-center mt-2 mb-1">
-        <div class="text-start fw-bold" style="min-width:170px;">Μαγαζί ανοιχτό για:</div>
+      <div class="responsive-table-wrapper">
+        <div class="d-flex justify-content-around align-items-center flex-nowrap mt-2 mb-1">
+          <div class="text-start fw-bold" style="min-width:110px;font-size:0.97rem;">Μαγαζί <br>ανοιχτό:</div>
     `;
 
-    daysFull.forEach(day => {
-      const isOpen = shopOpeningHours?.[day.toLowerCase()]?.isOpen;
+    daysFull.forEach(dayObj => {
+      const isOpen = shopOpeningHours?.[dayObj.long.toLowerCase()]?.isOpen;
       openCloseRow += `
-        <div class="text-center" style="font-size:0.95em;">
-          <span class="${isOpen ? 'text-success' : 'text-danger'} fw-bold">
+        <div class="text-center day-col">
+          <span class="day-label">${dayObj.short}</span><br>
+          <span class="${isOpen ? 'text-success' : 'text-danger'} fw-bold tick-mark">
             ${isOpen ? 'Open' : 'Closed'}
           </span>
         </div>
       `;
     });
-    openCloseRow += `</div>`;
+    openCloseRow += `</div></div>`;
 
     // Add a date picker, search button, hide button, and a container for available hours
     const availabilitySearch = `
@@ -289,7 +345,7 @@ async function searchTableReservations(tableId) {
     if (Array.isArray(reservations) && reservations.length > 0) {
       availableHoursContainer.innerHTML = `
         <p><strong>Reservations for ${selectedDate}:</strong></p>
-        <div class="table-responsive">
+        <div class="responsive-table-wrapper">
           <table class="table table-bordered table-sm bg-light">
             <thead>
               <tr>

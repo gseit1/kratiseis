@@ -29,6 +29,33 @@
             .hero-outbox .container-fluid { flex-direction:column; gap:1.5rem; }
             .hero-img { max-width:100%; }
           }
+          /* Responsive Table Wrapper */
+          .responsive-table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin-bottom: 1.5rem;
+          }
+          .responsive-table-wrapper table {
+            min-width: 600px;
+            width: 100%;
+            border-collapse: collapse;
+          }
+          .responsive-table-wrapper th, .responsive-table-wrapper td {
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            max-width: 180px;
+          }
+          @media (max-width: 768px) {
+            .responsive-table-wrapper table {
+              min-width: 480px;
+            }
+            .responsive-table-wrapper th, .responsive-table-wrapper td {
+              max-width: 120px;
+              font-size: 0.97rem;
+            }
+          }
         </style>
 </head>
 <body>
@@ -235,41 +262,7 @@
         </div>
       </section>
       -->
-     
     
-    
-    
-    
-    <section class="cta text-center py-5 bg-primary text-light position-relative overflow-hidden">
-        <div class="container position-relative z-index-1">
-            <h2 class="cta-heading mb-4">Έτοιμος να Ανακαλύψεις το Επόμενο <br> Αγαπημένο σου Σημείο;</h2>
-            <p class="cta-text mb-4">Κάνε εγγραφή τώρα και ξεκίνα την εξερεύνηση των καλύτερων τοποθεσιών κοντά σου!
-
-            </p>
-            <a href="registerLogin.html" class="btn btn-light btn-lg px-5 py-3 shadow">Ξεκίνα τώρα</a>
-        </div>
-        <div class="cta-overlay position-absolute top-0 start-0 w-100 h-100" style="background: rgba(0, 0, 0, 0.5);"></div>
-        <div class="cta-background position-absolute top-0 start-0 w-100 h-100" style="background: url('index/cta-bg.jpg') no-repeat center center/cover;"></div>
-    </section>
-
-    <section class="newsletter text-center">
-        <div class="container">
-            <h2>Μείνε Ενημερωμένος
-            </h2>
-            <p>Γράψου στο newsletter μας και μην χάσεις ποτέ ένα υπέροχο μέρος.
-
-            </p>
-            <form class="row g-3 justify-content-center">
-                <div class="col-md-4">
-                    <input type="email" class="form-control" placeholder="Enter your email">
-                </div>
-                <div class="col-auto">
-                    <button class="btn btn-primary">Κάνε εγγραφή</button>
-                </div>
-            </form>
-        </div>
-    </section>
-
 
     <section class="py-5 bg-light">
         <div class="container">

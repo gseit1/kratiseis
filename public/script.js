@@ -166,13 +166,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // Fetch and display shops in Thessaloniki
-  const thessalonikiShops = await fetchShopsByCity('67ef5b2f15e5f9c8a42e2e91'); // Replace with the actual city ID for Thessaloniki
+  const thessalonikiShops = await fetchShopsByCity('67ef5b2215e5f9c8a42e2e8e'); // Replace with the actual city ID for Thessaloniki
   thessalonikiShops.forEach(shop => {
     thessalonikiShopsContainer.innerHTML += createShopCard(shop);
   });
 
-  // Fetch and display shops in Athens
-  const athensShops = await fetchShopsByCity('67ef5b2215e5f9c8a42e2e8e'); // Replace with the actual city ID for Athens
+  // Fetch and display shops in Athens 67ef5b2f15e5f9c8a42e2e91
+  const athensShops = await fetchShopsByCity('67ef5b2f15e5f9c8a42e2e91'); // Replace with the actual city ID for Athens
   athensShops.forEach(shop => {
     athensShopsContainer.innerHTML += createShopCard(shop);
   });
@@ -201,20 +201,20 @@ function createShopCard(shop) {
   }
 
   return `
-    <div class="card mb-2 p-2 position-relative" style="min-width: 180px; max-width: 180px; border-radius: 14px; box-shadow: 0 2px 8px rgba(80,0,120,0.07); height: 270px;">
-      <img src="${shop.images && shop.images[0] ? shop.images[0] : shop.image || 'images/default-placeholder.jpg'}" class="card-img-top" alt="${shop.shopName || 'Shop'}" style="height: 110px; object-fit: cover; border-radius: 10px;">
-      <div class="card-body p-2" style="padding-bottom: 56px !important;">
-        <h6 class="card-title mb-1" style="font-size: 1rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+    <div class="shop-card mb-2 p-2 position-relative" style="min-width: 180px; max-width: 180px; border-radius: 14px; box-shadow: 0 2px 8px rgba(80,0,120,0.07); height: 270px;">
+      <img src="${shop.images && shop.images[0] ? shop.images[0] : shop.image || 'images/default-placeholder.jpg'}" class="shop-card-img" alt="${shop.shopName || 'Shop'}" style="height: 110px; object-fit: cover; border-radius: 10px;">
+      <div class="shop-card-body p-2" style="padding-bottom: 56px !important;">
+        <h6 class="shop-card-title mb-1" style="font-size: 1rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
           <i class="bi bi-shop me-1"></i>${shop.shopName || 'Unnamed Shop'}
         </h6>
-        <div class="card-text mb-1" style="font-size: 0.92rem; color: #555;">
+        <div class="shop-card-address mb-1" style="font-size: 0.92rem; color: #555;">
           <i class="bi bi-geo-alt me-1"></i>${shop.address || 'No location'}
         </div>
-        <div class="d-flex align-items-center mb-1" style="font-size: 0.92rem;">
-          <span class="me-2"><i class="bi bi-star-fill text-warning"></i> ${typeof shop.reviewRatingAverage === 'number' ? shop.reviewRatingAverage.toFixed(1) : '—'}</span>
-          <span><i class="bi bi-cash-coin"></i> ${shop.priceRange || ''}</span>
+        <div class="shop-card-rating-row d-flex align-items-center mb-1" style="font-size: 0.92rem;">
+          <span class="me-2 shop-card-rating"><i class="bi bi-star-fill text-warning"></i> ${typeof shop.reviewRatingAverage === 'number' ? shop.reviewRatingAverage.toFixed(1) : '—'}</span>
+          <span class="shop-card-price"><i class="bi bi-cash-coin"></i> ${shop.priceRange || ''}</span>
         </div>
-        <a href="shop.html?id=${shopId}" class="btn btn-outline-primary btn-sm w-90 shop-card-btn-fixed" style="font-size: 0.92rem; position: absolute; left: 12px; right: 12px; bottom: 12px;">
+        <a href="shop.html?id=${shopId}" class="shop-card-btn btn btn-outline-primary btn-sm w-90 shop-card-btn-fixed" style="font-size: 0.82rem; position: absolute; left: 12px; right: 12px; bottom: 12px;">
           <i class="bi bi-box-arrow-up-right me-1"></i>Λεπτομέρειες
         </a>
       </div>
@@ -290,46 +290,7 @@ async function setupCityAndCategorySelection() {
 // Call the function on page load
 document.addEventListener('DOMContentLoaded', setupCityAndCategorySelection);
 
-// Fetch and display the 4 latest shops
-async function fetchLatestShops() {
-  try {
-    const response = await fetch('/api/shop/');
-    if (!response.ok) {
-      throw new Error('Failed to fetch latest shops');
-    }
 
-    const latestShops = await response.json();
-    const latestShopsContainer = document.getElementById('latestShopsContainer');
-
-    latestShopsContainer.innerHTML = latestShops
-      .slice(0, 4) // Limit to 4 shops
-      .map(shop => `
-        <div class="col-md-3">
-          <div class="card mb-4">
-            <img src="${shop.images && shop.images[0] ? shop.images[0] : shop.image || 'images/default-placeholder.jpg'}" class="card-img-top" alt="${shop.shopName || 'Shop'}">
-            <div class="card-body">
-              <h5 class="card-title">
-                <i class="bi bi-shop me-2"></i>${shop.shopName || 'Unnamed Shop'}
-              </h5>
-              <p class="card-text">
-                <i class="bi bi-geo-alt me-2"></i>${(shop.address || '').substring(0, 50)}...
-                <span class="ms-2"><i class="bi bi-star-fill text-warning"></i> ${typeof shop.reviewRatingAverage === 'number' ? shop.reviewRatingAverage.toFixed(1) : '—'}</span>
-                <span class="ms-2"><i class="bi bi-cash-coin"></i> ${shop.priceLevel || ''}</span>
-              </p>
-              <a href="shop.html?id=${shop._id}" class="btn btn-primary">
-                <i class="bi bi-box-arrow-up-right me-1"></i> View Details
-              </a>
-            </div>
-          </div>
-        </div>
-      `)
-      .join('');
-  } catch (error) {
-    console.error('Error fetching latest shops:', error);
-  }
-}
-
-document.addEventListener('DOMContentLoaded', fetchLatestShops);
 
 document.addEventListener('DOMContentLoaded', async () => {
   // --- LATEST & TOP RATED SHOPS ---
@@ -341,7 +302,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const res = await fetch('/api/shop');
       const shops = await res.json();
       // Sort for latest (by createdAt desc)
-      const latestShops = [...shops].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 6);
+      const latestShops = [...shops].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5);
       // Sort for top rated (by reviewRatingAverage desc, then reviews count desc)
       const topRatedShops = [...shops]
         .filter(s => typeof s.reviewRatingAverage === 'number')
@@ -349,7 +310,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           if (b.reviewRatingAverage !== a.reviewRatingAverage) return b.reviewRatingAverage - a.reviewRatingAverage;
           return (b.reviewsCount || 0) - (a.reviewsCount || 0);
         })
-        .slice(0, 6);
+        .slice(0, 5);
       // Render latest shops
       latestShopsList.innerHTML = '';
       latestShops.forEach(shop => {

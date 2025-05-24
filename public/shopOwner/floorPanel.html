@@ -8,13 +8,33 @@
   <style>
     .floor-panel-bar {
       display: flex;
-      gap: 12px;
+      gap: 8px;
       overflow-x: auto;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      align-items: center;
+      padding: 4px 0 4px 0;
+      min-height: 38px;
+    }
+    .floor-panel-btn {
+      font-size: 0.97rem;
+      padding: 4px 12px;
+      border-radius: 12px;
+      min-width: 90px;
+      min-height: 32px;
+      line-height: 1.2;
+      background: #edf2f7; /* Light button background */
+      color: #2d3748; /* Dark text color */
+      border: 1px solid #cbd5e0; /* Subtle border */
+      transition: background 0.3s, color 0.3s;
+    }
+    .floor-panel-btn:hover {
+      background: #e2e8f0; /* Slightly darker on hover */
+      color: #1a202c; /* Darker text on hover */
     }
     .floor-panel-btn.active {
-      background: #007bff;
-      color: #fff;
+      background: #3182ce; /* Blue for active state */
+      color: #ffffff; /* White text for active state */
     }
     #floorPanelView {
       min-height: 300px;
@@ -23,35 +43,226 @@
       padding: 24px;
       background: #fafbfc;
     }
+    #addPanelBtnTop {
+      font-size: 0.97rem;
+      padding: 4px 14px;
+      border-radius: 12px;
+      min-width: 90px;
+      min-height: 32px;
+      line-height: 1.2;
+      margin-bottom: 10px;
+      margin-top: 0;
+      align-self: flex-start;
+      box-shadow: 0 2px 8px #007bff11;
+    }
     #tablePopup .card {
       background-color: rgba(255,255,255,0.7) !important;
       backdrop-filter: blur(2px);
       box-shadow: 0 2px 16px rgba(0,0,0,0.10);
     }
+    @media (max-width: 991px) {
+      .floor-panel-bar { flex-wrap: wrap; gap: 8px; }
+      #floorPanelView { padding: 12px; }
+    }
+    @media (max-width: 767px) {
+      .row > .col-md-6 { min-width: 100vw; max-width: 100vw; flex: 0 0 100vw; }
+      .floor-panel-bar { flex-direction: column; gap: 6px; min-height: unset; }
+      #floorPanelView { padding: 8px; }
+      .container-fluid { padding: 0 2px; }
+      h2, .fs-4 { font-size: 1.1rem !important; }
+      #addPanelBtnTop { width: 100%; min-width: 0; }
+    }
+    @media (max-width: 575px) {
+      #floorPanelView { padding: 4px; font-size: 0.95em; }
+      .floor-panel-bar { gap: 4px; }
+    }
+    #floorPanelSVGContainer svg {
+      width: 100%;
+      height: 100%;
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      display: block;
+      background: #ffffff; /* White background for SVG */
+      border: 1px solid #cbd5e0; /* Subtle border */
+      border-radius: 4px;
+    }
+    /* --- Responsive right panel layout: options + SVG/image always visible, no scrolls --- */
+    .right-panel-static {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      min-height: 320px;
+      padding: 0;
+      overflow: hidden;
+      background: linear-gradient(to bottom, #f0f4f8, #d9e2ec); /* Subtle gradient background */
+    }
+    .right-panel-options {
+      flex: 0 0 auto;
+      max-height: 20%;
+      overflow: visible;
+      padding-bottom: 0;
+      font-size: 0.95em;
+      padding: 8px 8px 0 8px;
+      background: #ffffff; /* Clean white background */
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+      border-radius: 8px 8px 0 0;
+    }
+    .right-panel-options h2,
+    .right-panel-options .fs-4 {
+      font-size: 1.05rem !important;
+      margin-top: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .right-panel-options label,
+    .right-panel-options input,
+    .right-panel-options button,
+    .right-panel-options select {
+      font-size: 0.95em !important;
+    }
+    .right-panel-options .form-label,
+    .right-panel-options .btn,
+    .right-panel-options .form-control {
+      margin-bottom: 0.25rem !important;
+      padding: 2px 6px !important;
+      height: 28px !important;
+      min-height: 24px !important;
+    }
+    .right-panel-options .btn {
+      font-size: 0.93em !important;
+      padding: 2px 10px !important;
+      min-width: 60px;
+      min-height: 24px;
+      border-radius: 8px;
+    }
+    .right-panel-options .mb-2, .right-panel-options .mb-3 {
+      margin-bottom: 0.4rem !important;
+    }
+    .right-panel-options .mt-3, .right-panel-options .mt-2 {
+      margin-top: 0.4rem !important;
+    }
+    .right-panel-options .alert {
+      font-size: 0.95em;
+      padding: 4px 8px;
+    }
+    .right-panel-svg {
+      flex: 1 1 auto;
+      min-height: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      background: #f7fafc; /* Light background for SVG area */
+      border-radius: 0 0 8px 8px;
+      border-top: 1px solid #e2e8f0;
+    }
+    #floorPanelSVGContainer {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      max-width: 100%;
+      max-height: 100%;
+      overflow: hidden;
+    }
+    @media (max-width: 991px) {
+      .right-panel-static { height: auto; min-height: 220px; }
+      .right-panel-options { max-height: 140px; font-size: 0.93em; }
+      .right-panel-svg { min-height: 120px; }
+    }
+    @media (max-width: 767px) {
+      .right-panel-static { height: auto; min-height: 120px; }
+      .right-panel-options { max-height: 110px; font-size: 0.92em; }
+      .right-panel-svg { min-height: 80px; }
+    }
+    @media (max-width: 575px) {
+      .right-panel-options { max-height: none; font-size: 0.91em; padding: 4px 2px 0 2px; }
+      .right-panel-svg { min-height: 50px; }
+    }
+
+    /* Sidebar styles */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      right: -300px; /* Hidden by default */
+      width: 300px;
+      height: 100%;
+      background: #ffffff;
+      box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+      transition: right 0.3s ease;
+      z-index: 1050;
+      padding: 16px;
+      overflow-y: auto;
+    }
+
+    .sidebar.open {
+      right: 0; /* Slide in */
+    }
+
+    .sidebar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .sidebar-header h5 {
+      margin: 0;
+      font-size: 1.25rem;
+    }
+
+    .sidebar-toggle {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      background: #3182ce;
+      color: #ffffff;
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      z-index: 1100;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .sidebar-toggle:hover {
+      background: #2b6cb0;
+    }
   </style>
 </head>
 <body>
 <div class="container-fluid">
+  <!-- Top Menu Row -->
   <div class="row">
-    <!-- Left Menu -->
-    <div id="menu-container" class="col-md-3">
-      <!-- Include the external menu -->
+    <div id="menu-container" class="col-12">
       <div id="menu"></div>
     </div>
-    <!-- Scrollable index.html -->
-    <div class="col-md-3" style="height: 90vh; overflow-y: auto; border-right: 1px solid #eee;">
+  </div>
+  <!-- Main Content Row: Left and Right ~40% and ~60% -->
+  <div class="row" style="margin-top: 50px;">
+    <!-- Scrollable index.html (Left ~40%) -->
+    <div class="col-12 col-md-5" style="height: 90vh; overflow-y: auto; border-right: 1px solid #eee; padding: 0;">
       <iframe src="index.html" style="width:100%; height:100%; border:none;"></iframe>
     </div>
-    <!-- Right Content -->
-    <div class="col-md-6">
-      <h2 class="mt-4">Διαχείριση Floor Panels</h2>
-      <div id="noPanelsMsg" class="alert alert-info d-none">
-        Δεν υπάρχουν floor panels. <button id="addPanelBtn" class="btn btn-primary btn-sm ms-2">Add Floor Panel</button>
+    <!-- Right Content (Right ~60%) -->
+    <div class="col-12 col-md-7 right-panel-static">
+      <div id="panelOptions" class="right-panel-options">
+        <h2 class="mt-4 fs-4 text-center text-md-start">Διαχείριση Floor Panels</h2>
+        <div id="noPanelsMsg" class="alert alert-info d-none text-center text-md-start">
+          Δεν υπάρχουν floor panels. <button id="addPanelBtn" class="btn btn-primary btn-sm ms-2 mt-2 mt-md-0">Add Floor Panel</button>
+        </div>
+        <div id="floorPanelBar" class="floor-panel-bar mb-3 flex-wrap"></div>
+        <button id="addPanelBtnTop" class="btn btn-success mb-3 d-none w-100 w-md-auto">Add Floor Panel</button>
+        <div id="floorPanelView" class="mb-3"></div>
       </div>
-      <div id="floorPanelBar" class="floor-panel-bar mb-3"></div>
-      <button id="addPanelBtnTop" class="btn btn-success mb-3 d-none">Add Floor Panel</button>
-      <div id="floorPanelView"></div>
-      <div id="floorPanelSVGContainer"></div>
+      <div class="right-panel-svg">
+        <div id="floorPanelSVGContainer"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -219,7 +430,7 @@ function showPanel(panel, allPanels, idx) {
       <input type="color" id="panelColorPicker" value="${panel.color || '#e3e3e3'}" style="width:40px;height:30px;vertical-align:middle;">
       <button class="btn btn-sm btn-outline-primary ms-2" id="savePanelColorBtn">Αποθήκευση χρώματος</button>
     </div>
-    <div class="mt-3" id="floorPanelSVGContainer">${svg}</div>
+    <div class="mt-3"></div>
     <div id="tablePopup" style="display:none; position:absolute; z-index:10;"></div>
   `;
 
