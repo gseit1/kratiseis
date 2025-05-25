@@ -4,7 +4,7 @@ const shopRouter = express.Router();
 const Shop = require('../models/shop'); 
 const { verifyToken, isShopOwner } = require('../middlewares/authMiddleware');
 
-const { addShop, getAllShops, getShopById, editShop, getShopReservationList, patchBookingHoursForDay, getShopTables, getReviewsForShop ,getGeneralDetails , addPhoto,deletePhoto,getPhotos, patchShopRecommendedState} = require('../controllers/shopController');
+const { addShop, getAllShops, getShopById, editShop, getShopReservationList, patchBookingHoursForDay, getShopTables, getReviewsForShop ,getGeneralDetails , addPhoto,deletePhoto,getPhotos, patchShopRecommendedState, getBookingSettingsForDate , getTableAvailabilityForDateTime} = require('../controllers/shopController');
 const { handleBookingHoursUpdate, handleIsOpenForDayUpdate } = require('../middlewares/editsMiddleware');
 const upload = require('../middlewares/multerMiddleware');
 
@@ -54,5 +54,11 @@ shopRouter.get('/api/shop/:shopId/opening-hours', async (req, res) => {
   if (!shop) return res.status(404).json({ message: 'Shop not found' });
   res.json({ openingHours: shop.openingHours });
 });
+
+// GET: Shop settings (bookingStart, bookingEnd, timeSlotSplit) για συγκεκριμένη ημερομηνία
+shopRouter.get('/api/shop/:shopId/bookingSettings', getBookingSettingsForDate);
+
+// New route for table availability
+shopRouter.get('/api/shop/:shopId/table-availability', getTableAvailabilityForDateTime);
 
 module.exports = shopRouter;

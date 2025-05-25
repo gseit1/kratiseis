@@ -2,6 +2,7 @@ const shopService = require('../services/shopServices');
 const tableService = require('../services/tableServices');
 const reservationService = require('../services/reservationServices');
 const Reservation = require('../models/reservation');
+const Table = require('../models/table');
 const mongoose = require('mongoose');
 const Shop = require('../models/shop');
 
@@ -335,6 +336,118 @@ const patchShopRecommendedState = async (req, res) => {
     }
 };
 
+// ΝΕΑ ΣΥΝΑΡΤΗΣΗ: Booking settings για συγκεκριμένη ημερομηνία
+const getBookingSettingsForDate = async (req, res) => {
+  try {
+    const { shopId } = req.params;
+    const { date } = req.query; // π.χ. "2024-06-01"
+    const shop = await Shop.findById(shopId).lean();
+    if (!shop) return res.status(404).json({ message: 'Shop not found' });
+
+    // Αν δεν δοθεί ημερομηνία, επιστρέφει τα default settings
+    if (!date) {
+      return res.json({
+        bookingStart: shop.bookingStart,
+        bookingEnd: shop.bookingEnd,
+        timeSlotSplit: shop.timeSlotSplit
+      });
+    }
+
+    // Βρες τύπο ημέρας (π.χ. "monday", "tuesday" κλπ) με native JS
+    const dayOfWeek = new Date(date).toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+    const daySettings = shop.openingHours && shop.openingHours[dayOfWeek];
+
+    res.json({
+      bookingStart: daySettings?.bookingStart ?? shop.bookingStart,
+      bookingEnd: daySettings?.bookingEnd ?? shop.bookingEnd,
+      timeSlotSplit: shop.timeSlotSplit
+    });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+const getTableAvailabilityForDateTime = async (req, res) => {
+  try {
+    const { shopId } = req.params;
+    const { date, time } = req.query;
+
+    console.log('--- getTableAvailabilityForDateTime called ---');
+    console.log('shopId:', shopId);
+    console.log('date:', date, 'time:', time);
+
+    if (!date || !time) {
+      console.log('Missing date or time');
+      return res.status(400).json({ message: 'Missing date or time' });
+    }
+
+    // Βρες όλα τα τραπέζια του shop
+    const tables = await Table.find({ shopId: new mongoose.Types.ObjectId(shopId) }).lean();
+    console.log('tables found:', tables.length);
+
+    // Βρες όλες τις κρατήσεις για αυτή τη μέρα για το shop
+    const reservations = await Reservation.find({
+      shopId: new mongoose.Types.ObjectId(shopId),
+      reservationDate: new Date(date),
+      state: { $ne: "cancelled" }
+    }).lean();
+    console.log('reservations found:', reservations.length);
+
+    // Μετατροπή ώρας σε λεπτά για εύκολη σύγκριση
+    const [targetHour, targetMin] = time.split(':').map(Number);
+    const targetMinutes = targetHour * 60 + targetMin;
+    console.log('targetMinutes:', targetMinutes);
+
+    // Για κάθε τραπέζι, έλεγξε διαθεσιμότητα και κρατήσεις
+    const result = tables.map(table => {
+      let status = "unavailable";
+
+      // 1. Έλεγχος availability του τραπεζιού
+      const tableAvailability = table.availability?.[date];
+      if (tableAvailability && Array.isArray(tableAvailability)) {
+        const isAvailable = tableAvailability.some(slot => {
+          // Μετατροπή αριθμητικού slot σε λεπτά
+          const slotMinutes = Math.round(slot * 60); // π.χ. 10.25 -> 615 λεπτά
+          return slotMinutes === targetMinutes;
+        });
+
+        if (isAvailable) {
+          status = "available";
+        }
+      }
+
+      // 2. Έλεγχος κρατήσεων
+      if (status !== "available") {
+        const tableReservations = reservations.filter(r =>
+          r.tableId && r.tableId.toString() === table._id.toString()
+        );
+
+        for (const r of tableReservations) {
+          const [startH, startM] = r.reservationTime.toString().split(':').map(Number);
+          const startMin = startH * 60 + startM;
+          const endMin = startMin + (table.estimatedReservationTime || 120); // Default 2 ώρες
+
+          if (targetMinutes >= startMin && targetMinutes < endMin) {
+            status = "reserved";
+            break;
+          }
+        }
+      }
+
+      return {
+        tableId: table._id.toString(),
+        status
+      };
+    });
+
+    console.log('result:', result);
+    res.json(result);
+  } catch (err) {
+    console.error('Error in getTableAvailabilityForDateTime:', err);
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+};
+
 module.exports = { 
     addShop,
     getAllShops,
@@ -349,4 +462,6 @@ module.exports = {
     addPhoto,
     deletePhoto,
     patchShopRecommendedState,
+    getBookingSettingsForDate,
+    getTableAvailabilityForDateTime,
 };
