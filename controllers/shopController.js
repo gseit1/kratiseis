@@ -423,11 +423,9 @@ const getTableAvailabilityForDateTime = async (req, res) => {
         );
 
         for (const r of tableReservations) {
-          const [startH, startM] = r.reservationTime.toString().split(':').map(Number);
-          const startMin = startH * 60 + startM;
-          const endMin = startMin + (table.estimatedReservationTime || 120); // Default 2 ώρες
-
-          if (targetMinutes >= startMin && targetMinutes < endMin) {
+          // reservationTime is stored as a Number (π.χ. 10.0 για 10:00, 10.5 για 10:30)
+          const reservationMinutes = Math.round(Number(r.reservationTime) * 60);
+          if (reservationMinutes === targetMinutes) {
             status = "reserved";
             break;
           }

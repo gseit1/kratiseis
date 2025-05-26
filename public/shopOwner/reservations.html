@@ -8,81 +8,170 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-        }
-        body.shopowner-has-menu { margin-top: 64px !important; }
-        #content {
-            padding: 20px;
-        }
-        /* Προσθήκη margin-top για να μην καλύπτονται τα sections από το μενού */
-        #pendingSection,
-        #content {
-            margin-top: 70px;
-        }
-        @media (max-width: 768px) {
-            #pendingSection,
-            #content {
-                margin-top: 80px;
-            }
-        }
-        /* Calendar styles */
-        #calendarContainer {
-            max-width: 340px;
-            margin: 0 auto 2rem auto;
-            background: #f8f9fa;
-            border-radius: 18px;
-            box-shadow: 0 4px 24px rgba(0,0,0,0.10);
-            padding: 1.2rem 1.2rem 1rem 1.2rem;
-        }
-        .flatpickr-calendar {
-            display: block !important;
-            position: static !important;
-            box-shadow: none;
-            background: transparent;
-            margin-bottom: 0;
-            width: 100%;
-            min-width: 220px;
-            font-size: 1rem;
-        }
-        .flatpickr-months {
-            margin-bottom: 0.7rem;
-        }
-        .flatpickr-day {
-            width: 3.5rem;
-            height: 3.5rem;
-            line-height: 3.5rem;
-            font-size: 1.35rem;
-            margin: 0.22rem;
-            border-radius: 14px;
-            transition: background 0.2s, color 0.2s, box-shadow 0.2s;
-        }
-        .flatpickr-day.selected, .flatpickr-day.today {
-            background: #007bff;
-            color: #fff;
-            font-size: 1.65rem;
-            font-weight: bold;
-            box-shadow: 0 2px 8px rgba(0,123,255,0.15);
-        }
-        .flatpickr-day:hover {
-            background: #e3f0ff;
-            color: #007bff;
-        }
-        .flatpickr-weekdays {
-            font-size: 1.18rem;
-            font-weight: 600;
-        }
-        .flatpickr-current-month input.cur-year {
-            font-size: 1.28rem;
-            font-weight: 600;
-        }
+body {
+  font-family: Arial, sans-serif;
+}
+
+body.shopowner-has-menu {
+  margin-top: 64px !important;
+}
+
+#content {
+  padding: 20px;
+}
+
+/* Προσθήκη margin-top για να μην καλύπτονται τα sections από το μενού */
+#pendingSection,
+#content {
+  margin-top: 70px;
+}
+
+@media (max-width: 768px) {
+  #pendingSection,
+  #content {
+    margin-top: 80px;
+  }
+}
+
+/* Calendar styles */
+#calendarContainer {
+  max-width: 480px;
+  min-width: 340px;
+  margin: 0 auto 2rem auto;
+  background: #f8f9fa;
+  border-radius: 18px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.10);
+  padding: 1.2rem 1.2rem 1rem 1.2rem;
+}
+
+.flatpickr-calendar {
+  display: block !important;
+  position: static !important;
+  box-shadow: none;
+  background: transparent;
+  margin-bottom: 0;
+  width: 100%;
+  min-width: 340px;
+  font-size: 1rem;
+}
+
+.flatpickr-day {
+  width: 2.8rem;
+  height: 2.2rem;
+  line-height: 2.2rem;
+  font-size: 1.1rem;
+  margin: 0.12rem;
+  border-radius: 10px;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+}
+
+.flatpickr-day.selected,
+.flatpickr-day.today {
+  background: #007bff;
+  color: #fff;
+  font-size: 1.65rem;
+  font-weight: bold;
+  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.15);
+}
+
+.flatpickr-day:hover {
+  background: #e3f0ff;
+  color: #007bff;
+}
+
+.flatpickr-weekdays {
+  font-size: 1.18rem;
+  font-weight: 600;
+}
+
+.flatpickr-current-month input.cur-year {
+  font-size: 1.28rem;
+  font-weight: 600;
+}
+
 #pendingBar {
   max-height: 420px;
   overflow-y: auto;
   margin-bottom: 1.5rem;
 }
+
 #pendingBar .list-group-item {
   cursor: pointer;
+}
+
+#tableAvailabilityTable {
+  position: sticky;
+  top: 90px;
+  z-index: 100;
+  background: #fff;
+  margin-bottom: 1rem;
+}
+
+.list-group-item {
+  border: none;
+  border-radius: 12px !important;
+  margin-bottom: 8px;
+  background: #f6f9fc;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: background 0.2s, box-shadow 0.2s;
+}
+
+.list-group-item-action:hover,
+.list-group-item-action:focus {
+  background: #e3f0ff;
+  box-shadow: 0 4px 16px rgba(0, 123, 255, 0.08);
+}
+
+.nav-tabs {
+  border: none;
+  background: #f8f9fa;
+  border-radius: 50px;
+  padding: 4px;
+}
+
+.nav-tabs .nav-link {
+  border: none !important;
+  color: #007bff;
+  font-weight: 500;
+  background: transparent;
+  transition: background 0.2s, color 0.2s;
+}
+
+.nav-tabs .nav-link.active,
+.nav-tabs .nav-link:focus {
+  background: #007bff !important;
+  color: #fff !important;
+  border-radius: 50px !important;
+}
+
+#pendingSection {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  padding: 1.2rem 1.2rem 1rem 1.2rem;
+  margin-bottom: 2rem;
+}
+
+#pendingHeadline {
+  color: #dc3545;
+  font-weight: bold;
+}
+
+.floor-panel-card {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.10);
+  padding: 1.2rem 1.2rem 1rem 1.2rem;
+  margin-bottom: 2rem;
+}
+
+.btn,
+.btn-sm,
+.btn-primary,
+.btn-danger,
+.btn-warning,
+.btn-secondary {
+  border-radius: 50px !important;
 }
     </style>
 </head>
@@ -110,20 +199,21 @@
             </div>
             <!-- Reservations Right -->
             <div id="content" class="col-md-8">
-                <section id="reservations" class="mt-3">
-                    <!-- Headline για τα υπόλοιπα -->
-                    <h3 class="mb-3">Reservations</h3>
+              <section id="reservations" class="mt-3">
+                <div class="card shadow-sm border-0 mb-4" style="background: #fff; border-radius: 18px;">
+                  <div class="card-body">
+                    <h3 class="mb-3 fw-bold text-primary"><i class="bi bi-calendar-check"></i> Reservations</h3>
                     <!-- State bar -->
-                    <ul class="nav nav-tabs mb-3" id="reservationTabs" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="accepted-tab" data-bs-toggle="tab" type="button" onclick="onTabClick('accepted')">Accepted</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="completed-tab" data-bs-toggle="tab" type="button" onclick="fetchReservations('completed')">Completed</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="notShown-tab" data-bs-toggle="tab" type="button" onclick="fetchReservations('notShown')">Not Shown</button>
-                        </li>
+                    <ul class="nav nav-tabs mb-3 rounded-pill overflow-hidden bg-light" id="reservationTabs" role="tablist" style="border: none;">
+                      <li class="nav-item" role="presentation">
+                        <button class="nav-link active rounded-pill" id="accepted-tab" data-bs-toggle="tab" type="button" onclick="onTabClick('accepted')">Accepted</button>
+                      </li>
+                      <li class="nav-item" role="presentation">
+                        <button class="nav-link rounded-pill" id="completed-tab" data-bs-toggle="tab" type="button" onclick="fetchReservations('completed')">Completed</button>
+                      </li>
+                      <li class="nav-item" role="presentation">
+                        <button class="nav-link rounded-pill" id="notShown-tab" data-bs-toggle="tab" type="button" onclick="fetchReservations('notShown')">Not Shown</button>
+                      </li>
                     </ul>
                     <!-- Scrollable list of days -->
                     <div id="reservationsDaysList" class="list-group mb-3" style="max-height: 300px; overflow-y: auto;"></div>
@@ -132,7 +222,9 @@
                     <!-- Reservations list -->
                     <div id="reservationsDayTitle" class="h5 mb-2"></div>
                     <div id="reservationsList" class="row gy-3"></div>
-                </section>
+                  </div>
+                </div>
+              </section>
             </div>
         </div>
     </div> <!-- Κλείσιμο .container-fluid -->
@@ -143,6 +235,7 @@
       <div id="floorPanelDatePicker"></div>
       <div id="floorPanelSlotsBar"></div>
       <div id="floorPanelsContainer" class="d-flex flex-wrap gap-4"></div>
+      <div id="tableAvailabilityTable" class="mt-3"></div>
     </div>
 
     <script>
@@ -200,6 +293,12 @@
             return days[dateObj.getDay()];
         }
 
+        function getDayOfWeekLabel(dateStr) {
+  const daysGR = ["Κυριακή", "Δευτέρα", "Τρίτη", "Τετάρτη", "Πέμπτη", "Παρασκευή", "Σάββατο"];
+  const d = new Date(dateStr);
+  return daysGR[d.getDay()];
+}
+
         // Render the scrollable list of reservation days
         function renderDaysList(groupedReservations) {
   const daysListDiv = document.getElementById("reservationsDaysList");
@@ -236,7 +335,7 @@
   // Βρες ημερομηνία και ημέρα
   let dayOfWeek = "";
   let formattedDate = "";
-  if (reservationsArray.length > 0) {
+  if (reservationsArray && reservationsArray.length > 0) {
     const date = reservationsArray[0].reservationDate;
     const dateObj = new Date(date);
     dayOfWeek = getDayOfWeek(dateObj);
@@ -257,8 +356,9 @@
 
   titleDiv.textContent = `${stateLabel} Κρατήσεις για ${dayOfWeek}, ${formattedDate}`;
 
-  if (!reservationsArray.length) {
-    reservationsListDiv.innerHTML = "<p class='text-center'>No reservations for this day.</p>";
+  // Εμφάνισε το μήνυμα ΜΟΝΟ στο πάνω ημερολόγιο
+  if (!reservationsArray || reservationsArray.length === 0) {
+    reservationsListDiv.innerHTML = "<p class='text-center'>Δεν υπάρχουν κρατήσεις για αυτήν τη μέρα.</p>";
     return;
   }
 
@@ -592,19 +692,32 @@ function setupCalendar(groupedReservations) {
     inline: true,
     enable: availableDates,
     locale: "default",
-    highlightToday: false, // <-- δεν υπάρχει στο flatpickr, το κάνουμε με CSS
+    highlightToday: false,
     onDayCreate: function(dObj, dStr, fp, dayElem) {
-      // Αφαιρούμε το today highlight αν δεν είναι selected (για σιγουριά)
       if (dayElem.classList.contains('today') && !dayElem.classList.contains('selected')) {
         dayElem.classList.remove('today');
       }
     },
     onChange: function(selectedDates, dateStr) {
+      // Έλεγχος: αν ΔΕΝ υπάρχουν κρατήσεις για αυτή τη μέρα, ΜΗΝ κάνεις sync προς τα κάτω!
       if (availableDates.includes(dateStr)) {
+        // Συγχρονισμός προς το floorPanelDateInput ΜΟΝΟ αν υπάρχουν κρατήσεις
+        if (floorPanelDateInput) {
+          floorPanelDateInput.value = dateStr;
+          selectedFloorPanelDate = dateStr;
+          document.getElementById('floorPanelDayOfWeek').textContent = getDayOfWeekLabel(dateStr);
+
+          // Reset slots και κλείσιμο πίνακα διαθεσιμότητας
+          selectedSlotMinutes = null;
+          renderTableAvailabilityTable([]); // Κλείνει το πινακάκι
+          updateBookingSlots();
+        }
         renderReservationsForDay(groupedReservations[dateStr], currentStateFilter, dateStr);
       } else {
+        // Μόνο το πάνω ημερολόγιο δείχνει το μήνυμα, το κάτω συνεχίζει κανονικά
         document.getElementById("reservationsList").innerHTML = "<p class='text-center'>No reservations for this day.</p>";
         document.getElementById("reservationsDayTitle").textContent = "";
+        // ΜΗΝ αλλάζεις το floorPanelDateInput, ΜΗΝ κάνεις updateBookingSlots εδώ!
       }
     }
   });
@@ -730,7 +843,15 @@ async function showPendingReservationDetails(reservationId) {
   }
 }
 
-function formatHour(hour) {
+function formatHour(hourOrMinutes) {
+  if (typeof hourOrMinutes === "number" && hourOrMinutes > 24) {
+    // Αν είναι λεπτά
+    const h = Math.floor(hourOrMinutes / 60);
+    const m = hourOrMinutes % 60;
+    return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
+  }
+  // Αν είναι hour (π.χ. 18.5)
+  let hour = hourOrMinutes;
   if (typeof hour !== "number") hour = parseFloat(hour);
   if (isNaN(hour)) return "-";
   const h = Math.floor(hour);
@@ -785,8 +906,8 @@ async function fetchAndRenderFloorPanels() {
 
 // Απόδοση floorPanel όπως στο floorPanel editor (χωρίς λειτουργίες)
 function renderFloorPanelLikeEditor(panel) {
-  const width = panel.width || 1000;
-  const height = panel.height || 700;
+  const width = panel.width || 1600; // αυξημένο
+  const height = panel.height || 1000; // αυξημένο
   const bg = panel.backgroundPhoto
     ? `<image href="${panel.backgroundPhoto}" width="${width}" height="${height}" />`
     : `<rect width="${width}" height="${height}" fill="${panel.background || '#f8f9fa'}" />`;
@@ -802,13 +923,12 @@ function renderFloorPanelLikeEditor(panel) {
         } else if (typeof t.tableId === 'string') {
           tableNumber = t.tableId;
         }
-        // Επιλογή χρώματος περιγράμματος
         let strokeColor = "#333";
         if (selectedSlotMinutes !== null && tableAvailabilityMap && tableId) {
           const status = tableAvailabilityMap[tableId];
-          if (status === "available") strokeColor = "#28a745"; // πράσινο
-          else if (status === "reserved") strokeColor = "#000"; // μαύρο
-          else if (status === "unavailable") strokeColor = "#dc3545"; // κόκκινο
+          if (status === "available") strokeColor = "#28a745";
+          else if (status === "reserved") strokeColor = "#000";
+          else if (status === "unavailable") strokeColor = "#dc3545";
         }
         return `
         <g transform="translate(${t.x || 0},${t.y || 0}) rotate(${t.rotation || 0})">
@@ -819,10 +939,10 @@ function renderFloorPanelLikeEditor(panel) {
     : '';
 
   return `
-    <div class="floor-panel-card border rounded p-2 mb-3" style="background:#fff;min-width:420px;max-width:480px;flex:1 1 30%;">
+    <div class="floor-panel-card border rounded p-2 mb-3" style="background:#fff;min-width:700px;max-width:900px;flex:1 1 60%;">
       <div class="fw-bold mb-2">${panel.name || 'Floor Panel'}</div>
       <div style="overflow:auto;">
-        <svg width="420" height="300" viewBox="0 0 ${width} ${height}" style="background:#fafbfc;border-radius:8px;">
+        <svg width="700" height="500" viewBox="0 0 ${width} ${height}" style="background:#fafbfc;border-radius:8px;">
           ${bg}
           ${tablesSvg}
         </svg>
@@ -857,13 +977,6 @@ async function renderFloorPanelDateAndSlots() {
   const section = document.getElementById('floorPanelsSection');
   if (!section) return;
 
-  // Υπολογισμός ημέρας εβδομάδας για την επιλεγμένη ημερομηνία
-  function getDayOfWeekLabel(dateStr) {
-    const daysGR = ["Κυριακή", "Δευτέρα", "Τρίτη", "Τετάρτη", "Πέμπτη", "Παρασκευή", "Σάββατο"];
-    const d = new Date(dateStr);
-    return daysGR[d.getDay()];
-  }
-
   let datePickerDiv = document.getElementById('floorPanelDatePicker');
   if (!datePickerDiv) {
     datePickerDiv = document.createElement('div');
@@ -877,10 +990,18 @@ async function renderFloorPanelDateAndSlots() {
     <span id="floorPanelDayOfWeek" class="align-middle" style="font-weight:500;">${getDayOfWeekLabel(selectedFloorPanelDate)}</span>
   `;
 
-  document.getElementById('floorPanelDateInput').addEventListener('change', async function() {
+  // Κράτα ref στο input
+  floorPanelDateInput = document.getElementById('floorPanelDateInput');
+
+  floorPanelDateInput.addEventListener('change', async function() {
     selectedFloorPanelDate = this.value;
-    // Ενημέρωσε το label ημέρας
     document.getElementById('floorPanelDayOfWeek').textContent = getDayOfWeekLabel(selectedFloorPanelDate);
+
+    // Συγχρονισμός flatpickr (αν υπάρχει)
+    if (window.flatpickrInstance) {
+      window.flatpickrInstance.setDate(selectedFloorPanelDate, true);
+    }
+
     await updateBookingSlots();
   });
 
@@ -904,6 +1025,12 @@ async function updateBookingSlots() {
 
   if (!bookingSettings || bookingSettings.bookingStart == null || bookingSettings.bookingEnd == null || !bookingSettings.timeSlotSplit) {
     slotsDiv.innerHTML = `<div class="alert alert-warning">Δεν υπάρχουν διαθέσιμες ώρες για αυτή τη μέρα.</div>`;
+    // Εμφάνισε και στο calendar ότι δεν υπάρχουν κρατήσεις
+    if (window.flatpickrInstance) {
+      window.flatpickrInstance.setDate(selectedFloorPanelDate, true);
+    }
+    document.getElementById("reservationsList").innerHTML = "<p class='text-center'>No reservations for this day.</p>";
+    document.getElementById("reservationsDayTitle").textContent = "";
     return;
   }
 
@@ -915,12 +1042,6 @@ async function updateBookingSlots() {
   while (currentMinutes < endMinutes) {
     slots.push(currentMinutes);
     currentMinutes += splitMinutes;
-  }
-
-  function formatHour(minutes) {
-    const h = Math.floor(minutes / 60);
-    const m = minutes % 60;
-    return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
   }
 
   slotsDiv.innerHTML = `
@@ -946,11 +1067,12 @@ window.onSlotClick = async function(minutes) {
   const min = (minutes % 60).toString().padStart(2, "0");
   const timeStr = `${hour}:${min}`;
   const res = await fetch(`/api/shop/${shopId}/table-availability?date=${selectedFloorPanelDate}&time=${timeStr}`);
+  let availabilityData = [];
   if (res.ok) {
-    const data = await res.json();
+    availabilityData = await res.json();
     // Δημιούργησε map: tableId -> status
     tableAvailabilityMap = {};
-    data.forEach(t => {
+    availabilityData.forEach(t => {
       tableAvailabilityMap[t.tableId] = t.status;
     });
   } else {
@@ -960,14 +1082,54 @@ window.onSlotClick = async function(minutes) {
   fetchAndRenderFloorPanels();
   // Επαν-απόδωσε τα slots για να δείχνει το επιλεγμένο
   await updateBookingSlots();
+  // Απόδωσε το πινακάκι διαθεσιμότητας
+  renderTableAvailabilityTable(availabilityData);
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
-  // Βρες το shopId πριν καλέσεις τα panels/slots
   shopId = await getShopId();
   await renderFloorPanelDateAndSlots();
   fetchAndRenderFloorPanels();
 });
+
+function renderTableAvailabilityTable(availabilityData) {
+  const tableDiv = document.getElementById('tableAvailabilityTable');
+  if (!availabilityData || !Array.isArray(availabilityData) || availabilityData.length === 0) {
+    tableDiv.innerHTML = '';
+    return;
+  }
+  tableDiv.innerHTML = `
+    <div class="card">
+      <div class="card-header fw-bold">Διαθεσιμότητα Τραπεζιών για το επιλεγμένο slot</div>
+      <div class="table-responsive">
+        <table class="table table-bordered table-sm mb-0">
+          <thead>
+            <tr>
+              <th>Table ID</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${availabilityData.map(t => `
+              <tr>
+                <td>${t.tableId}</td>
+                <td>
+                  <span class="badge ${
+                    t.status === 'available' ? 'bg-success' :
+                    t.status === 'reserved' ? 'bg-dark' :
+                    t.status === 'unavailable' ? 'bg-danger' : 'bg-secondary'
+                  }">${t.status}</span>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+  // Scroll στον πίνακα όταν εμφανίζεται
+  tableDiv.scrollIntoView({ behavior: "smooth", block: "center" });
+}
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
