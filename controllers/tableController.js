@@ -111,9 +111,12 @@ const deleteTable = async (req, res) => {
 
 //!Function για ελεγχο διαθεσιμοτητας καταστηματος για συγκεκριμενη μερα
 const checkTableAvailability = async (req, res) => {
-  const { shopId, dateString, seats } = req.query;
+  console.log("Received request for table availability with query:", req.query);
+
+  const { shopId, dateString, seats, floorPanelId } = req.query;
 
   if (!shopId || !dateString || !seats) {
+    console.error("Missing required parameters:", { shopId, dateString, seats });
     return res.status(400).json({
       success: false,
       message: 'Missing required parameters (shopId, dateString, seats)',
@@ -122,17 +125,16 @@ const checkTableAvailability = async (req, res) => {
   }
 
   try {
-    // Κλήση της υπηρεσίας checkAvailability και επιστροφή του αποτελέσματος
-    const result = await checkAvailability(req);  // Αφαίρεση του res
+    const result = await checkAvailability(req);
+    console.log("Availability Result:", result);
 
     if (result.success) {
       return res.json({ success: true, availability: result.availability });
     }
 
     return res.status(404).json({ success: false, message: result.message, availability: [] });
-
   } catch (error) {
-    console.error(error);
+    console.error("Error in checkTableAvailability:", error.message);
     return res.status(500).json({ success: false, message: error.message, availability: [] });
   }
 };

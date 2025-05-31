@@ -1,7 +1,10 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
-const rateLimit = require('express-rate-limit');
+const cookieParser = require('cookie-parser');
+const http = require('http'); // <-- ΝΕΟ
+const { Server } = require('socket.io'); // <-- ΝΕΟ
+
 const authRouter = require('./routes/auth');
 const shopRouter = require('./routes/shop');
 const tableRouter = require('./routes/table');
@@ -21,10 +24,9 @@ const floorPanelRouter = require('./routes/floorPanel');
 const statisticsRouter = require('./routes/statistics');
 
 
-const cookieParser = require('cookie-parser');
-
 const PORT = 300; // Define port number server will listen
 const app = express(); // Create an instance of express application
+const server = http.createServer(app); // <-- ΝΕΟ
 //mongoDB string
 const DB = "mongodb+srv://kon21pan:Konpa21%21%40@cluster0.0kwjk.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 /**
@@ -67,11 +69,34 @@ app.use('/api/stats', statisticsRouter);
 
 
 
+// --- Socket.IO setup ---
+const io = new Server(server, {
+  cors: { origin: "*" }
+});
+
+// Map για να συνδέεις shopId με socketId
+const shopOwnerSockets = new Map();
+
+io.on('connection', (socket) => {
+  // Ο shopOwner στέλνει το shopId του μόλις συνδεθεί
+  socket.on('registerShopOwner', (shopId) => {
+    shopOwnerSockets.set(shopId, socket.id);
+  });
+
+  socket.on('disconnect', () => {
+    for (const [shopId, id] of shopOwnerSockets.entries()) {
+      if (id === socket.id) shopOwnerSockets.delete(shopId);
+    }
+  });
+});
+
+// Κάνε το io διαθέσιμο παντού
+app.set('io', io);
+app.set('shopOwnerSockets', shopOwnerSockets);
+
+
 // Εξυπηρέτηση του φακέλου public
 app.use(express.static(path.join(__dirname, 'public')));
-
-
-
 
 
 app.use((req, res, next) => {
@@ -84,7 +109,8 @@ mongoose.connect(DB).then(() => {
     console.log('Mongo connected');
 });
 
-app.listen(PORT, "0.0.0.0", function () {
+// Τρέξε τον server με το http server (όχι app.listen)
+server.listen(PORT, "0.0.0.0", function () {
     // Log message
     console.log(`Server is running on port ${PORT}`);
 });

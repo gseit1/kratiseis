@@ -191,9 +191,14 @@ body.shopowner-has-menu {
             <!-- Pending Bar Left -->
             <div class="col-md-4 mb-4">
                 <section id="pendingSection">
-                    <h2 id="pendingHeadline" class="mb-2">
-                        Pending Reservations (<span id="pendingCount">0</span>)
-                    </h2>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h2 id="pendingHeadline">
+                            Pending Reservations (<span id="pendingCount">0</span>)
+                        </h2>
+                        <button id="addReservationBtn" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i> Add Reservation
+                        </button>
+                    </div>
                     <div id="pendingBar" class="mb-3" style="max-height: 80vh; overflow-y: auto;"></div>
                 </section>
             </div>
@@ -1133,5 +1138,135 @@ function renderTableAvailabilityTable(availabilityData) {
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+    <!-- Προσθήκη του modal στο τέλος του body, πριν τα script tags -->
+<div class="modal fade" id="availabilityModal" tabindex="-1" aria-labelledby="availabilityModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="availabilityModalLabel">Add Reservation</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-0" style="height: 80vh;">
+        <iframe id="availabilityFrame" src="about:blank" width="100%" height="100%" frameborder="0"></iframe>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Back</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+// Χειρισμός του κουμπιού Add Reservation
+document.addEventListener('DOMContentLoaded', function() {
+  const addReservationBtn = document.getElementById('addReservationBtn');
+  const availabilityFrame = document.getElementById('availabilityFrame');
+  
+  if (addReservationBtn) {
+    addReservationBtn.addEventListener('click', function() {
+      // Δημιουργία του modal αντικειμένου
+      const availabilityModal = new bootstrap.Modal(document.getElementById('availabilityModal'));
+      
+      // Φόρτωση της σελίδας availability.html στο iframe
+      availabilityFrame.src = 'availability.html';
+      
+      // Εμφάνιση του modal
+      availabilityModal.show();
+    });
+  } else {
+    console.error("Το κουμπί addReservationBtn δεν βρέθηκε");
+  }
+  
+  // Επικοινωνία με το iframe για να ακούμε για επιτυχημένες κρατήσεις
+  window.addEventListener('message', function(event) {
+    if (event.data === 'reservationSuccess') {
+      // Κλείσιμο του modal όταν γίνεται επιτυχής κράτηση
+      const availabilityModal = bootstrap.Modal.getInstance(document.getElementById('availabilityModal'));
+      if (availabilityModal) {
+        availabilityModal.hide();
+        
+        // Ανανέωση των κρατήσεων
+        renderPendingBar();
+        fetchReservations(currentStateFilter);
+      }
+    }
+  });
+  
+  // Όταν κλείνει το modal, καθαρίζουμε το iframe
+  document.getElementById('availabilityModal').addEventListener('hidden.bs.modal', function() {
+    // Μικρή καθυστέρηση για να ολοκληρωθούν άλλες λειτουργίες
+    setTimeout(function() {
+      availabilityFrame.src = 'about:blank';
+    }, 100);
+    
+    // Ανανέωση των κρατήσεων μετά το κλείσιμο του modal
+    renderPendingBar();
+    fetchReservations(currentStateFilter);
+  });
+});
+</script>
+
+<!-- Προσθήκη Modal για λεπτομέρειες κράτησης στο τέλος του αρχείου, πριν τα script tags -->
+<div class="modal fade" id="reservationDetailsModal" tabindex="-1" aria-labelledby="reservationDetailsModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="reservationDetailsModalLabel">Reservation Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="reservationDetailsModalBody">
+        <!-- Το περιεχόμενο θα προστεθεί δυναμικά -->
+      </div>
+      <div class="modal-footer" id="reservationDetailsModalFooter">
+        <!-- Τα κουμπιά θα προστεθούν δυναμικά -->
+      </div>
+    </div>
+  </div>
+</div>
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  // Πάρε το shopId πριν κάνεις emit!
+  let shopId = null;
+  try {
+    const userRes = await fetch('/api/users/details', { credentials: 'include' });
+    if (userRes.ok) {
+      const userData = await userRes.json();
+      shopId = userData?.user?.shopId;
+    }
+  } catch (e) {
+    console.error('Could not fetch shopId', e);
+  }
+  if (!shopId) {
+    console.warn('No shopId found for socket registration');
+    return;
+  }
+
+  const socket = io('http://localhost:300'); // ή το domain σου
+  socket.emit('registerShopOwner', shopId);
+
+  socket.on('newReservation', (data) => {
+    showReservationAlert(data.message);
+    renderPendingBar();
+    fetchReservations(currentStateFilter);
+  });
+});
+
+function showReservationAlert(msg) {
+  const tab = document.getElementById('reservationsTab');
+  if (tab) {
+    let badge = tab.querySelector('.notification-badge');
+    if (!badge) {
+      badge = document.createElement('span');
+      badge.className = 'notification-badge bg-danger ms-2';
+      badge.style.cssText = 'border-radius:50%;padding:2px 8px;color:#fff;font-size:0.9em;';
+      tab.appendChild(badge);
+    }
+    badge.textContent = '!';
+    badge.style.display = 'inline-block';
+  }
+  alert(msg);
+}
+</script>
 </body>
 </html>

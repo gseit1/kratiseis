@@ -144,29 +144,47 @@ const initializeAvailabilityForDateBatch = async (shop, table, dateString) => {
 
 
 const checkAvailability = async (req) => {
-  const { shopId, dateString, seats } = req.query;
+  const { shopId, dateString, seats, floorPanelId } = req.query;
+
+  console.log("Checking availability with the following parameters:");
+  console.log("Shop ID:", shopId);
+  console.log("Date String:", dateString);
+  console.log("Seats:", seats);
+  console.log("Floor Panel ID:", floorPanelId);
 
   try {
     const date = new Date(dateString);
     if (isNaN(date.getTime())) {
+      console.error("Invalid date format:", dateString);
       return { success: false, message: 'Invalid date format', availability: [] };
     }
 
-    // Retrieve the shop and its booking hours
     const shop = await Shop.findById(shopId);
     if (!shop) {
+      console.error("Shop not found for ID:", shopId);
       return { success: false, message: 'Shop not found', availability: [] };
     }
 
-    const tables = await Table.find({ shopId }).populate('floorPanelId');
+    const tablesQuery = { shopId };
+    if (floorPanelId) {
+      tablesQuery.floorPanelId = floorPanelId;
+    }
+
+    console.log("Tables Query:", tablesQuery);
+
+    const tables = await Table.find(tablesQuery).populate('floorPanelId');
+    console.log("Found Tables:", tables);
+
     if (!tables || tables.length === 0) {
-      return { success: false, message: 'No tables found for this shop', availability: [] };
+      console.warn("No tables found for the given criteria.");
+      return { success: false, message: 'No tables found for this shop or floor panel', availability: [] };
     }
 
     const availableHoursSet = new Set();
 
     for (const table of tables) {
-      // Check seat capacity and minimum seats
+      console.log("Processing Table:", table._id, "Seats:", table.seats);
+
       if (table.seats >= seats && table.minimumSeats <= seats) {
         let availabilityForDate = [];
         if (table.availability instanceof Map) {
@@ -175,18 +193,22 @@ const checkAvailability = async (req) => {
           availabilityForDate = table.availability?.[dateString] || [];
         }
 
+        console.log("Availability for Table on Date:", availabilityForDate);
+
         for (const hour of availabilityForDate) {
           availableHoursSet.add(hour);
         }
+      } else {
+        console.log("Table does not meet seat requirements:", table._id);
       }
     }
 
-    const availableHours = Array.from(availableHoursSet);
+    const availableHours = Array.from(availableHoursSet).sort((a, b) => a - b);
+    console.log("Final Available Hours:", availableHours);
 
     return { success: true, availability: availableHours };
-
   } catch (error) {
-    console.error(error);
+    console.error("Error in checkAvailability:", error.message);
     return { success: false, message: error.message, availability: [] };
   }
 };
@@ -403,23 +425,37 @@ const updateWhenReservationDelete = async (tableId, reservationDate, reservation
 
 
 // Συνάρτηση για την εύρεση του καταλληλότερου διαθέσιμου τραπεζιού
-const findBestAvailableTable = async (shopId, reservationDate, reservationTime, numberOfPeople) => {
+const findBestAvailableTable = async (shopId, reservationDate, reservationTime, numberOfPeople, floorPanelId = null) => {
   try {
     const dateKey = new Date(reservationDate).toISOString().split('T')[0];
     const parsedReservationTime = parseFloat(reservationTime);
 
-    // Custom query: find a table with at least the number of seats and whose availability for the date includes the reservation time.
-    const table = await Table.findOne({
+    // Δημιουργία query για αναζήτηση τραπεζιών
+    let tableQuery = {
       shopId,
       seats: { $gte: numberOfPeople },
-      minimumSeats: { $lte: numberOfPeople }, // Έλεγχος για minimumSeats
-      [`availability.${dateKey}`]: { $in: [parsedReservationTime] }
-    }).sort({ seats: 1 });
+      minimumSeats: { $lte: numberOfPeople },
+      [`availability.${dateKey}`]: { $in: [parsedReservationTime] },
+    };
+
+    // Αν υπάρχει floorPanelId, προσθέτουμε φίλτρο για το συγκεκριμένο floorPanel
+    if (floorPanelId && floorPanelId !== 'null') {
+      tableQuery = {
+        ...tableQuery,
+        floorPanelId: floorPanelId, // Ενημέρωση του query με το floorPanelId
+      };
+    }
+
+    console.log("Table Query for findBestAvailableTable:", tableQuery);
+
+    // Αναζήτηση τραπεζιού με βάση το query
+    const table = await Table.findOne(tableQuery).sort({ seats: 1 });
 
     if (!table) {
       throw new Error('No available table found');
     }
 
+    console.log("Best table found:", table);
     return table;
   } catch (error) {
     console.error('Error in findBestAvailableTable:', error.message);

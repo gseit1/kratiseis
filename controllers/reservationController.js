@@ -14,15 +14,21 @@ const addManualReservation = async (req, res) => {
 
     // Ελέγχουμε αν έχουν δοθεί όλα τα απαραίτητα δεδομένα
     if (!reservationData.shopId || !reservationData.reservationDate || !reservationData.reservationTime || !reservationData.seats) {
+      console.error("❌ Missing required fields for manual reservation:", reservationData);
       throw new Error("Missing required fields for manual reservation");
     }
+
+    // Λήψη του floorPanelId αν υπάρχει
+    const floorPanelId = reservationData.floorPanelId || null;
+    console.log("🔹 FloorPanel ID:", floorPanelId);
 
     // Βρίσκουμε το καταλληλότερο διαθέσιμο τραπέζι
     const bestTable = await findBestAvailableTable(
       reservationData.shopId,
       reservationData.reservationDate,
       reservationData.reservationTime,
-      reservationData.seats
+      reservationData.seats,
+      floorPanelId // Περνάμε το floorPanelId στη συνάρτηση
     );
 
     if (!bestTable) {
@@ -32,11 +38,14 @@ const addManualReservation = async (req, res) => {
 
     console.log("✅ Best table found for manual reservation:", bestTable);
 
-    // Προσθέτουμε το tableId στο reservationData
+    // Προσθέτουμε το tableId και το floorPanelId στο reservationData
     reservationData.tableId = bestTable._id;
+    reservationData.floorPanelId = bestTable.floorPanelId || null;
 
     // Ορίζουμε το state ως "accepted"
     reservationData.state = 'accepted';
+
+    console.log("🔹 Creating reservation with data:", reservationData);
 
     // Δημιουργούμε την κράτηση
     const newReservation = await addReservationService(reservationData);
@@ -51,6 +60,7 @@ const addManualReservation = async (req, res) => {
     );
 
     // Ενημέρωση της διαθεσιμότητας του τραπεζιού
+    console.log("🔹 Updating table availability for table:", reservationData.tableId);
     await updateTableAvailability(
       reservationData.tableId,
       reservationData.reservationDate,
@@ -58,6 +68,21 @@ const addManualReservation = async (req, res) => {
     );
 
     console.log("✅ Table availability updated successfully for manual reservation");
+
+    // WebSocket notification to shopOwner
+    try {
+      const io = req.app.get('io');
+      const shopOwnerSockets = req.app.get('shopOwnerSockets');
+      if (io && shopOwnerSockets && shopOwnerSockets.has(reservationData.shopId)) {
+        const socketId = shopOwnerSockets.get(reservationData.shopId);
+        io.to(socketId).emit('newReservation', {
+          message: 'Νέα κράτηση στο κατάστημά σας!',
+          reservation: newReservation
+        });
+      }
+    } catch (wsErr) {
+      console.warn('WebSocket notification failed:', wsErr.message);
+    }
 
     res.status(201).json({ success: true, message: "Manual reservation added successfully", reservation: newReservation });
   } catch (error) {
@@ -136,6 +161,21 @@ const addUserReservation = async (req, res) => {
 
     console.log("✅ Table availability updated successfully for user reservation");
 
+    // WebSocket notification to shopOwner
+    try {
+      const io = req.app.get('io');
+      const shopOwnerSockets = req.app.get('shopOwnerSockets');
+      if (io && shopOwnerSockets && shopOwnerSockets.has(reservationData.shopId)) {
+        const socketId = shopOwnerSockets.get(reservationData.shopId);
+        io.to(socketId).emit('newReservation', {
+          message: 'Νέα κράτηση στο κατάστημά σας!',
+          reservation: newReservation
+        });
+      }
+    } catch (wsErr) {
+      console.warn('WebSocket notification failed:', wsErr.message);
+    }
+
     res.status(201).json({ success: true, message: "User reservation added successfully", reservation: newReservation });
   } catch (error) {
     console.error("❌ Error in addUserReservation:", error);
@@ -193,6 +233,21 @@ const addGuestReservation = async (req, res) => {
     );
 
     console.log("✅ Table availability updated successfully for guest reservation");
+
+    // WebSocket notification to shopOwner
+    try {
+      const io = req.app.get('io');
+      const shopOwnerSockets = req.app.get('shopOwnerSockets');
+      if (io && shopOwnerSockets && shopOwnerSockets.has(reservationData.shopId)) {
+        const socketId = shopOwnerSockets.get(reservationData.shopId);
+        io.to(socketId).emit('newReservation', {
+          message: 'Νέα κράτηση στο κατάστημά σας!',
+          reservation: newReservation
+        });
+      }
+    } catch (wsErr) {
+      console.warn('WebSocket notification failed:', wsErr.message);
+    }
 
     res.status(201).json({ success: true, message: "Guest reservation added successfully", reservation: newReservation });
   } catch (error) {
