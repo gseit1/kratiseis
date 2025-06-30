@@ -7,25 +7,36 @@ const {
   searchShopsByCityAndRegion,
   searchShopsByCityAndCategory,
   searchShopsByCityRegionAndCategory,
+  searchShopsWithAvailability,
 } = require('../controllers/searchShopsController');
 
 const searchShopsRouter = express.Router();
 
+// Base search route - return all shops when no specific filters
+searchShopsRouter.get('/api/search', async (req, res) => {
+  try {
+    const shops = await Shop.find({}).populate('city').populate('region').populate('category');
+    res.status(200).json(shops);
+  } catch (error) {
+    console.error('Error in general search:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
 
 // Route για αναζήτηση καταστημάτων με βάση την πόλη
-searchShopsRouter.get('/search/city/:cityId', searchShopsByCity);
+searchShopsRouter.get('/api/search/city/:cityId', searchShopsByCity);
 
 // Route για αναζήτηση καταστημάτων με βάση την πόλη και την περιοχή
-searchShopsRouter.get('/search/city/:cityId/region/:regionId', searchShopsByCityAndRegion);
+searchShopsRouter.get('/api/search/city/:cityId/region/:regionId', searchShopsByCityAndRegion);
 
 // Route για αναζήτηση καταστημάτων με βάση την πόλη και την κατηγορία
-searchShopsRouter.get('/search/city/:cityId/category/:categoryId', searchShopsByCityAndCategory);
+searchShopsRouter.get('/api/search/city/:cityId/category/:categoryId', searchShopsByCityAndCategory);
 
 // Route για αναζήτηση καταστημάτων με βάση την πόλη, την περιοχή και την κατηγορία
-searchShopsRouter.get('/search/city/:cityId/region/:regionId/category/:categoryId', searchShopsByCityRegionAndCategory);
+searchShopsRouter.get('/api/search/city/:cityId/region/:regionId/category/:categoryId', searchShopsByCityRegionAndCategory);
 
 // Route για αναζήτηση καταστημάτων για χρήση χάρτη
-searchShopsRouter.get('/search/city/:cityId/mapUse', async (req, res) => {
+searchShopsRouter.get('/api/search/city/:cityId/mapUse', async (req, res) => {
     const { cityId } = req.params;
 
     try {
@@ -36,5 +47,8 @@ searchShopsRouter.get('/search/city/:cityId/mapUse', async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 });
+
+// New route for availability-aware search
+searchShopsRouter.get('/api/search/availability', searchShopsWithAvailability);
 
 module.exports = searchShopsRouter;

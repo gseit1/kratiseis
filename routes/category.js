@@ -11,10 +11,10 @@ const {
 } = require('../controllers/categoryController');
 
 
-categoryRouter.post('/category', upload.single('image'), addCategory);
-categoryRouter.patch('/category/:id', upload.single('image'), editCategory);
-categoryRouter.delete('/category/:id', deleteCategory);
-categoryRouter.get('/category', getAllCategories);
-categoryRouter.get('/category/:id', getCategoryById);
+categoryRouter.post('/api/category', upload.single('image'), addCategory);
+categoryRouter.patch('/api/category/:id', upload.single('image'), editCategory);
+categoryRouter.delete('/api/category/:id', deleteCategory);
+categoryRouter.get('/api/category', getAllCategories);
+categoryRouter.get('/api/category/:id', getCategoryById);
 
 module.exports = categoryRouter;

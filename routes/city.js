@@ -5,10 +5,10 @@ const City = require('../models/city');
 
 const cityRouter = express.Router();
 
-cityRouter.post('/city', upload.single('image'), addCity); // Accepts latitude and longitude in the body
-cityRouter.patch('/city/:id', upload.single('image'), editCity); // Accepts latitude and longitude in the body
-cityRouter.delete('/city/:id', deleteCity);
-cityRouter.get('/city', getAllCities);
-cityRouter.get('/city/:id', getCityById); // Fetch a city by its ID
+cityRouter.post('/api/city', upload.single('image'), addCity); // Accepts latitude and longitude in the body
+cityRouter.patch('/api/city/:id', upload.single('image'), editCity); // Accepts latitude and longitude in the body
+cityRouter.delete('/api/city/:id', deleteCity);
+cityRouter.get('/api/city', getAllCities);
+cityRouter.get('/api/city/:id', getCityById); // Fetch a city by its ID
 
 module.exports = cityRouter;

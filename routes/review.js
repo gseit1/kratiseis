@@ -12,9 +12,9 @@ const { canPostReview } = require('../middlewares/reviewMiddleware');
 const reviewRouter = express.Router();
 
 // Routes
-reviewRouter.post('/review', verifyToken, canPostReview, addReview); // Προστασία με middleware
-reviewRouter.patch('/review/:id', editReview);
-reviewRouter.delete('/review/:id', deleteReview);
-reviewRouter.post('/reviews', getAllReviews);
+reviewRouter.post('/api/review', verifyToken, canPostReview, addReview); // Προστασία με middleware
+reviewRouter.patch('/api/review/:id', editReview);
+reviewRouter.delete('/api/review/:id', deleteReview);
+reviewRouter.post('/api/reviews', getAllReviews);
 
 module.exports = reviewRouter;

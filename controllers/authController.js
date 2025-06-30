@@ -1,6 +1,7 @@
 const admin = require('../firebase_auth/firebaseAdmin');
 const User = require('../models/user');
 const Shop = require('../models/shop');
+const Reservation = require('../models/reservation');
 
 // Εγγραφή χρήστη
 // Εγγραφή χρήστη
@@ -348,8 +349,19 @@ const getUserReservationHistory = async (req, res) => {
       });
     }
 
-    // Βρείτε τον χρήστη στη βάση δεδομένων
-    const user = await User.findById(req.user.id).populate('reservationHistory').lean();
+    // Βρείτε τον χρήστη στη βάση δεδομένων και populate reservationHistory με shop data
+    const user = await User.findById(req.user.id).populate({
+      path: 'reservationHistory',
+      populate: {
+        path: 'shopId',
+        model: 'Shop',
+        populate: [
+          { path: 'city', model: 'City' },
+          { path: 'region', model: 'Region' },
+          { path: 'category', model: 'Category' }
+        ]
+      }
+    }).lean();
 
     if (!user) {
       return res.status(404).json({
@@ -357,9 +369,33 @@ const getUserReservationHistory = async (req, res) => {
       });
     }
 
+    // Transform the data to match frontend expectations
+    const transformedReservations = user.reservationHistory.map(reservation => ({
+      _id: reservation._id,
+      date: reservation.reservationDate,
+      time: reservation.reservationTime,
+      numberOfGuests: reservation.seats,
+      status: reservation.state,
+      specialRequests: reservation.commentFromUser,
+      shop: reservation.shopId ? {
+        _id: reservation.shopId._id,
+        name: reservation.shopId.name,
+        images: reservation.shopId.images || [],
+        city: reservation.shopId.city,
+        region: reservation.shopId.region,
+        category: reservation.shopId.category
+      } : {
+        _id: reservation.shopId,
+        name: reservation.shopName || 'Unknown Restaurant'
+      },
+      tableId: reservation.tableId,
+      createdAt: reservation.createdAt,
+      updatedAt: reservation.updatedAt
+    }));
+
     // Επιστροφή του reservationHistory
     res.status(200).json({
-      reservationHistory: user.reservationHistory || [],
+      reservationHistory: transformedReservations,
     });
   } catch (error) {
     console.error('Error fetching reservation history:', error.message);
@@ -510,6 +546,53 @@ const getUserReviews = async (req, res) => {
   }
 };
 
+// Ενημέρωση προφίλ χρήστη
+const updateProfile = async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        message: 'Unauthorized: No authenticated user',
+      });
+    }
+
+    const { name, surname } = req.body;
+    const userId = req.user._id;
+
+    // Βρες τον χρήστη και ενημέρωσε τα στοιχεία
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { 
+        ...(name && { name }),
+        ...(surname && { surname })
+      },
+      { new: true, runValidators: true }
+    ).select('name surname email role');
+
+    if (!user) {
+      return res.status(404).json({
+        message: 'User not found',
+      });
+    }
+
+    res.status(200).json({
+      message: 'Profile updated successfully',
+      user: {
+        id: user._id,
+        name: user.name,
+        surname: user.surname,
+        email: user.email,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    console.error('Error in updateProfile:', error);
+    res.status(500).json({
+      message: 'Error updating profile',
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   signUp,
   login,
@@ -517,6 +600,7 @@ module.exports = {
   deleteUser,
   getUserRole,
   getUserDetails,
+  updateProfile,
   setUserShopId,
   getAllUsers,
   filterByRole,

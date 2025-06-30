@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
 const cookieParser = require('cookie-parser');
+const cors = require('cors');
 const http = require('http'); // <-- ΝΕΟ
 const { Server } = require('socket.io'); // <-- ΝΕΟ
 
@@ -42,6 +43,12 @@ app.use(limiter);
 
 
 //middleware to register routes or to mount routes
+app.use(cors({
+  origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+}));
 app.use(express.json());
 app.use(cookieParser());
 
@@ -62,7 +69,7 @@ app.use(uploadRouter);
 app.use(logoutRouter);
 app.use(reccomendedSearchesRouter);
 app.use(floorPanelRouter);
-app.use('/api/stats', statisticsRouter);
+app.use('/stats', statisticsRouter);
 
 
 

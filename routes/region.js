@@ -4,13 +4,13 @@ const { addRegion, deleteRegion,getAllRegions ,editRegion} = require('../control
 const regionRouter = express.Router();
 
 // Route για προσθήκη περιοχής
-regionRouter.post('/region', addRegion);
+regionRouter.post('/api/region', addRegion);
 
 // Route για διαγραφή περιοχής
-regionRouter.delete('/region/:id', deleteRegion);
+regionRouter.delete('/api/region/:id', deleteRegion);
 //
-regionRouter.get('/region', getAllRegions);
+regionRouter.get('/api/region', getAllRegions);
 //
-regionRouter.patch('/region/:id', editRegion);
+regionRouter.patch('/api/region/:id', editRegion);
 
 module.exports = regionRouter;

@@ -1,7 +1,7 @@
 const express = require('express');
 const { verifyToken, isUser } = require('../middlewares/authMiddleware');
 const { check, validationResult } = require('express-validator');
-const { signUp, login, changeUserRole, deleteUser ,getUserRole,getUserDetails,getAllUsers,setUserShopId,filterByRole , getUserReservationHistory, addToFavourites, deleteFromFavourites ,  getFavouriteShops,toggleAppliedStatus , getUserReviews} = require('../controllers/authController');
+const { signUp, login, changeUserRole, deleteUser ,getUserRole,getUserDetails,getAllUsers,setUserShopId,filterByRole , getUserReservationHistory, addToFavourites, deleteFromFavourites ,  getFavouriteShops,toggleAppliedStatus , getUserReviews, updateProfile} = require('../controllers/authController');
 const authRouter = express.Router();
 
 // Route για εγγραφή χρήστη
@@ -29,6 +29,12 @@ authRouter.post('/api/login', [
   }
   next();
 }, login);
+
+// Route για logout
+authRouter.post('/api/logout', (req, res) => {
+  res.clearCookie('jwt');
+  res.status(200).json({ message: 'Logout successful' });
+});
 
 // New route to check if user is authenticated
 authRouter.get('/api/check-auth', verifyToken, (req, res) => {
@@ -93,5 +99,17 @@ authRouter.get('/api/user/reviews', verifyToken, getUserReviews);
 
 
 authRouter.patch('/api/users/applied', verifyToken, toggleAppliedStatus);
+
+// Route για ενημέρωση προφίλ χρήστη
+authRouter.put('/api/profile', [
+  check('name').optional().isLength({ min: 1 }).trim().escape(),
+  check('surname').optional().isLength({ min: 1 }).trim().escape()
+], verifyToken, (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+  next();
+}, updateProfile);
 
 module.exports = authRouter;
